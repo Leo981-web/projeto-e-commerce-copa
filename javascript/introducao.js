@@ -99,3 +99,5 @@ function digaOla() {
 //declaracao arrow function
 soma = () => console.log(10 + 15);
 soma();
+
+// Felipe Moze
