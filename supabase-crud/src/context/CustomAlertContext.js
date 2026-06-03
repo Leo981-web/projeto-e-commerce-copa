@@ -1,13 +1,28 @@
-import { createContext, useContext, useMemo, useState } from 'react';
-import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
+import { createContext, useContext, useMemo, useState } from "react";
+import { Modal, Pressable, StyleSheet, View } from "react-native";
+import { MaterialIcons } from "@expo/vector-icons";
+
+import AppButton from "../components/AppButton";
+import AppText from "../components/AppText";
 
 const CustomAlertContext = createContext(null);
 
 const alertIcons = {
-  warning: { name: 'info-outline', color: '#b7791f', backgroundColor: '#fff7e6' },
-  danger: { name: 'error-outline', color: '#b42318', backgroundColor: '#fff0ed' },
-  success: { name: 'check-circle-outline', color: '#2d7d59', backgroundColor: '#edf7f1' },
+  warning: {
+    name: "info-outline",
+    color: "#b7791f",
+    backgroundColor: "#fff7e6",
+  },
+  danger: {
+    name: "error-outline",
+    color: "#b42318",
+    backgroundColor: "#fff0ed",
+  },
+  success: {
+    name: "check-circle-outline",
+    color: "#2d7d59",
+    backgroundColor: "#edf7f1",
+  },
 };
 
 export function CustomAlertProvider({ children }) {
@@ -22,7 +37,13 @@ export function CustomAlertProvider({ children }) {
     }
   }
 
-  function showAlert({ title, message, type = 'warning', buttonText = 'Entendi', onClose }) {
+  function showAlert({
+    title,
+    message,
+    type = "warning",
+    buttonText = "Entendi",
+    onClose,
+  }) {
     setAlertConfig({
       title,
       message,
@@ -40,9 +61,9 @@ export function CustomAlertProvider({ children }) {
   function showConfirm({
     title,
     message,
-    type = 'danger',
-    confirmText = 'Confirmar',
-    cancelText = 'Cancelar',
+    type = "danger",
+    confirmText = "Confirmar",
+    cancelText = "Cancelar",
     onConfirm,
   }) {
     setAlertConfig({
@@ -70,7 +91,7 @@ export function CustomAlertProvider({ children }) {
       showAlert,
       showConfirm,
     }),
-    []
+    [],
   );
 
   const icon = alertIcons[alertConfig?.type] ?? alertIcons.warning;
@@ -79,42 +100,60 @@ export function CustomAlertProvider({ children }) {
     <CustomAlertContext.Provider value={value}>
       {children}
 
-      <Modal animationType="fade" onRequestClose={closeAlert} transparent visible={Boolean(alertConfig)}>
+      <Modal
+        animationType="fade"
+        onRequestClose={closeAlert}
+        transparent
+        visible={Boolean(alertConfig)}
+      >
         <View style={styles.overlay}>
           <View style={styles.card}>
-            <Pressable hitSlop={10} onPress={alertConfig?.isConfirm ? dismissConfirm : closeAlert} style={styles.closeButton}>
+            <Pressable
+              hitSlop={10}
+              onPress={alertConfig?.isConfirm ? dismissConfirm : closeAlert}
+              style={styles.closeButton}
+            >
               <MaterialIcons name="close" size={22} color="#69707d" />
             </Pressable>
 
-            <View style={[styles.iconContainer, { backgroundColor: icon.backgroundColor }]}>
+            <View
+              style={[
+                styles.iconContainer,
+                { backgroundColor: icon.backgroundColor },
+              ]}
+            >
               <MaterialIcons name={icon.name} size={30} color={icon.color} />
             </View>
 
-            <Text style={styles.title}>{alertConfig?.title}</Text>
-            <Text style={styles.message}>{alertConfig?.message}</Text>
+            <AppText variant="title" style={styles.title}>
+              {alertConfig?.title}
+            </AppText>
+            <AppText variant="subtitle" style={styles.message}>
+              {alertConfig?.message}
+            </AppText>
 
             {alertConfig?.isConfirm ? (
               <View style={styles.actions}>
-                <Pressable onPress={dismissConfirm} style={[styles.button, styles.actionButton, styles.cancelButton]}>
-                  <Text style={styles.cancelButtonText}>{alertConfig.cancelText}</Text>
-                </Pressable>
+                <AppButton
+                  onPress={dismissConfirm}
+                  style={styles.actionButton}
+                  title={alertConfig.cancelText}
+                  variant="secondary"
+                />
 
-                <Pressable
+                <AppButton
                   onPress={handleConfirm}
-                  style={[
-                    styles.button,
-                    styles.actionButton,
-                    styles.confirmButton,
-                    alertConfig.type === 'danger' && styles.dangerButton,
-                  ]}
-                >
-                  <Text style={styles.confirmButtonText}>{alertConfig.confirmText}</Text>
-                </Pressable>
+                  style={styles.actionButton}
+                  title={alertConfig.confirmText}
+                  variant={alertConfig.type === "danger" ? "danger" : "primary"}
+                />
               </View>
             ) : (
-              <Pressable onPress={closeAlert} style={[styles.button, styles.singleButton]}>
-                <Text style={styles.confirmButtonText}>{alertConfig?.buttonText}</Text>
-              </Pressable>
+              <AppButton
+                onPress={closeAlert}
+                style={styles.singleButton}
+                title={alertConfig?.buttonText}
+              />
             )}
           </View>
         </View>
@@ -127,7 +166,9 @@ export function useCustomAlert() {
   const context = useContext(CustomAlertContext);
 
   if (!context) {
-    throw new Error('useCustomAlert deve ser usado dentro de CustomAlertProvider.');
+    throw new Error(
+      "useCustomAlert deve ser usado dentro de CustomAlertProvider.",
+    );
   }
 
   return context;
@@ -136,87 +177,56 @@ export function useCustomAlert() {
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     padding: 24,
-    backgroundColor: 'rgba(32, 36, 44, 0.42)',
+    backgroundColor: "rgba(32, 36, 44, 0.42)",
   },
   card: {
-    width: '100%',
+    width: "100%",
     padding: 22,
     paddingTop: 24,
     borderRadius: 22,
-    backgroundColor: '#ffffff',
+    backgroundColor: "#ffffff",
     borderWidth: 1,
-    borderColor: '#eee4d8',
+    borderColor: "#eee4d8",
   },
   closeButton: {
-    position: 'absolute',
+    position: "absolute",
     top: 14,
     right: 14,
     zIndex: 1,
     width: 36,
     height: 36,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     borderRadius: 18,
-    backgroundColor: '#f4f0ea',
+    backgroundColor: "#f4f0ea",
   },
   iconContainer: {
     width: 58,
     height: 58,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     borderRadius: 29,
     marginBottom: 16,
   },
   title: {
     fontSize: 22,
-    fontWeight: '800',
-    color: '#20242c',
   },
   message: {
     marginTop: 8,
-    fontSize: 16,
-    lineHeight: 23,
-    color: '#69707d',
   },
   actions: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 10,
     marginTop: 22,
-  },
-  button: {
-    height: 48,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 14,
   },
   actionButton: {
     flex: 1,
   },
   singleButton: {
-    width: '100%',
+    width: "100%",
     marginTop: 22,
-    backgroundColor: '#2d7d59',
-  },
-  cancelButton: {
-    backgroundColor: '#f4f0ea',
-  },
-  confirmButton: {
-    backgroundColor: '#2d7d59',
-  },
-  dangerButton: {
-    backgroundColor: '#b42318',
-  },
-  cancelButtonText: {
-    color: '#424b5a',
-    fontSize: 16,
-    fontWeight: '800',
-  },
-  confirmButtonText: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: '800',
   },
 });

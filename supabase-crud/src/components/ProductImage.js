@@ -1,8 +1,15 @@
-import { useEffect, useState } from 'react';
-import { Image, StyleSheet, Text, View } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
+import { useEffect, useState } from "react";
+import { Image, StyleSheet, View } from "react-native";
+import { MaterialIcons } from "@expo/vector-icons";
 
-export default function ProductImage({ name, sourceUrl, style, iconSize = 28 }) {
+import AppText from "./AppText";
+
+export default function ProductImage({
+  name,
+  sourceUrl,
+  style,
+  iconSize = 28,
+}) {
   const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
@@ -12,10 +19,14 @@ export default function ProductImage({ name, sourceUrl, style, iconSize = 28 }) 
   if (!sourceUrl || hasError) {
     return (
       <View style={[styles.fallback, style]}>
-        <MaterialIcons name="image-not-supported" size={iconSize} color="#9a9186" />
-        <Text numberOfLines={1} style={styles.fallbackText}>
+        <MaterialIcons
+          name="image-not-supported"
+          size={iconSize}
+          color="#9a9186"
+        />
+        <AppText numberOfLines={1} style={styles.fallbackText}>
           {name}
-        </Text>
+        </AppText>
       </View>
     );
   }
@@ -32,17 +43,17 @@ export default function ProductImage({ name, sourceUrl, style, iconSize = 28 }) 
 
 const styles = StyleSheet.create({
   fallback: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
-    backgroundColor: '#ebe2d7',
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "hidden",
+    backgroundColor: "#ebe2d7",
   },
   fallbackText: {
     marginTop: 6,
     paddingHorizontal: 8,
-    color: '#69707d',
+    color: "#69707d",
     fontSize: 11,
-    fontWeight: '700',
-    textAlign: 'center',
+    fontWeight: "700",
+    textAlign: "center",
   },
 });
