@@ -1,6 +1,6 @@
-import { createContext, useContext, useMemo, useState } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
 
-import * as authService from '../services/authService';
+import * as authService from "../services/authService";
 
 const AuthContext = createContext(null);
 
@@ -33,21 +33,24 @@ export function AuthProvider({ children }) {
   }
 
   async function logout() {
-    await authService.signOut();
-    setUser(null);
+    setLoading(true);
+
+    try {
+      await authService.signOut();
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
   }
 
-  const value = useMemo(
-    () => ({
-      user,
-      loading,
-      login,
-      register,
-      logout,
-      isAuthenticated: Boolean(user),
-    }),
-    [user, loading]
-  );
+  const value = {
+    user,
+    loading,
+    login,
+    register,
+    logout,
+    isAuthenticated: Boolean(user),
+  };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
@@ -56,7 +59,7 @@ export function useAuth() {
   const context = useContext(AuthContext);
 
   if (!context) {
-    throw new Error('useAuth deve ser usado dentro de AuthProvider.');
+    throw new Error("useAuth deve ser usado dentro de AuthProvider.");
   }
 
   return context;
