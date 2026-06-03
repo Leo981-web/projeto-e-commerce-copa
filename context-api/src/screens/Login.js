@@ -1,9 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { View, Text, TextInput, Button, StyleSheet, Alert } from "react-native";
+import { useAuth } from "../context/AuthProvider";
+import { useTheme } from "../context/ThemeProvider";
 
 export default function Login({ navigation }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  const { login } = useAuth();
+  const { isDarkMode, toggleTheme } = useTheme();
 
   function handleLogin() {
     if (!email || !password) {
@@ -11,15 +16,22 @@ export default function Login({ navigation }) {
       return;
     }
 
-    navigation.replace("Home");
+    login(email, password);
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Login</Text>
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: isDarkMode ? "#000" : "#fff" },
+      ]}
+    >
+      <Text style={[styles.title, { color: isDarkMode ? "#fff" : "#000" }]}>
+        Login
+      </Text>
 
       <TextInput
-        style={styles.input}
+        style={[styles.input, { color: isDarkMode ? "#fff" : "#000" }]}
         placeholder="Digite seu e-mail"
         value={email}
         onChangeText={setEmail}
@@ -28,7 +40,7 @@ export default function Login({ navigation }) {
       />
 
       <TextInput
-        style={styles.input}
+        style={[styles.input, { color: isDarkMode ? "#fff" : "#000" }]}
         placeholder="Digite sua senha"
         value={password}
         onChangeText={setPassword}

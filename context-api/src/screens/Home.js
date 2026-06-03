@@ -1,16 +1,19 @@
 import React from "react";
 import { View, Text, Button, StyleSheet } from "react-native";
+import { useAuth } from "../context/AuthProvider";
 
 export default function Home({ navigation }) {
+  const { logout, user } = useAuth();
+
   function handleLogout() {
-    navigation.replace("Login");
+    logout();
   }
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Tela Home</Text>
 
-      <Text style={styles.text}>Você está logado.</Text>
+      <Text style={styles.text}>Você está logado {user.email}.</Text>
 
       <Button title="Sair" onPress={handleLogout} />
     </View>
