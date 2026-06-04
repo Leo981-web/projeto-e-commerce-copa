@@ -1,24 +1,25 @@
-let currentUser = null;
-let lastUserId = 1;
+import { supabase } from "./supabase";
 
 function mapUser(user) {
   if (!user) {
     return null;
   }
 
+  const metadata = user.user_metadata ?? {};
+
   return {
     id: user.id,
-    name: user.name,
+    name: metadata.name ?? user.name ?? user.email,
     email: user.email,
   };
 }
 
 function validateCredentials(email, password) {
-  if (!email || !password) {
+  if (!email?.trim() || !password) {
     throw new Error("Informe e-mail e senha.");
   }
 
-  if (!email.includes("@")) {
+  if (!email.trim().includes("@")) {
     throw new Error("Informe um e-mail válido.");
   }
 
@@ -30,34 +31,58 @@ function validateCredentials(email, password) {
 export async function signIn(email, password) {
   validateCredentials(email, password);
 
-  currentUser = {
-    id: "user-mock",
-    name: email.split("@")[0],
-    email,
-  };
+  const { error, data } = await supabase.auth.signInWithPassword({
+    email: email.trim(),
+    password,
+  });
 
-  return mapUser(currentUser);
+  if (error) {
+    throw new Error("Erro ao fazer o login: " + error.message);
+  }
+
+  return mapUser(data.user);
 }
 
 export async function signUp(name, email, password) {
-  if (!name) {
+  if (!name?.trim()) {
     throw new Error("Informe seu nome.");
   }
 
   validateCredentials(email, password);
 
-  currentUser = {
-    id: `user-${lastUserId}`,
-    name,
-    email,
-  };
+  const { error, data } = await supabase.auth.signUp({
+    email: email.trim(),
+    password,
+    options: {
+      data: {
+        name: name.trim(),
+      },
+    },
+  });
 
-  lastUserId += 1;
+  if (error) {
+    throw new Error("Erro ao fazer o cadastro: " + error.message);
+  }
 
-  return mapUser(currentUser);
+  return mapUser(data.user);
 }
 
 export async function signOut() {
-  currentUser = null;
+  const { error } = await supabase.auth.signOut();
+
+  if (error) {
+    throw new Error("Erro ao sair: " + error.message);
+  }
+
   return true;
+}
+
+export async function getCurrentUser() {
+  const { error, data } = await supabase.auth.getSession();
+
+  if (error) {
+    throw new Error("Erro ao recuperar sessão: " + error.message);
+  }
+
+  return mapUser(data.session?.user);
 }

@@ -6,6 +6,7 @@ import AppInput from "../../components/AppInput";
 import QuantityInput from "../../components/QuantityInput";
 import ScreenHeader from "../../components/ScreenHeader";
 import { useCustomAlert } from "../../context/CustomAlertContext";
+import { useAuth } from "../../context/AuthContext";
 import { parseCurrencyInput } from "../../services/formatters";
 import * as productService from "../../services/productService";
 
@@ -16,6 +17,8 @@ export default function ProductCreateScreen({ navigation }) {
   const [price, setPrice] = useState("");
   const [quantity, setQuantity] = useState("");
   const [image, setImage] = useState("");
+
+  const { user } = useAuth();
 
   async function handleSubmit() {
     if (!name || !description || !price || !quantity || !image) {
@@ -47,13 +50,16 @@ export default function ProductCreateScreen({ navigation }) {
     }
 
     try {
-      await productService.createProduct({
-        name,
-        description,
-        price,
-        quantity,
-        image,
-      });
+      await productService.createProduct(
+        {
+          name,
+          description,
+          price,
+          quantity,
+          image,
+        },
+        user.id,
+      );
       showAlert({
         title: "Produto cadastrado",
         message: "O produto foi salvo com sucesso.",
