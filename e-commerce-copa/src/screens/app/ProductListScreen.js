@@ -5,9 +5,17 @@ import {
   Pressable,
   StyleSheet,
   View,
+  Text,
+  TextInput,
+  ScrollView,
+  SafeAreaView,
+  StatusBar,
+  Dimensions,
+  TouchableOpacity,
 } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { MaterialIcons } from "@expo/vector-icons";
+import Ionicons from "@expo/vector-icons/Ionicons";
 
 import EmptyStateImage from "../../assets/empty_state.svg";
 import AppText from "../../components/AppText";
@@ -17,33 +25,56 @@ import { useCustomAlert } from "../../context/CustomAlertContext";
 import { formatCurrency } from "../../services/formatters";
 import * as productService from "../../services/productService";
 
+const { width } = Dimensions.get("window");
+
+const NAVY  = "#1A237E";
+const GREEN = "#00A650";
+const YELLOW = "#FFD600";
+const CREAM = "#F5F1E8";
+const WHITE = "#FFFFFF";
+
+// Cores por índice — alterna entre temas de países
+const COUNTRY_THEMES = [
+  { bg: "#D4EDDA", accent: "#009C3B", flag: "🇧🇷" }, // Brasil
+  { bg: "#D6E8F5", accent: "#74ACDF", flag: "🇦🇷" }, // Argentina
+  { bg: "#DDEAF7", accent: "#002395", flag: "🇫🇷" }, // França
+  { bg: "#E8E8E8", accent: "#333333", flag: "🇩🇪" }, // Alemanha
+  { bg: "#D4EDDA", accent: "#006600", flag: "🇵🇹" }, // Portugal
+  { bg: "#F7DADA", accent: "#AA151B", flag: "🇪🇸" }, // Espanha
+];
+
+const FILTERS = ["Todos", "Camisas", "Calçados", "Acessórios", "Figurinhas"];
+const NAV_ITEMS = [
+  { key: "home",      icon: "home",           iconOff: "home-outline",        label: "Início"   },
+  { key: "favorites", icon: "heart",          iconOff: "heart-outline",       label: "Favoritos" },
+  { key: "create",    icon: "add",            center: true                                       },
+  { key: "cart",      icon: "cart",           iconOff: "cart-outline",        label: "Carrinho" },
+  { key: "profile",   icon: "person",         iconOff: "person-outline",      label: "Perfil"   },
+];
+
 export default function ProductListScreen({ navigation }) {
   const { logout, user } = useAuth();
   const { showAlert, showConfirm } = useCustomAlert();
   const [loading, setLoading] = useState(true);
   const [products, setProducts] = useState([]);
+  const [search, setSearch] = useState("");
+  const [activeFilter, setActiveFilter] = useState("Todos");
+  const [activeNav, setActiveNav] = useState("home");
 
+  // ── lógica original intacta ──────────────────────────────────────────────
   async function loadProducts() {
     try {
       setLoading(true);
       const data = await productService.getProducts();
       setProducts(data);
     } catch (error) {
-      showAlert({
-        title: "Erro ao carregar produtos",
-        message: error.message,
-        type: "danger",
-      });
+      showAlert({ title: "Erro ao carregar produtos", message: error.message, type: "danger" });
     } finally {
       setLoading(false);
     }
   }
 
-  useFocusEffect(
-    useCallback(() => {
-      loadProducts();
-    }, []),
-  );
+  useFocusEffect(useCallback(() => { loadProducts(); }, []));
 
   function confirmDelete(product) {
     showConfirm({
@@ -57,11 +88,7 @@ export default function ProductListScreen({ navigation }) {
           await productService.deleteProduct(product.id);
           loadProducts();
         } catch (error) {
-          showAlert({
-            title: "Erro ao remover produto",
-            message: error.message,
-            type: "danger",
-          });
+          showAlert({ title: "Erro ao remover produto", message: error.message, type: "danger" });
         }
       },
     });
@@ -71,78 +98,75 @@ export default function ProductListScreen({ navigation }) {
     try {
       await logout();
     } catch (error) {
-      showAlert({
-        title: "Erro ao sair",
-        message: error.message,
-        type: "danger",
-      });
+      showAlert({ title: "Erro ao sair", message: error.message, type: "danger" });
     }
   }
+  // ── fim lógica original ──────────────────────────────────────────────────
 
-  function renderProduct({ item }) {
+  function renderEmptyList() {
+    return (
+      <View style={styles.emptyState}>
+        <EmptyStateImage width={200} height={150} />
+        <Text style={styles.emptyTitle}>Nenhum produto ainda</Text>
+        <Text style={styles.emptyDesc}>Cadastre o primeiro produto para começar.</Text>
+      </View>
+    );
+  }
+
+  function renderProduct({ item, index }) {
+    const theme = COUNTRY_THEMES[index % COUNTRY_THEMES.length];
+
     return (
       <Pressable
-        onPress={() =>
-          navigation.navigate("ProductDetails", { productId: item.id })
-        }
-        style={styles.card}
+        onPress={() => navigation.navigate("ProductDetails", { productId: item.id })}
+        style={[styles.card, { borderLeftColor: theme.accent, borderLeftWidth: 4 }]}
       >
-        <ProductImage
-          name={item.name}
-          sourceUrl={item.image}
-          style={styles.productImage}
-        />
+        {/* Imagem com fundo temático */}
+        <View style={[styles.cardImageWrap, { backgroundColor: theme.bg }]}>
+          <Text style={styles.cardFlag}>{theme.flag}</Text>
+          <ProductImage
+            name={item.name}
+            sourceUrl={item.image}
+            style={styles.productImage}
+          />
+        </View>
 
         <View style={styles.cardContent}>
           <View style={styles.cardHeader}>
             <AppText numberOfLines={1} style={styles.productName}>
               {item.name}
             </AppText>
-            <AppText style={styles.productPrice}>
+            <AppText style={[styles.productPrice, { color: theme.accent }]}>
               {formatCurrency(item.price)}
             </AppText>
           </View>
 
-          <AppText
-            numberOfLines={2}
-            variant="muted"
-            style={styles.productDescription}
-          >
+          <AppText numberOfLines={2} variant="muted" style={styles.productDescription}>
             {item.description}
           </AppText>
 
           <View style={styles.cardFooter}>
-            <View style={styles.quantityBadge}>
-              <MaterialIcons name="inventory-2" size={15} color="#58616f" />
-              <AppText style={styles.productQuantity}>
+            <View style={[styles.quantityBadge, { backgroundColor: theme.bg }]}>
+              <MaterialIcons name="inventory-2" size={13} color={theme.accent} />
+              <Text style={[styles.productQuantity, { color: theme.accent }]}>
                 {item.quantity} em estoque
-              </AppText>
+              </Text>
             </View>
 
             <View style={styles.actions}>
               <Pressable
                 hitSlop={8}
-                onPress={(event) => {
-                  event.stopPropagation();
-                  navigation.navigate("ProductEdit", { productId: item.id });
-                }}
+                onPress={(e) => { e.stopPropagation(); navigation.navigate("ProductEdit", { productId: item.id }); }}
                 style={styles.iconButton}
               >
-                <MaterialIcons name="edit" size={20} color="#2563eb" />
+                <MaterialIcons name="edit" size={18} color={NAVY} />
               </Pressable>
               <Pressable
                 hitSlop={8}
-                onPress={(event) => {
-                  event.stopPropagation();
-                  confirmDelete(item);
-                }}
+                onPress={(e) => { e.stopPropagation(); confirmDelete(item); }}
                 style={[styles.iconButton, styles.deleteIconButton]}
               >
-                <MaterialIcons
-                  name="delete-outline"
-                  size={21}
-                  color="#b42318"
-                />
+                <MaterialIcons name="delete-outline" size={19} color="#b42318" />
               </Pressable>
             </View>
           </View>
@@ -151,40 +175,68 @@ export default function ProductListScreen({ navigation }) {
     );
   }
 
-  function renderEmptyList() {
-    return (
-      <View style={styles.emptyState}>
-        <EmptyStateImage width={220} height={165} />
-        <AppText variant="title" style={styles.emptyTitle}>
-          Não há produtos
-        </AppText>
-        <AppText variant="muted" style={styles.emptyDescription}>
-          Cadastre o primeiro produto para começar.
-        </AppText>
-      </View>
-    );
-  }
-
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.safe}>
+      <StatusBar barStyle="dark-content" backgroundColor={CREAM} />
+
+      {/* HEADER */}
       <View style={styles.header}>
         <View>
-          <AppText variant="muted" style={styles.greeting}>
-            Olá, {user?.name}
-          </AppText>
-          <AppText variant="title" style={styles.screenTitle}>
-            Produtos
-          </AppText>
+          <Text style={styles.greeting}>Olá, {user?.name} 👋</Text>
+          <Text style={styles.headerTitle}>NOME</Text>
         </View>
-
-        <Pressable onPress={handleLogout} style={styles.logoutButton}>
-          <MaterialIcons name="logout" size={22} color="#424b5a" />
+        <Pressable onPress={handleLogout} style={styles.logoutBtn}>
+          <MaterialIcons name="logout" size={20} color={NAVY} />
         </Pressable>
       </View>
 
+      {/* BUSCA */}
+      <View style={styles.searchRow}>
+        <View style={styles.searchBox}>
+          <MaterialIcons name="search" size={20} color="#aaa" style={{ marginRight: 8 }} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Pesquisar produtos..."
+            placeholderTextColor="#aaa19a"
+            value={search}
+            onChangeText={setSearch}
+          />
+        </View>
+        <TouchableOpacity style={styles.filterIconBtn}>
+          <MaterialIcons name="tune" size={20} color={WHITE} />
+        </TouchableOpacity>
+      </View>
+
+      {/* CHAMADA */}
+      <View style={styles.callout}>
+        <Text style={styles.calloutText}>Leve a <Text style={styles.calloutGreen}>Copa</Text> pra casa! 🏆</Text>
+        <Text style={styles.calloutSub}>Produtos oficiais de cada seleção</Text>
+      </View>
+
+      {/* FILTROS */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.filtersRow}
+        style={styles.filtersScroll}
+      >
+        {FILTERS.map(f => (
+          <TouchableOpacity
+            key={f}
+            style={[styles.filterChip, activeFilter === f && styles.filterChipActive]}
+            onPress={() => setActiveFilter(f)}
+          >
+            <Text style={[styles.filterChipText, activeFilter === f && styles.filterChipTextActive]}>
+              {f}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+
+      {/* LISTA DE PRODUTOS */}
       {loading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator color="#2d7d59" size="large" />
+          <ActivityIndicator color={GREEN} size="large" />
         </View>
       ) : (
         <FlatList
@@ -197,46 +249,174 @@ export default function ProductListScreen({ navigation }) {
         />
       )}
 
-      <Pressable
-        onPress={() => navigation.navigate("ProductCreate")}
-        style={styles.fab}
-      >
-        <MaterialIcons name="add" size={30} color="#ffffff" />
-      </Pressable>
-    </View>
+      {/* BOTTOM NAV */}
+      <View style={styles.bottomNav}>
+        {NAV_ITEMS.map(tab => (
+          <TouchableOpacity
+            key={tab.key}
+            style={[styles.navItem, tab.center && styles.navItemCenter]}
+            onPress={() => {
+              setActiveNav(tab.key);
+              if (tab.key === "create") navigation.navigate("ProductCreate");
+            }}
+          >
+            {tab.center ? (
+              <View style={styles.navCreateBtn}>
+                <Ionicons name="add" size={28} color={WHITE} />
+              </View>
+            ) : (
+              <>
+                <Ionicons
+                  name={activeNav === tab.key ? tab.icon : tab.iconOff}
+                  size={22}
+                  color={activeNav === tab.key ? NAVY : "#bbb"}
+                />
+                <Text style={[styles.navLabel, activeNav === tab.key && styles.navLabelActive]}>
+                  {tab.label}
+                </Text>
+                {activeNav === tab.key && <View style={styles.navDot} />}
+              </>
+            )}
+          </TouchableOpacity>
+        ))}
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safe: {
     flex: 1,
-    paddingHorizontal: 18,
-    paddingTop: 58,
-    backgroundColor: "#f5f1ea",
+    backgroundColor: CREAM,
   },
+
+  // Header
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 20,
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 8,
   },
   greeting: {
-    fontSize: 16,
+    fontSize: 13,
+    color: "#888",
+    fontWeight: "500",
   },
-  screenTitle: {
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: "900",
+    color: NAVY,
+    letterSpacing: 3,
     marginTop: 2,
   },
-  logoutButton: {
-    width: 52,
-    height: 52,
+  logoutBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: WHITE,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 26,
-    backgroundColor: "#eee8df",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.07,
+    shadowRadius: 6,
+    elevation: 2,
   },
+
+  // Busca
+  searchRow: {
+    flexDirection: "row",
+    paddingHorizontal: 20,
+    gap: 10,
+    marginBottom: 16,
+  },
+  searchBox: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: WHITE,
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    height: 46,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 14,
+    color: "#20242c",
+  },
+  filterIconBtn: {
+    width: 46,
+    height: 46,
+    borderRadius: 14,
+    backgroundColor: NAVY,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  // Chamada
+  callout: {
+    paddingHorizontal: 20,
+    marginBottom: 14,
+  },
+  calloutText: {
+    fontSize: 20,
+    fontWeight: "800",
+    color: NAVY,
+  },
+  calloutGreen: {
+    color: GREEN,
+  },
+  calloutSub: {
+    fontSize: 12,
+    color: "#888",
+    marginTop: 2,
+  },
+
+  // Filtros
+  filtersScroll: {
+    maxHeight: 44,
+    marginBottom: 14,
+  },
+  filtersRow: {
+    paddingHorizontal: 20,
+    gap: 8,
+    alignItems: "center",
+  },
+  filterChip: {
+    paddingHorizontal: 16,
+    paddingVertical: 7,
+    borderRadius: 20,
+    backgroundColor: WHITE,
+    borderWidth: 1.5,
+    borderColor: "#e8e3d8",
+  },
+  filterChipActive: {
+    backgroundColor: NAVY,
+    borderColor: NAVY,
+  },
+  filterChipText: {
+    fontSize: 12,
+    color: "#888",
+    fontWeight: "600",
+  },
+  filterChipTextActive: {
+    color: WHITE,
+    fontWeight: "700",
+  },
+
+  // Lista
   list: {
     flexGrow: 1,
-    paddingBottom: 96,
+    paddingHorizontal: 16,
+    paddingBottom: 110,
+    paddingTop: 4,
   },
   loadingContainer: {
     flex: 1,
@@ -244,79 +424,79 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingBottom: 90,
   },
-  emptyState: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingBottom: 90,
-  },
-  emptyTitle: {
-    marginTop: 18,
-    fontSize: 22,
-  },
-  emptyDescription: {
-    marginTop: 8,
-    maxWidth: 260,
-    textAlign: "center",
-  },
+
+  // Card
   card: {
     flexDirection: "row",
-    marginBottom: 14,
-    padding: 12,
+    marginBottom: 12,
     borderRadius: 18,
-    backgroundColor: "#ffffff",
-    borderWidth: 1,
-    borderColor: "#eee4d8",
+    backgroundColor: WHITE,
+    overflow: "hidden",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.07,
+    shadowRadius: 10,
+    elevation: 3,
+  },
+  cardImageWrap: {
+    width: 90,
+    alignItems: "center",
+    justifyContent: "center",
+    position: "relative",
+    paddingVertical: 8,
+  },
+  cardFlag: {
+    position: "absolute",
+    top: 6,
+    left: 6,
+    fontSize: 14,
   },
   productImage: {
-    width: 86,
-    height: 96,
-    borderRadius: 14,
-    backgroundColor: "#ebe2d7",
+    width: 70,
+    height: 80,
+    borderRadius: 12,
   },
   cardContent: {
     flex: 1,
-    paddingLeft: 12,
+    padding: 12,
   },
   cardHeader: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    gap: 10,
+    gap: 8,
   },
   productName: {
     flex: 1,
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: "800",
     color: "#20242c",
   },
   productPrice: {
     fontSize: 14,
     fontWeight: "800",
-    color: "#2d7d59",
   },
   productDescription: {
-    marginTop: 7,
-    lineHeight: 19,
+    marginTop: 5,
+    fontSize: 12,
+    lineHeight: 18,
   },
   cardFooter: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginTop: "auto",
+    marginTop: 8,
   },
   quantityBadge: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 5,
-    paddingVertical: 6,
-    paddingHorizontal: 9,
+    gap: 4,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
     borderRadius: 999,
-    backgroundColor: "#f4f0ea",
   },
   productQuantity: {
-    color: "#58616f",
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: "700",
   },
   actions: {
@@ -324,30 +504,93 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   iconButton: {
-    width: 34,
-    height: 34,
+    width: 32,
+    height: 32,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 18,
-    backgroundColor: "#eef4ff",
+    borderRadius: 16,
+    backgroundColor: "#EEF2FF",
   },
   deleteIconButton: {
-    backgroundColor: "#fff0ed",
+    backgroundColor: "#FFF0ED",
   },
-  fab: {
-    position: "absolute",
-    right: 22,
-    bottom: 26,
-    width: 62,
-    height: 62,
+
+  // Empty
+  emptyState: {
+    flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 31,
-    backgroundColor: "#2d7d59",
-    shadowColor: "#1f513e",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    elevation: 7,
+    paddingTop: 60,
+    gap: 12,
+  },
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: "800",
+    color: NAVY,
+  },
+  emptyDesc: {
+    fontSize: 13,
+    color: "#888",
+    textAlign: "center",
+    maxWidth: 240,
+  },
+
+  // Bottom nav
+  bottomNav: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    flexDirection: "row",
+    backgroundColor: WHITE,
+    paddingTop: 10,
+    paddingBottom: 24,
+    paddingHorizontal: 10,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
+    elevation: 10,
+  },
+  navItem: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 2,
+  },
+  navItemCenter: {
+    marginTop: -28,
+  },
+  navCreateBtn: {
+    width: 54,
+    height: 54,
+    borderRadius: 27,
+    backgroundColor: GREEN,
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: GREEN,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 10,
+    elevation: 8,
+    borderWidth: 4,
+    borderColor: WHITE,
+  },
+  navLabel: {
+    fontSize: 10,
+    color: "#bbb",
+    fontWeight: "500",
+  },
+  navLabelActive: {
+    color: NAVY,
+    fontWeight: "700",
+  },
+  navDot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: NAVY,
   },
 });
