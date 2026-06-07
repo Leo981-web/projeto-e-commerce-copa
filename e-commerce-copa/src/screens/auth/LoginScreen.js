@@ -1,11 +1,17 @@
 import { useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, View, Text, TouchableOpacity, SafeAreaView } from "react-native";
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 import AppButton from "../../components/AppButton";
 import AppInput from "../../components/AppInput";
 import AppText from "../../components/AppText";
 import { useAuth } from "../../context/AuthContext";
 import { useCustomAlert } from "../../context/CustomAlertContext";
+
+const NAVY   = '#1A237E';
+const GREEN  = '#00A650';
+const YELLOW = '#FFD600';
+const CREAM  = '#F5F1E8';
 
 export default function LoginScreen({ navigation }) {
   const { login, loading } = useAuth();
@@ -26,58 +32,193 @@ export default function LoginScreen({ navigation }) {
   }
 
   return (
-    <View style={styles.container}>
-      <AppText variant="title">Bem-vindo de volta!</AppText>
-      <AppText variant="subtitle" style={styles.subtitle}>
-        Entre para gerenciar produtos.
-      </AppText>
+    <SafeAreaView style={styles.safe}>
 
-      <AppInput
-        autoCapitalize="none"
-        icon="email"
-        keyboardType="email-address"
-        onChangeText={setEmail}
-        placeholder="E-mail"
-        value={email}
-      />
-      <AppInput
-        icon="lock"
-        isPassword
-        onChangeText={setPassword}
-        placeholder="Senha"
-        value={password}
-      />
+      <View style={styles.squareTopRight} />
+      <View style={styles.circleTopLeft} />
+      <View style={styles.diamondBottomLeft} />
+      <View style={styles.circleBottomRight} />
 
-      <AppButton
-        disabled={loading}
-        icon="login"
-        onPress={handleLogin}
-        title={loading ? "Entrando..." : "Entrar"}
-      />
+      <View style={styles.container}>
 
-      <AppButton
-        icon="person-add-alt"
-        onPress={() => navigation.replace("Register")}
-        style={styles.linkButton}
-        title="Criar uma conta"
-        variant="ghost"
-      />
-    </View>
+        <View style={styles.logoRow}>
+          <Ionicons name="football-outline" size={52} color={NAVY} />
+          <View>
+            <Text style={styles.logoTitle}>NOME</Text>
+            <Text style={styles.logoSub}>TESTE</Text>
+          </View>
+        </View>
+
+        <Text style={styles.headline}>Pronto para{'\n'}entrar em campo?</Text>
+        <Text style={styles.subheadline}>Faça o login e junte-se à nossa seleção!</Text>
+
+        <View style={styles.card}>
+
+          <AppInput
+            autoCapitalize="none"
+            icon="person"
+            keyboardType="email-address"
+            onChangeText={setEmail}
+            placeholder="USUÁRIO"
+            value={email}
+            style={styles.inputYellow}
+          />
+
+          <AppInput
+            icon="lock"
+            isPassword
+            onChangeText={setPassword}
+            placeholder="SENHA"
+            value={password}
+            style={styles.inputGreen}
+          />
+
+          <TouchableOpacity style={styles.forgotWrap}>
+            <Text style={styles.forgotText}>ESQUECI MINHA SENHA</Text>
+          </TouchableOpacity>
+
+          <AppButton
+            disabled={loading}
+            icon="login"
+            onPress={handleLogin}
+            title={loading ? "Entrando..." : "ENTRAR NO JOGO"}
+          />
+
+          <AppButton
+            icon="person-add-alt"
+            onPress={() => navigation.replace("Register")}
+            style={styles.linkButton}
+            title="Criar uma conta"
+            variant="ghost"
+          />
+        </View>
+
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safe: {
+    flex: 1,
+    backgroundColor: CREAM,
+  },
+  squareTopRight: {
+    position: 'absolute',
+    top: -30,
+    right: -30,
+    width: 170,
+    height: 150,
+    borderRadius: 32,
+    backgroundColor: NAVY,
+  },
+  circleTopLeft: {
+    position: 'absolute',
+    top: -50,
+    left: -50,
+    width: 160,
+    height: 160,
+    borderRadius: 80,
+    backgroundColor: YELLOW,
+    opacity: 0.35,
+  },
+  diamondBottomLeft: {
+    position: 'absolute',
+    bottom: 40,
+    left: -40,
+    width: 130,
+    height: 130,
+    borderRadius: 24,
+    borderWidth: 14,
+    borderColor: GREEN,
+    backgroundColor: 'transparent',
+    transform: [{ rotate: '45deg' }],
+    opacity: 0.35,
+  },
+  circleBottomRight: {
+    position: 'absolute',
+    bottom: -60,
+    right: -60,
+    width: 180,
+    height: 180,
+    borderRadius: 90,
+    backgroundColor: YELLOW,
+    opacity: 0.85,
+  },
   container: {
     flex: 1,
-    justifyContent: "center",
-    padding: 24,
-    backgroundColor: "#f5f1ea",
+    paddingHorizontal: 24,
+    paddingTop: 0,
   },
-  subtitle: {
-    marginTop: 8,
-    marginBottom: 24,
+  logoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginTop: 45,
+  },
+  logoTitle: {
+    fontSize: 24,
+    fontWeight: '900',
+    color: NAVY,
+    letterSpacing: 1,
+    lineHeight: 28,
+  },
+  logoSub: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: GREEN,
+    letterSpacing: 2,
+  },
+  headline: {
+    fontSize: 32,
+    fontWeight: '900',
+    color: NAVY,
+    lineHeight: 38,
+    marginTop: 48,
+    marginBottom: 8,
+  },
+  subheadline: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: GREEN,
+    marginBottom: 0,
+  },
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    padding: 24,
+    marginTop: 32,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.08,
+    shadowRadius: 20,
+    elevation: 5,
+  },
+  inputYellow: {
+    borderLeftWidth: 4,
+    borderLeftColor: YELLOW,
+    borderRadius: 14,
+    overflow: 'hidden',
+  },
+  inputGreen: {
+    borderLeftWidth: 4,
+    borderLeftColor: GREEN,
+    borderRadius: 14,
+    overflow: 'hidden',
+  },
+  forgotWrap: {
+    alignSelf: 'flex-start',
+    marginTop: -6,
+    marginBottom: 20,
+  },
+  forgotText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: NAVY,
+    textDecorationLine: 'underline',
+    letterSpacing: 0.5,
   },
   linkButton: {
-    marginTop: 18,
+    marginTop: 10,
   },
 });
