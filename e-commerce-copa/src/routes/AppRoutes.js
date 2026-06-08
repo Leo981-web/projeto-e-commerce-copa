@@ -4,6 +4,7 @@ import ProductCreateScreen from "../screens/app/ProductCreateScreen";
 import ProductDetailsScreen from "../screens/app/ProductDetailsScreen";
 import ProductEditScreen from "../screens/app/ProductEditScreen";
 import ProductListScreen from "../screens/app/ProductListScreen";
+import SettingScreen from "../screens/app/SettingsScreen"
 
 const Stack = createNativeStackNavigator();
 
@@ -40,6 +41,12 @@ export default function AppRoutes() {
         component={ProductDetailsScreen}
         options={{ headerShown: false }}
       />
+      <Stack.Screen
+      name="Settings"
+      component={SettingScreen}
+      options={{ headerShown: false}}>
+
+      </Stack.Screen>
     </Stack.Navigator>
   );
 }

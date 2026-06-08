@@ -185,8 +185,8 @@ export default function ProductListScreen({ navigation }) {
           <Text style={styles.greeting}>Olá, {user?.name} 👋</Text>
           <Text style={styles.headerTitle}>NOME</Text>
         </View>
-        <Pressable onPress={handleLogout} style={styles.logoutBtn}>
-          <MaterialIcons name="logout" size={20} color={NAVY} />
+        <Pressable onPress={() => navigation.navigate("Settings")} style={styles.settingsBtn}>
+          <MaterialIcons name="settings" size={20} color={NAVY} />
         </Pressable>
       </View>
 
@@ -311,7 +311,7 @@ const styles = StyleSheet.create({
     letterSpacing: 3,
     marginTop: 2,
   },
-  logoutBtn: {
+  settingsBtn: {
     width: 44,
     height: 44,
     borderRadius: 22,
