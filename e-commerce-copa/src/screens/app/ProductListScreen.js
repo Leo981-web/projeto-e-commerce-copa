@@ -16,6 +16,7 @@ import {
 import { useFocusEffect } from "@react-navigation/native";
 import { MaterialIcons } from "@expo/vector-icons";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import SimpleLineIcons from "@expo/vector-icons/SimpleLineIcons";
 
 import EmptyStateImage from "../../assets/empty_state.svg";
 import AppText from "../../components/AppText";
@@ -27,29 +28,28 @@ import * as productService from "../../services/productService";
 
 const { width } = Dimensions.get("window");
 
-const NAVY  = "#1A237E";
-const GREEN = "#00A650";
+const NAVY   = "#1A237E";
+const GREEN  = "#00A650";
 const YELLOW = "#FFD600";
-const CREAM = "#F5F1E8";
-const WHITE = "#FFFFFF";
+const CREAM  = "#F5F1E8";
+const WHITE  = "#FFFFFF";
 
-// Cores por índice — alterna entre temas de países
 const COUNTRY_THEMES = [
-  { bg: "#D4EDDA", accent: "#009C3B", flag: "🇧🇷" }, // Brasil
-  { bg: "#D6E8F5", accent: "#74ACDF", flag: "🇦🇷" }, // Argentina
-  { bg: "#DDEAF7", accent: "#002395", flag: "🇫🇷" }, // França
-  { bg: "#E8E8E8", accent: "#333333", flag: "🇩🇪" }, // Alemanha
-  { bg: "#D4EDDA", accent: "#006600", flag: "🇵🇹" }, // Portugal
-  { bg: "#F7DADA", accent: "#AA151B", flag: "🇪🇸" }, // Espanha
+  { bg: "#D4EDDA", accent: "#009C3B", flag: "🇧🇷" },
+  { bg: "#D6E8F5", accent: "#74ACDF", flag: "🇦🇷" },
+  { bg: "#DDEAF7", accent: "#002395", flag: "🇫🇷" },
+  { bg: "#E8E8E8", accent: "#333333", flag: "🇩🇪" },
+  { bg: "#D4EDDA", accent: "#006600", flag: "🇵🇹" },
+  { bg: "#F7DADA", accent: "#AA151B", flag: "🇪🇸" },
 ];
 
 const FILTERS = ["Todos", "Camisas", "Calçados", "Acessórios", "Figurinhas"];
 const NAV_ITEMS = [
-  { key: "home",      icon: "home",           iconOff: "home-outline",        label: "Início"   },
-  { key: "favorites", icon: "heart",          iconOff: "heart-outline",       label: "Favoritos" },
-  { key: "create",    icon: "add",            center: true                                       },
-  { key: "cart",      icon: "cart",           iconOff: "cart-outline",        label: "Carrinho" },
-  { key: "profile",   icon: "person",         iconOff: "person-outline",      label: "Perfil"   },
+  { key: "home",      icon: "home",      iconOff: "home-outline",     label: "Início"    },
+  { key: "favorites", icon: "heart",     iconOff: "heart-outline",    label: "Favoritos" },
+  { key: "create",    icon: "add",       center: true                                    },
+  { key: "cart",      icon: "cart",      iconOff: "cart-outline",     label: "Carrinho"  },
+  { key: "profile",   icon: "person",    iconOff: "person-outline",   label: "Perfil"    },
 ];
 
 export default function ProductListScreen({ navigation }) {
@@ -121,7 +121,6 @@ export default function ProductListScreen({ navigation }) {
         onPress={() => navigation.navigate("ProductDetails", { productId: item.id })}
         style={[styles.card, { borderLeftColor: theme.accent, borderLeftWidth: 4 }]}
       >
-        {/* Imagem com fundo temático */}
         <View style={[styles.cardImageWrap, { backgroundColor: theme.bg }]}>
           <Text style={styles.cardFlag}>{theme.flag}</Text>
           <ProductImage
@@ -179,18 +178,21 @@ export default function ProductListScreen({ navigation }) {
     <SafeAreaView style={styles.safe}>
       <StatusBar barStyle="dark-content" backgroundColor={CREAM} />
 
-      {/* HEADER */}
+      {/* HEADER — logo esquerda, config direita, sem saudação */}
       <View style={styles.header}>
-        <View>
-          <Text style={styles.greeting}>Olá, {user?.name} 👋</Text>
+        <View style={styles.logoRow}>
           <Text style={styles.headerTitle}>NOME</Text>
+          <Ionicons name="football-outline" size={22} color={NAVY} />
         </View>
-        <Pressable onPress={() => navigation.navigate("Settings")} style={styles.settingsBtn}>
+        <Pressable
+          onPress={() => navigation.navigate("Settings")}
+          style={styles.settingsBtn}
+        >
           <MaterialIcons name="settings" size={20} color={NAVY} />
         </Pressable>
       </View>
 
-      {/* BUSCA */}
+      {/* BUSCA — sem botão de filtro */}
       <View style={styles.searchRow}>
         <View style={styles.searchBox}>
           <MaterialIcons name="search" size={20} color="#aaa" style={{ marginRight: 8 }} />
@@ -202,15 +204,14 @@ export default function ProductListScreen({ navigation }) {
             onChangeText={setSearch}
           />
         </View>
-        <TouchableOpacity style={styles.filterIconBtn}>
-          <MaterialIcons name="tune" size={20} color={WHITE} />
-        </TouchableOpacity>
       </View>
 
       {/* CHAMADA */}
       <View style={styles.callout}>
-        <Text style={styles.calloutText}>Leve a <Text style={styles.calloutGreen}>Copa</Text> pra casa! 🏆</Text>
-        <Text style={styles.calloutSub}>Produtos oficiais de cada seleção</Text>
+        <View style={styles.calloutRow}>
+          <Text style={styles.calloutText}>Leve a <Text style={styles.calloutGreen}>Copa</Text> pra casa! </Text>
+          <SimpleLineIcons name="trophy" size={18} color={GREEN} />
+        </View>
       </View>
 
       {/* FILTROS */}
@@ -297,19 +298,18 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 20,
     paddingTop: 12,
-    paddingBottom: 8,
+    paddingBottom: 12,
   },
-  greeting: {
-    fontSize: 13,
-    color: "#888",
-    fontWeight: "500",
+  logoRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
   },
   headerTitle: {
     fontSize: 20,
     fontWeight: "900",
     color: NAVY,
     letterSpacing: 3,
-    marginTop: 2,
   },
   settingsBtn: {
     width: 44,
@@ -327,13 +327,10 @@ const styles = StyleSheet.create({
 
   // Busca
   searchRow: {
-    flexDirection: "row",
     paddingHorizontal: 20,
-    gap: 10,
-    marginBottom: 16,
+    marginBottom: 14,
   },
   searchBox: {
-    flex: 1,
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: WHITE,
@@ -346,37 +343,21 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 2,
   },
-  searchInput: {
-    flex: 1,
-    fontSize: 14,
-    color: "#20242c",
-  },
-  filterIconBtn: {
-    width: 46,
-    height: 46,
-    borderRadius: 14,
-    backgroundColor: NAVY,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  // Chamada
   callout: {
     paddingHorizontal: 20,
     marginBottom: 14,
   },
+  calloutRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
   calloutText: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: "800",
     color: NAVY,
   },
   calloutGreen: {
     color: GREEN,
-  },
-  calloutSub: {
-    fontSize: 12,
-    color: "#888",
-    marginTop: 2,
   },
 
   // Filtros
