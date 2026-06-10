@@ -7,51 +7,20 @@ import {
   SafeAreaView,
   StatusBar,
   TouchableOpacity,
-  Switch,
 } from "react-native";
 import { MaterialIcons, Ionicons } from "@expo/vector-icons";
 import { useLanguage } from "../../context/LanguageContext";
 import { useAuth } from "../../context/AuthContext";
 import { useCustomAlert } from "../../context/CustomAlertContext";
-
-// Paletas de Cores de cada Tema
-const PALETTES = {
-  dark: {
-    bg: "#121214",
-    card: "#1A1A1E",
-    textPrimary: "#FFFFFF",
-    titlePrimary: "#fff",
-    textMuted: "#A1A1AA",
-    divider: "#27272A",
-    iconBg: "#27272A",
-    iconDestructiveBg: "#3A1E1E",
-    textDestructive: "#f87171",
-    navActive: "#FFFFFF",
-    navInactive: "#52525b",
-    statusBar: "light-content",
-  },
-  light: {
-    bg: "#F5F1E8", 
-    card: "#FFFFFF",
-    textPrimary: "#20242c",
-    titlePrimary: "#1A237E",
-    textMuted: "#888888",
-    divider: "#F5F1E8",
-    iconBg: "#EEF2FF",
-    iconDestructiveBg: "#FFF0ED",
-    textDestructive: "#b42318",
-    navActive: "#1A237E", 
-    navInactive: "#bbb",
-    statusBar: "dark-content",
-  }
-};
+import { useTheme } from "../../context/ThemeContext"; // 1. Importado o contexto global de tema
+import ToggleSwitch from "toggle-switch-react-native";
 
 const WHITE = "#FFFFFF";
 const NAVY_BLUE = "#1A237E";
-const NAVY_TRACK_LIGHT = "#C5CAE9"; // Azul claro translúcido para o trilho ativo
+const NAVY_TRACK_LIGHT = "#C5CAE9"; 
 
 const NAV_ITEMS = [
-  { key: "home",      icon: "home",           iconOff: "home-outline",        labelKey: "navHome"      },
+  { key: "home",       icon: "home",           iconOff: "home-outline",        labelKey: "navHome"      },
   { key: "favorites", icon: "heart",          iconOff: "heart-outline",       labelKey: "navFavorites" },
   { key: "create",    icon: "add",            center: true                                             },
   { key: "cart",      icon: "cart",           iconOff: "cart-outline",        labelKey: "navCart"      },
@@ -61,18 +30,14 @@ const NAV_ITEMS = [
 export default function SettingsScreen({ navigation }) {
   const { logout } = useAuth();
   const { showAlert, showConfirm } = useCustomAlert();
-  
-  // Utilizando os recursos do contexto global de idioma
   const { t, locale, changeLanguage } = useLanguage();
   
+  // 2. Substituídos os useStates locais de tema pelas propriedades globais
+  const { isDarkMode, theme, toggleTheme } = useTheme(); 
+  
   const [activeNav, setActiveNav] = useState("");
-
-  // Estados de Configuração
-  const [isDarkMode, setIsDarkMode] = useState(false);
   const [pushNotifications, setPushNotifications] = useState(true);
   const [biometrics, setBiometrics] = useState(false);
-
-  const theme = isDarkMode ? PALETTES.dark : PALETTES.light;
 
   async function handleLogout() {
     try {
@@ -128,11 +93,15 @@ export default function SettingsScreen({ navigation }) {
               <Text style={[styles.settingTitle, { color: theme.textPrimary }]}>{t("darkTheme")}</Text>
               <Text style={[styles.settingSubtitle, { color: theme.textMuted }]}>{t("darkThemeSub")}</Text>
             </View>
-            <Switch
-              value={isDarkMode}
-              onValueChange={setIsDarkMode}
-              trackColor={{ false: "#3f3f46", true: NAVY_TRACK_LIGHT }}
-              thumbColor={isDarkMode ? NAVY_BLUE : "#71717a"}
+            {/* 3. Ajustado para disparar o toggleTheme global */}
+            <ToggleSwitch
+              isOn={isDarkMode}
+              onColor={NAVY_TRACK_LIGHT}
+              offColor="#3f3f46"
+              thumbOnStyle={{ backgroundColor: NAVY_BLUE }}
+              thumbOffStyle={{ backgroundColor: "#71717a" }}
+              size="medium"
+              onToggle={toggleTheme} 
             />
           </View>
 
@@ -168,7 +137,6 @@ export default function SettingsScreen({ navigation }) {
               })}
             </View>
           </View>
-
         </View>
 
         {/* SEÇÃO: NOTIFICAÇÕES E PRIVACIDADE */}
@@ -183,11 +151,14 @@ export default function SettingsScreen({ navigation }) {
               <Text style={[styles.settingTitle, { color: theme.textPrimary }]}>{t("pushNotifications")}</Text>
               <Text style={[styles.settingSubtitle, { color: theme.textMuted }]}>{t("pushNotificationsSub")}</Text>
             </View>
-            <Switch
-              value={pushNotifications}
-              onValueChange={setPushNotifications}
-              trackColor={{ false: "#3f3f46", true: NAVY_TRACK_LIGHT }}
-              thumbColor={pushNotifications ? NAVY_BLUE : "#71717a"}
+            <ToggleSwitch
+              isOn={pushNotifications}
+              onColor={NAVY_TRACK_LIGHT}
+              offColor="#3f3f46"
+              thumbOnStyle={{ backgroundColor: NAVY_BLUE }}
+              thumbOffStyle={{ backgroundColor: "#71717a" }}
+              size="medium"
+              onToggle={setPushNotifications}
             />
           </View>
 
@@ -199,14 +170,16 @@ export default function SettingsScreen({ navigation }) {
               <Text style={[styles.settingTitle, { color: theme.textPrimary }]}>{t("biometrics")}</Text>
               <Text style={[styles.settingSubtitle, { color: theme.textMuted }]}>{t("biometricsSub")}</Text>
             </View>
-            <Switch
-              value={biometrics}
-              onValueChange={setBiometrics}
-              trackColor={{ false: "#3f3f46", true: NAVY_TRACK_LIGHT }}
-              thumbColor={biometrics ? NAVY_BLUE : "#71717a"}
+            <ToggleSwitch
+              isOn={biometrics}
+              onColor={NAVY_TRACK_LIGHT}
+              offColor="#3f3f46"
+              thumbOnStyle={{ backgroundColor: NAVY_BLUE }}
+              thumbOffStyle={{ backgroundColor: "#71717a" }}
+              size="medium"
+              onToggle={setBiometrics}
             />
           </View>
-
         </View>
 
         {/* SEÇÃO: ARMAZENAMENTO E DADOS */}
@@ -242,7 +215,6 @@ export default function SettingsScreen({ navigation }) {
             </View>
             <MaterialIcons name="chevron-right" size={20} color={theme.textMuted} />
           </TouchableOpacity>
-
         </View>
 
         {/* SEÇÃO: CONTA / SAÍDA */}

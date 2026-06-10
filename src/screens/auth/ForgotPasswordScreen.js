@@ -54,6 +54,7 @@ export default function ForgotPasswordScreen({ navigation }) {
           title={loading ? "A enviar..." : "Enviar link de recuperação"} 
           onPress={handleResetRequest} 
           disabled={loading}
+          style={styles.button}
         />
       </View>
       <Button title="Voltar" onPress={() => navigation.goBack()} color="#cbd5e1" />
@@ -64,8 +65,8 @@ export default function ForgotPasswordScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: { flex: 1, justifyContent: 'center', padding: 24, backgroundColor: "#f5f1ea" },
   title: { fontSize: 24, fontWeight: 'bold', marginBottom: 20, textAlign: 'center', color: '#1A237E' },
-  input: { borderWidth: 1, borderColor: '#ccc', padding: 12, marginBottom: 10, borderRadius: 8, backgroundColor: '#fff' },
+  input: { borderWidth: 1, borderColor: '#ccc', padding: 12, marginBottom: 10, borderRadius: 8, backgroundColor: '#fff', fontFamily: 'Arial' },
   inputError: { borderColor: '#d32f2f', borderWidth: 2 }, // Borda vermelha se der erro
   errorText: { color: '#d32f2f', marginBottom: 15, fontWeight: '600', textAlign: 'center' },
-  buttonSpacing: { marginBottom: 10 }
+  buttonSpacing: { marginBottom: 10 },
 });

@@ -5,18 +5,21 @@ import ProductDetailsScreen from "../screens/app/ProductDetailsScreen";
 import ProductEditScreen from "../screens/app/ProductEditScreen";
 import ProductListScreen from "../screens/app/ProductListScreen";
 import SettingScreen from "../screens/app/SettingsScreen"
+import { useTheme } from "../context/ThemeContext";
 
 const Stack = createNativeStackNavigator();
 
 export default function AppRoutes() {
+  const { theme } = useTheme();
+
   return (
     <Stack.Navigator
       screenOptions={{
-        contentStyle: { backgroundColor: "#f5f1ea" },
-        headerStyle: { backgroundColor: "#f5f1ea" },
+        contentStyle: { backgroundColor: theme.bg },
+        headerStyle: { backgroundColor: theme.bg },
         headerShadowVisible: false,
         headerTitleStyle: {
-          color: "#20242c",
+          color: theme.textPrimary,
           fontWeight: "800",
         },
       }}
@@ -42,11 +45,10 @@ export default function AppRoutes() {
         options={{ headerShown: false }}
       />
       <Stack.Screen
-      name="Settings"
-      component={SettingScreen}
-      options={{ headerShown: false}}>
-
-      </Stack.Screen>
+        name="Settings"
+        component={SettingScreen}
+        options={{ headerShown: false}}
+      />
     </Stack.Navigator>
   );
 }

@@ -19,7 +19,8 @@
     "react-native-screens": "4.25.2",
     "react-native-svg": "15.15.4",
     "react-native-url-polyfill": "^3.0.0",
-    "react-native-web": "^0.21.2"
+    "react-native-web": "^0.21.2",
+    "toggle-switch-react-native": "^3.3.0"
   },
   "scripts": {
     "start": "expo start",

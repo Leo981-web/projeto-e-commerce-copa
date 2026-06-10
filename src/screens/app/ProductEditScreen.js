@@ -13,10 +13,14 @@ import {
 import { useCustomAlert } from "../../context/CustomAlertContext";
 import { useLanguage } from "../../context/LanguageContext"; 
 import * as productService from "../../services/productService";
+import { useTheme } from "../../context/ThemeContext";
 
 export default function ProductEditScreen({ navigation, route }) {
   const { showAlert } = useCustomAlert();
   const { t } = useLanguage(); 
+  const { theme } = useTheme();
+
+  const styles = makeStyles(theme);
   
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -181,21 +185,21 @@ export default function ProductEditScreen({ navigation, route }) {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 18,
-    paddingTop: 58,
-    backgroundColor: "#f5f1ea",
-  },
-  submitButton: {
-    marginTop: 8,
-  },
-  emptyText: {
-    marginTop: 24,
-    textAlign: "center",
-    color: "#6b7280",
-    fontSize: 16,
-  },
-});
+const makeStyles = (theme) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      padding: 18,
+      paddingTop: 58,
+      backgroundColor: theme.bg,
+    },
+    submitButton: {
+      marginTop: 8,
+    },
+    emptyText: {
+      marginTop: 24,
+      textAlign: "center",
+      color: theme.textMuted,
+      fontSize: 16,
+    },
+  });

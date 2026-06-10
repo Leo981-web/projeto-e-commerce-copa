@@ -11,12 +11,16 @@ import { useCustomAlert } from "../../context/CustomAlertContext";
 import { useLanguage } from "../../context/LanguageContext"; 
 import { formatCurrency } from "../../services/formatters";
 import * as productService from "../../services/productService";
+import { useTheme } from "../../context/ThemeContext";
 
 export default function ProductDetailsScreen({ navigation, route }) {
   const { showAlert } = useCustomAlert();
   const { t } = useLanguage(); 
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
+  const { theme } = useTheme();
+
+  const styles = makeStyles(theme);
 
   async function loadProduct() {
     try {
@@ -72,7 +76,7 @@ export default function ProductDetailsScreen({ navigation, route }) {
 
         <View style={styles.row}>
           <View style={styles.iconAndLabel}>
-            <MaterialIcons color="#888888" name="payments" size={20} />
+            <MaterialIcons color={theme.textMuted} name="payments" size={20} />
             <AppText style={styles.label} variant="muted">
               {t("priceLabel")} 
             </AppText>
@@ -84,7 +88,7 @@ export default function ProductDetailsScreen({ navigation, route }) {
 
         <View style={styles.row}>
           <View style={styles.iconAndLabel}>
-            <MaterialIcons color="#888888" name="inventory-2" size={20} />
+            <MaterialIcons color={theme.textMuted} name="inventory-2" size={20} />
             <AppText style={styles.label} variant="muted">
               {t("quantityLabel")} 
             </AppText>
@@ -105,56 +109,61 @@ export default function ProductDetailsScreen({ navigation, route }) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 18,
-    paddingTop: 58,
-    backgroundColor: "#f5f1ea",
-  },
-  loadingContainer: {
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  card: {
-    padding: 14,
-    borderRadius: 20,
-    backgroundColor: "#ffffff",
-    borderWidth: 1,
-    borderColor: "#eee4d8",
-  },
-  image: {
-    width: "100%",
-    height: 230,
-    marginBottom: 16,
-    borderRadius: 16,
-    backgroundColor: "#ebe2d7",
-  },
-  name: {
-    fontSize: 26,
-  },
-  description: {
-    marginTop: 10,
-    marginBottom: 18,
-  },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 8,
-  },
-  iconAndLabel: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-  label: {
-    fontSize: 14,
-  },
-  value: {
-    fontSize: 16,
-  },
-  primaryButton: {
-    marginTop: 20,
-  },
-});
+const makeStyles = (theme) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      padding: 18,
+      paddingTop: 58,
+      backgroundColor: theme.bg,
+    },
+    loadingContainer: {
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    card: {
+      padding: 14,
+      borderRadius: 20,
+      backgroundColor: theme.card,
+      borderWidth: 1,
+      borderColor: theme.divider,
+    },
+    image: {
+      width: "100%",
+      height: 230,
+      marginBottom: 16,
+      borderRadius: 16,
+      backgroundColor: theme.divider,
+    },
+    name: {
+      fontSize: 26,
+      color: theme.titlePrimary,
+    },
+    description: {
+      marginTop: 10,
+      marginBottom: 18,
+      color: theme.textMuted,
+    },
+    row: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      marginBottom: 8,
+    },
+    iconAndLabel: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6,
+    },
+    label: {
+      fontSize: 14,
+      color: theme.textMuted,
+    },
+    value: {
+      fontSize: 16,
+      color: theme.textPrimary,
+    },
+    primaryButton: {
+      marginTop: 20,
+    },
+  });

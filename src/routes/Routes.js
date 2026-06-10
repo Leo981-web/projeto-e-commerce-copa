@@ -1,6 +1,7 @@
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 
 import { useAuth } from "../context/AuthContext";
+import { ThemeProvider } from "../context/ThemeContext";
 import AppRoutes from "./AppRoutes";
 import AuthRoutes from "./AuthRoutes";
 
@@ -15,7 +16,12 @@ export default function Routes() {
     );
   }
 
-  return isAuthenticated ? <AppRoutes /> : <AuthRoutes />;
+  // 2. Envolva o retorno das rotas com o ThemeProvider
+  return (
+    <ThemeProvider>
+      {isAuthenticated ? <AppRoutes /> : <AuthRoutes />}
+    </ThemeProvider>
+  );
 }
 
 const styles = StyleSheet.create({
@@ -23,6 +29,5 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#f5f1ea",
   },
 });
