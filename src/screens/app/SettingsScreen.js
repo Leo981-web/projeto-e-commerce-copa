@@ -248,6 +248,7 @@ export default function SettingsScreen({ navigation }) {
               setActiveNav(tab.key);
               if (tab.center) navigation.navigate("ProductCreate");
               if (tab.key === "home") navigation.navigate("ProductList");
+              if (tab.key === "profile") navigation.navigate("Profile");
             }}
           >
             {tab.center ? (

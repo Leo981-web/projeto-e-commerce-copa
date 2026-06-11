@@ -262,6 +262,7 @@ export default function ProductListScreen({ navigation }) {
             onPress={() => {
               setActiveNav(tab.key);
               if (tab.key === "create") navigation.navigate("ProductCreate");
+              if (tab.key === "profile") navigation.navigate("Profile");
             }}
           >
             {tab.center ? (

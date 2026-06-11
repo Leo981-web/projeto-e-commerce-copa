@@ -71,12 +71,22 @@ export function AuthProvider({ children }) {
     }
   }
 
+  async function refreshUser() {
+    try {
+      const currentUser = await authService.getCurrentUser();
+      setUser(currentUser);
+      return currentUser;
+    } catch {
+    }
+  }
+
   const value = {
     user,
     loading,
     login,
     register,
     logout,
+    refreshUser,
     isAuthenticated: Boolean(user),
   };
 

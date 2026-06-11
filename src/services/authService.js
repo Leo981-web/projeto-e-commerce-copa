@@ -29,6 +29,8 @@ function mapUser(user) {
     id: user.id,
     name: metadata.name ?? user.name ?? user.email,
     email: user.email,
+    avatar_url: metadata.avatar_url ?? null,
+    phone: metadata.phone ?? null,
   };
 }
 
@@ -103,4 +105,68 @@ export async function getCurrentUser() {
   }
 
   return mapUser(data.session?.user);
+}
+
+// ============================================================
+// Funções de atualização de perfil
+// ============================================================
+
+export async function updateProfileName(name) {
+  if (!name?.trim()) {
+    throw new Error("Informe um nome válido.");
+  }
+
+  const { error, data } = await supabase.auth.updateUser({
+    data: { name: name.trim() },
+  });
+
+  if (error) {
+    throw new Error("Erro ao atualizar nome: " + error.message);
+  }
+
+  return mapUser(data.user);
+}
+
+export async function updateProfileEmail(email) {
+  if (!email?.trim() || !email.includes("@")) {
+    throw new Error("Informe um e-mail válido.");
+  }
+
+  const { error, data } = await supabase.auth.updateUser({
+    email: email.trim(),
+  });
+
+  if (error) {
+    throw new Error("Erro ao atualizar e-mail: " + error.message);
+  }
+
+  return mapUser(data.user);
+}
+
+export async function updateProfilePhone(phone) {
+  if (!phone?.trim()) {
+    throw new Error("Informe um telefone válido.");
+  }
+
+  const { error, data } = await supabase.auth.updateUser({
+    data: { phone: phone.trim() },
+  });
+
+  if (error) {
+    throw new Error("Erro ao atualizar telefone: " + error.message);
+  }
+
+  return mapUser(data.user);
+}
+
+export async function updateProfileAvatar(avatarUrl) {
+  const { error, data } = await supabase.auth.updateUser({
+    data: { avatar_url: avatarUrl },
+  });
+
+  if (error) {
+    throw new Error("Erro ao atualizar foto: " + error.message);
+  }
+
+  return mapUser(data.user);
 }
