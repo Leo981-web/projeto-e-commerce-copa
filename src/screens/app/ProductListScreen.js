@@ -20,6 +20,7 @@ import EmptyStateImage from "../../assets/empty_state.svg";
 import AppText from "../../components/AppText";
 import ProductImage from "../../components/ProductImage";
 import { useAuth } from "../../context/AuthContext";
+import { useCart } from "../../context/CartContext"; 
 import { useCustomAlert } from "../../context/CustomAlertContext";
 import { useLanguage } from "../../context/LanguageContext"; 
 import { formatCurrency } from "../../services/formatters";
@@ -28,9 +29,7 @@ import { useTheme } from "../../context/ThemeContext";
 
 const { width } = Dimensions.get("window");
 
-// colors will be derived from ThemeContext inside the component
 
-// Cores por índice — alterna entre temas de países
 const COUNTRY_THEMES = [
   { bg: "#D4EDDA", accent: "#009C3B", flag: "🇧🇷" }, // Brasil
   { bg: "#D6E8F5", accent: "#74ACDF", flag: "🇦🇷" }, // Argentina
@@ -40,7 +39,6 @@ const COUNTRY_THEMES = [
   { bg: "#F7DADA", accent: "#AA151B", flag: "🇪🇸" }, // Espanha
 ];
 
-// Listas com chaves de tradução em vez de texto fixo
 const FILTER_KEYS = ["filterAll", "filterShirts", "filterShoes", "filterAccessories", "filterStickers"];
 
 const NAV_ITEMS = [
@@ -56,17 +54,16 @@ export default function ProductListScreen({ navigation }) {
   const { showAlert, showConfirm } = useCustomAlert();
   const { t } = useLanguage();
   const { theme } = useTheme();
+  const { addToCart, totalItems, cart } = useCart(); 
 
-  // criar styles dinamicamente com base no tema atual
   const styles = makeStyles(theme);
 
   const [loading, setLoading] = useState(true);
   const [products, setProducts] = useState([]);
   const [search, setSearch] = useState("");
-  const [activeFilter, setActiveFilter] = useState("filterAll"); // Inicia com a chave do primeiro filtro
+  const [activeFilter, setActiveFilter] = useState("filterAll"); 
   const [activeNav, setActiveNav] = useState("home");
 
-  // ── lógica original ──────────────────────────────────────────────
   async function loadProducts() {
     try {
       setLoading(true);
@@ -99,15 +96,6 @@ export default function ProductListScreen({ navigation }) {
     });
   }
 
-  async function handleLogout() {
-    try {
-      await logout();
-    } catch (error) {
-      showAlert({ title: t("logoutErrorTitle"), message: error.message, type: "danger" });
-    }
-  }
-  // ── fim lógica original ──────────────────────────────────────────────────
-
   function renderEmptyList() {
     return (
       <View style={styles.emptyState}>
@@ -120,13 +108,15 @@ export default function ProductListScreen({ navigation }) {
 
   function renderProduct({ item, index }) {
     const countryTheme = COUNTRY_THEMES[index % COUNTRY_THEMES.length];
+    const cartItem = cart.find(c => c.id === item.id);
+    const quantityInCart = cartItem ? cartItem.cartQuantity : 0;
+    const availableQuantity = item.quantity - quantityInCart;
 
     return (
       <Pressable
         onPress={() => navigation.navigate("ProductDetails", { productId: item.id })}
         style={[styles.card, { borderLeftColor: countryTheme.accent, borderLeftWidth: 4 }]}
       >
-        {/* Imagem com fundo temático */}
         <View style={[styles.cardImageWrap, { backgroundColor: countryTheme.bg }]}>
           <Text style={styles.cardFlag}>{countryTheme.flag}</Text>
           <ProductImage
@@ -154,11 +144,25 @@ export default function ProductListScreen({ navigation }) {
             <View style={[styles.quantityBadge, { backgroundColor: countryTheme.bg }]}>
               <MaterialIcons name="inventory-2" size={13} color={countryTheme.accent} />
               <Text style={[styles.productQuantity, { color: countryTheme.accent }]}> 
-                {item.quantity} {t("inStock")}
+                {availableQuantity} {t("inStock")}
               </Text>
             </View>
 
             <View style={styles.actions}>
+              <Pressable
+                hitSlop={8}
+                onPress={(e) => { 
+                  e.stopPropagation(); 
+                  const wasAdded = addToCart({ ...item, stock: item.quantity });
+                  if (!wasAdded) {
+                    showAlert({ title: t("opsTitle"), message: t("stockLimitMessage"), type: "danger" });
+                  }
+                }}
+                style={styles.iconButton}
+              >
+                <MaterialIcons name="add-shopping-cart" size={18} color={theme.titlePrimary} />
+              </Pressable>
+
               <Pressable
                 hitSlop={8}
                 onPress={(e) => { e.stopPropagation(); navigation.navigate("ProductEdit", { productId: item.id }); }}
@@ -225,7 +229,7 @@ export default function ProductListScreen({ navigation }) {
         style={styles.filtersScroll}
       >
         {FILTER_KEYS.map(f => (
-            <TouchableOpacity
+          <TouchableOpacity
             key={f}
             style={[styles.filterChip, activeFilter === f && styles.filterChipActive]}
             onPress={() => setActiveFilter(f)}
@@ -255,7 +259,7 @@ export default function ProductListScreen({ navigation }) {
 
       {/* BOTTOM NAV */}
       <View style={styles.bottomNav}>
-        {NAV_ITEMS.map(tab => (
+        {NAV_ITEMS.map((tab) => (
           <TouchableOpacity
             key={tab.key}
             style={[styles.navItem, tab.center && styles.navItemCenter]}
@@ -263,6 +267,7 @@ export default function ProductListScreen({ navigation }) {
               setActiveNav(tab.key);
               if (tab.key === "create") navigation.navigate("ProductCreate");
               if (tab.key === "profile") navigation.navigate("Profile");
+              if (tab.key === "cart") navigation.navigate("Cart");
             }}
           >
             {tab.center ? (
@@ -271,12 +276,27 @@ export default function ProductListScreen({ navigation }) {
               </View>
             ) : (
               <>
-                <Ionicons
-                  name={activeNav === tab.key ? tab.icon : tab.iconOff}
-                  size={22}
-                  color={activeNav === tab.key ? theme.titlePrimary : theme.navInactive}
-                />
-                <Text style={[styles.navLabel, activeNav === tab.key && styles.navLabelActive]}>
+                <View style={{ position: "relative" }}>
+                  <Ionicons
+                    name={activeNav === tab.key ? tab.icon : tab.iconOff}
+                    size={22}
+                    color={activeNav === tab.key ? theme.titlePrimary : theme.navInactive}
+                  />
+
+                  {/* Badge de Itens Globais do Carrinho */}
+                  {tab.key === "cart" && totalItems > 0 && (
+                    <View style={styles.cartBadge}>
+                      <Text style={styles.cartBadgeText}>{totalItems}</Text>
+                    </View>
+                  )}
+                </View>
+
+                <Text
+                  style={[
+                    styles.navLabel,
+                    activeNav === tab.key && styles.navLabelActive,
+                  ]}
+                >
                   {t(tab.labelKey)}
                 </Text>
                 {activeNav === tab.key && <View style={styles.navDot} />}
@@ -288,14 +308,13 @@ export default function ProductListScreen({ navigation }) {
     </SafeAreaView>
   );
 }
+
 const makeStyles = (theme) =>
   StyleSheet.create({
     safe: {
       flex: 1,
       backgroundColor: theme.bg,
     },
-
-    // Header
     header: {
       flexDirection: "row",
       alignItems: "center",
@@ -329,8 +348,6 @@ const makeStyles = (theme) =>
       shadowRadius: 6,
       elevation: 2,
     },
-
-    // Busca
     searchRow: {
       flexDirection: "row",
       paddingHorizontal: 20,
@@ -364,8 +381,6 @@ const makeStyles = (theme) =>
       alignItems: "center",
       justifyContent: "center",
     },
-
-    // Chamada
     callout: {
       paddingHorizontal: 20,
       marginBottom: 14,
@@ -383,8 +398,6 @@ const makeStyles = (theme) =>
       color: theme.textMuted,
       marginTop: 2,
     },
-
-    // Filtros
     filtersScroll: {
       maxHeight: 44,
       marginBottom: 14,
@@ -415,8 +428,6 @@ const makeStyles = (theme) =>
       color: theme.card,
       fontWeight: "700",
     },
-
-    // Lista
     list: {
       flexGrow: 1,
       paddingHorizontal: 16,
@@ -429,8 +440,6 @@ const makeStyles = (theme) =>
       justifyContent: "center",
       paddingBottom: 90,
     },
-
-    // Card
     card: {
       flexDirection: "row",
       marginBottom: 12,
@@ -520,8 +529,6 @@ const makeStyles = (theme) =>
     deleteIconButton: {
       backgroundColor: theme.iconDestructiveBg,
     },
-
-    // Empty
     emptyState: {
       flex: 1,
       alignItems: "center",
@@ -540,8 +547,6 @@ const makeStyles = (theme) =>
       textAlign: "center",
       maxWidth: 240,
     },
-
-    // Bottom nav
     bottomNav: {
       position: "absolute",
       bottom: 0,
@@ -598,5 +603,25 @@ const makeStyles = (theme) =>
       height: 4,
       borderRadius: 2,
       backgroundColor: theme.titlePrimary,
+    },
+    
+    cartBadge: {
+      position: "absolute",
+      top: -6,
+      right: -10,
+      backgroundColor: "#FF3B30", 
+      borderRadius: 10,
+      minWidth: 16,
+      height: 16,
+      justifyContent: "center",
+      alignItems: "center",
+      paddingHorizontal: 4,
+      borderWidth: 1.5,
+      borderColor: "#FFF", 
+    },
+    cartBadgeText: {
+      color: "#FFF",
+      fontSize: 9,
+      fontWeight: "bold",
     },
   });

@@ -247,7 +247,8 @@ export default function SettingsScreen({ navigation }) {
             onPress={() => {
               setActiveNav(tab.key);
               if (tab.center) navigation.navigate("ProductCreate");
-              if (tab.key === "home") navigation.navigate("ProductList");
+              if (tab.key === "home") navigation.navigate("Products");
+              if (tab.key === "cart") navigation.navigate("Cart");
               if (tab.key === "profile") navigation.navigate("Profile");
             }}
           >

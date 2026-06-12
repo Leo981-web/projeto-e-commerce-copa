@@ -7,6 +7,7 @@ import ProductListScreen from "../screens/app/ProductListScreen";
 import SettingScreen from "../screens/app/SettingsScreen";
 import ProfileScreen from "../screens/app/ProfileScreen";
 import { useTheme } from "../context/ThemeContext";
+import CartScreen from "../screens/app/CartScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -53,6 +54,11 @@ export default function AppRoutes() {
       <Stack.Screen
         name="Profile"
         component={ProfileScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Cart"
+        component={CartScreen}
         options={{ headerShown: false }}
       />
     </Stack.Navigator>

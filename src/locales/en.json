@@ -138,5 +138,17 @@
   "invalidPhoneTitle": "Invalid phone number",
   "invalidPhoneMessage": "Please enter a valid phone number with area code.",
   "invalidEmailTitle": "Invalid email",
-  "invalidEmailMessage": "Please enter a valid email address."
+  "invalidEmailMessage": "Please enter a valid email address.",
+  "cartTitle": "My Cart",
+  "cartEmpty": "Your cart is empty",
+  "goToShop": "Go shopping",
+  "cartTotal": "Total:",
+  "checkoutButton": "Checkout",
+  "checkoutSuccessMessage": "Purchase completed successfully!",
+  "limitReachedTitle": "Limit Reached",
+  "limitReachedMessage": "We do not have any more units of this item in stock.",
+  "itemRemovedTitle": "Removed",
+  "itemRemovedMessage": "Item removed from cart.",
+  "opsTitle": "Oops!",
+  "stockLimitMessage": "There are no more units available to add to the cart."
 }

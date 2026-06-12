@@ -5,18 +5,21 @@ import { AuthProvider } from "./src/context/AuthContext";
 import { CustomAlertProvider } from "./src/context/CustomAlertContext";
 import Routes from "./src/routes/Routes";
 import { LanguageProvider } from "./src/context/LanguageContext";
+import { CartProvider } from "./src/context/CartContext";
 
 export default function App() {
   return (
     <LanguageProvider>
-    <AuthProvider>
-      <CustomAlertProvider>
-        <NavigationContainer>
-          <Routes />
-        </NavigationContainer>
-        <StatusBar style="auto" />
-      </CustomAlertProvider>
-    </AuthProvider>
+      <AuthProvider>
+        <CartProvider>
+          <CustomAlertProvider>
+            <NavigationContainer>
+              <Routes />
+            </NavigationContainer>
+            <StatusBar style="auto" />
+          </CustomAlertProvider>
+        </CartProvider>
+      </AuthProvider>
     </LanguageProvider>
   );
 }

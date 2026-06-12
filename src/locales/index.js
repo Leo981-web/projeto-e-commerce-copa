@@ -26,3 +26,4 @@ if (translations[deviceLanguage]) {
 }
 
 export default i18n;
+

@@ -136,5 +136,19 @@
   "invalidPhoneTitle": "Telefone inválido",
   "invalidPhoneMessage": "Por favor, insira um número de telefone válido com DDD.",
   "invalidEmailTitle": "E-mail inválido",
-  "invalidEmailMessage": "Por favor, insira um endereço de e-mail válido."
+  "invalidEmailMessage": "Por favor, insira um endereço de e-mail válido.",
+  "cartTitle": "Meu Carrinho",
+  "cartEmpty": "Seu carrinho está vazio",
+  "goToShop": "Ir às compras",
+  "cartTotal": "Total:",
+  "checkoutButton": "Finalizar Compra",
+  "checkoutSuccessMessage": "Compra realizada com sucesso!",
+  "limitReachedTitle": "Limite Atingido",
+  "limitReachedMessage": "Não temos mais unidades deste item disponíveis em estoque.",
+  "itemRemovedTitle": "Removido",
+  "itemRemovedMessage": "Item removido do carrinho.",
+  "opsTitle": "Ops!",
+  "stockLimitMessage": "Não há mais unidades disponíveis para adicionar ao carrinho."
+
+
 }
