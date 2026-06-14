@@ -1,0 +1,29 @@
+Oi amigos desenvolvedores :D
+Estou colocando aqui umas instruções que >> TODOS << devem seguir antes de codar.
+
+SUPABASE:
+
+1. Criar um arquivo .env e conectar com o seu Supabase (escolher Expo React Native + usar comando no terminal para instalar o que for necessário).
+
+2. Depois disso, para que tudo funcione certinho, é preciso rodar o script do '01_create_products_table.sql' no SQL Editor do Supabase!!!
+
+3. Clique em Table Editor pra verificar se a tabela está alí.
+
+4. Agora, sobre os Users. Cliquem em Authentication > Sign In/ Providers --> Tenham certeza de que a opção 'Confirm Email' esteja desativada e salvem.
+
+5. Tente criar um usuário e clique em Authentication > Manage > Users --> Acompanhem por alí os users.
+
+
+ESTRUTURA:
+Aqui é uma explicação para que ninguém se confunda aonde codar o que. Se tiver dúvida >> VOLTE AQUI <<
+
+- SCRIPTS é onde ficam as consultas/criação de tabelas sql;
+- ASSETS é onde ficam todas as imagens, músicas, vídeos, ... ;
+- COMPONENTS são todos os elementos visuais que podem ser reutilizados entre as páginas do app;
+- CONTEXT é onde fica a lógica para guardar informações que devem ser mantidas/guardadas entre telas;
+- LOCALES guarda as linguagens diferentes do app. Arriba!
+- ROUTES é onde fica a lógica de navegação do app;
+- SCREENS é onde fica as telas normais do app + telas de autenticação;
+- SERVICES é a lógica por trás de tudo.
+
+>> OBS: Apagar só depois do projeto estar pronto!!! <<

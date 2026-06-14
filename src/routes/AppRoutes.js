@@ -4,6 +4,7 @@ import ProductCreateScreen from "../screens/app/ProductCreateScreen";
 import ProductDetailsScreen from "../screens/app/ProductDetailsScreen";
 import ProductEditScreen from "../screens/app/ProductEditScreen";
 import ProductListScreen from "../screens/app/ProductListScreen";
+import FavoriteScreen from "../screens/app/FavoriteScreen";
 import SettingScreen from "../screens/app/SettingsScreen";
 import ProfileScreen from "../screens/app/ProfileScreen";
 import { useTheme } from "../context/ThemeContext";
@@ -29,6 +30,11 @@ export default function AppRoutes() {
       <Stack.Screen
         name="Products"
         component={ProductListScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Favorites"
+        component={FavoriteScreen}
         options={{ headerShown: false }}
       />
       <Stack.Screen

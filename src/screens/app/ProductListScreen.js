@@ -26,6 +26,7 @@ import { useLanguage } from "../../context/LanguageContext";
 import { formatCurrency } from "../../services/formatters";
 import * as productService from "../../services/productService";
 import { useTheme } from "../../context/ThemeContext";
+import { useFavorites } from "../../context/FavoriteContext";
 
 const { width } = Dimensions.get("window");
 
@@ -63,6 +64,7 @@ export default function ProductListScreen({ navigation }) {
   const [search, setSearch] = useState("");
   const [activeFilter, setActiveFilter] = useState("filterAll"); 
   const [activeNav, setActiveNav] = useState("home");
+  const { favorites, toggleFavorite, isFavorite } = useFavorites();
 
   async function loadProducts() {
     try {
@@ -76,7 +78,12 @@ export default function ProductListScreen({ navigation }) {
     }
   }
 
-  useFocusEffect(useCallback(() => { loadProducts(); }, []));
+  useFocusEffect(
+    useCallback(() => {
+      loadProducts();
+      setActiveNav("home");
+    }, []),
+  );
 
   function confirmDelete(product) {
     showConfirm({
@@ -111,6 +118,7 @@ export default function ProductListScreen({ navigation }) {
     const cartItem = cart.find(c => c.id === item.id);
     const quantityInCart = cartItem ? cartItem.cartQuantity : 0;
     const availableQuantity = item.quantity - quantityInCart;
+    const isFavoriteProduct = isFavorite(item.id);
 
     return (
       <Pressable
@@ -149,6 +157,21 @@ export default function ProductListScreen({ navigation }) {
             </View>
 
             <View style={styles.actions}>
+              <Pressable
+                hitSlop={8}
+                onPress={(e) => {
+                  e.stopPropagation();
+                  toggleFavorite(item);
+                }}
+                style={[styles.iconButton, isFavoriteProduct && styles.favoriteIconButton]}
+              >
+                <MaterialIcons
+                  name={isFavoriteProduct ? "favorite" : "favorite-border"}
+                  size={18}
+                  color={isFavoriteProduct ? "#009C3B" : theme.titlePrimary}
+                />
+              </Pressable>
+
               <Pressable
                 hitSlop={8}
                 onPress={(e) => { 
@@ -268,6 +291,7 @@ export default function ProductListScreen({ navigation }) {
               if (tab.key === "create") navigation.navigate("ProductCreate");
               if (tab.key === "profile") navigation.navigate("Profile");
               if (tab.key === "cart") navigation.navigate("Cart");
+              if (tab.key === "favorites") navigation.navigate("Favorites");
             }}
           >
             {tab.center ? (
@@ -525,6 +549,9 @@ const makeStyles = (theme) =>
       justifyContent: "center",
       borderRadius: 16,
       backgroundColor: theme.iconBg,
+    },
+    favoriteIconButton: {
+      backgroundColor: "#FFE8EE",
     },
     deleteIconButton: {
       backgroundColor: theme.iconDestructiveBg,

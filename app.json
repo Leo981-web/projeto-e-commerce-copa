@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "supabase-crud",
-    "slug": "supabase-crud",
-    "scheme": "supabase-crud",
+    "name": "e-commerce-copa",
+    "slug": "e-commerce-copa",
+    "scheme": "e-commerce-copa",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
