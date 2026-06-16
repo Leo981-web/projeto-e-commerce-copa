@@ -1,110 +1,99 @@
-import { supabase } from "./supabase";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export async function sendPasswordResetEmail(email) {
-  if (!email?.trim() || !email.trim().includes("@")) {
-    throw new Error("Informe um e-mail válido.");
-  }
-  
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-  return true;
-}
 
-export async function updatePassword(newPassword) {
-  if (!newPassword || newPassword.length < 6) {
-    throw new Error("A senha deve ter pelo menos 6 caracteres.");
-  }
+const API_URL = process.env.EXPO_PUBLIC_API_URL + "/auth"; 
 
-  
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-  return true;
-}
-function mapUser(user) {
-  if (!user) {
-    return null;
-  }
-
-  const metadata = user.user_metadata ?? {};
-
-  return {
-    id: user.id,
-    name: metadata.name ?? user.name ?? user.email,
-    email: user.email,
-    avatar_url: metadata.avatar_url ?? null,
-    phone: metadata.phone ?? null,
-  };
-}
+const TOKEN_KEY = "@ECommerceCopa:token";
+const USER_KEY = "@ECommerceCopa:user";
 
 function validateCredentials(email, password) {
   if (!email?.trim() || !password) {
-    throw new Error("Informe e-mail e senha.");
+    throw new Error("Informe e-mail e senha");
   }
-
   if (!email.trim().includes("@")) {
     throw new Error("Informe um e-mail válido.");
   }
-
-  if (password.length < 6) {
-    throw new Error("A senha deve ter pelo menos 6 caracteres.");
+  if (password.length < 4) {
+    throw new Error("A senha deve ter pelo menos 4 caracteres.");
   }
+}
+
+
+export async function getCurrentUser() {
+  const savedUser = await AsyncStorage.getItem(USER_KEY);
+  return savedUser ? JSON.parse(savedUser) : null;
+}
+
+
+export async function getToken() {
+  return await AsyncStorage.getItem(TOKEN_KEY);
 }
 
 export async function signIn(email, password) {
   validateCredentials(email, password);
 
-  const { error, data } = await supabase.auth.signInWithPassword({
-    email: email.trim(),
-    password,
+  const response = await fetch(`${API_URL}/signin`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      email: email.trim(),
+      password: password,
+    }),
   });
 
-  if (error) {
-    throw new Error("Erro ao fazer o login: " + error.message);
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(errorText || "Erro ao fazer o login.");
   }
 
-  return mapUser(data.user);
+  const data = await response.json();
+
+
+  if (data.token && data.user) {
+    await AsyncStorage.setItem(TOKEN_KEY, data.token);
+    await AsyncStorage.setItem(USER_KEY, JSON.stringify(data.user));
+  }
+
+  return data.user; 
 }
 
-export async function signUp(name, email, password) {
+export async function signUp(name, email, password, phone) {
   if (!name?.trim()) {
     throw new Error("Informe seu nome.");
   }
-
+  if (!phone?.trim()) {
+    throw new Error("Informe seu telefone.");
+  }
   validateCredentials(email, password);
 
-  const { error, data } = await supabase.auth.signUp({
-    email: email.trim(),
-    password,
-    options: {
-      data: {
-        name: name.trim(),
-      },
+  const response = await fetch(`${API_URL}/signup`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
     },
+    body: JSON.stringify({
+      name: name.trim(),
+      email: email.trim(),
+      password: password,
+      phone: phone.trim(),
+    }),
   });
 
-  if (error) {
-    throw new Error("Erro ao fazer o cadastro: " + error.message);
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(errorText || "Erro ao fazer o cadastro.");
   }
 
-  return mapUser(data.user);
+  const userData = await response.json(); 
+  return userData;
 }
 
 export async function signOut() {
-  const { error } = await supabase.auth.signOut();
-
-  if (error) {
-    throw new Error("Erro ao sair: " + error.message);
-  }
-
+  await AsyncStorage.removeItem(TOKEN_KEY);
+  await AsyncStorage.removeItem(USER_KEY);
   return true;
-}
-
-export async function getCurrentUser() {
-  const { error, data } = await supabase.auth.getSession();
-
-  if (error) {
-    throw new Error("Erro ao recuperar sessão: " + error.message);
-  }
-
-  return mapUser(data.session?.user);
 }
 
 // ============================================================

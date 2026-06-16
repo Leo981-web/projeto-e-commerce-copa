@@ -48,11 +48,11 @@ export function AuthProvider({ children }) {
     }
   }
 
-  async function register(name, email, password) {
+  async function register(name, email, password, phone) {
     setLoading(true);
 
     try {
-      const registeredUser = await authService.signUp(name, email, password);
+      const registeredUser = await authService.signUp(name, email, password, phone);
       setUser(registeredUser);
       return registeredUser;
     } finally {

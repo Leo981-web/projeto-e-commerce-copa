@@ -26,7 +26,7 @@ export default function RegisterScreen({ navigation }) {
 
   async function handleRegister() {
     try {
-      await register(name, email, password);
+      await register(name, email, password, phone);
     } catch (error) {
       showAlert({
         title: t("registerErrorTitle"), 

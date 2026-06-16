@@ -1,17 +1,47 @@
 Oi amigos desenvolvedores :D
 Estou colocando aqui umas instruções que >> TODOS << devem seguir antes de codar.
 
-SUPABASE:
+1. Subir o Backend (Docker) =========================================================================================================
 
-1. Criar um arquivo .env e conectar com o seu Supabase (escolher Expo React Native + usar comando no terminal para instalar o que for necessário).
+|=====================================|
+|>>>>>>>>>>>> IMPORTANTE <<<<<<<<<<<<<|
+|=====================================|
 
-2. Depois disso, para que tudo funcione certinho, é preciso rodar o script do '01_create_products_table.sql' no SQL Editor do Supabase!!!
+O Docker precisa estar aberto (INSTALADO): Para o passo do backend funcionar, a pessoa precisa ter o programa do Docker (como o Docker Desktop) instalado e rodando no computador. Se o Docker estiver fechado, o comando -- docker-compose up -d -- vai falhar imediatamente. 
 
-3. Clique em Table Editor pra verificar se a tabela está alí.
+=====================================================================================================================================
+Primeiro, vamos rodar a nossa API. Faça o clone do repositório dos microsserviços:
+--------
+git clone https://github.com/MariaLaimer/Microsservices-Copa-Java.git
+--------
 
-4. Agora, sobre os Users. Cliquem em Authentication > Sign In/ Providers --> Tenham certeza de que a opção 'Confirm Email' esteja desativada e salvem.
+Abra a pasta do projeto no VS Code, abra o terminal e rode o comando abaixo para subir os containers:
+--------
+docker-compose up -d
+--------
+Atenção: Após rodar o comando, espere cerca de 60 segundos antes de tentar logar no app. Esse tempo é necessário para que o Eureka consiga registrar todos os serviços corretamente!
 
-5. Tente criar um usuário e clique em Authentication > Manage > Users --> Acompanhem por alí os users.
+2. Descobrir o seu IP Local =========================================================================================================
+Para o aplicativo no celular/emulador conseguir se comunicar com o Docker no seu computador, precisamos do seu IP local.
+
+Se você usa Windows: Abra o terminal e digite ipconfig.
+
+3. Configurar o Frontend (Variáveis de Ambiente)=====================================================================================
+No projeto do React Native (Expo), crie um arquivo chamado .env na raiz do projeto.
+Dentro dele, você vai colocar as chaves de conexão do Supabase (escolha a opção Expo React Native no painel do Supabase e instale as dependências que ele pedir).
+Logo abaixo das variáveis do Supabase, adicione a rota da nossa API usando o IP que você descobriu no passo anterior:
+
+Snippet de código
+EXPO_PUBLIC_API_URL=http://SEU_IP_AQUI:8765
+(Exemplo: se seu IP for 192.168.0.15, ficará http://192.168.0.15:8765)
+
+4. Depois disso, para que tudo funcione certinho, é preciso rodar o script do '01_create_products_table.sql' no SQL Editor do Supabase!!! =====================================================================================================================================
+
+5. Clique em Table Editor pra verificar se a tabela está alí.========================================================================
+
+6. Agora, sobre os Users. Cliquem em Authentication > Sign In/ Providers --> Tenham certeza de que a opção 'Confirm Email' esteja desativada e salvem.=================================================================================================================
+
+7. Tente criar um usuário e clique em Authentication > Manage > Users --> Acompanhem por alí os users.===============================
 
 
 ESTRUTURA:
