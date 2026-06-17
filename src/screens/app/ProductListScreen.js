@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -84,6 +84,21 @@ export default function ProductListScreen({ navigation }) {
       setActiveNav("home");
     }, []),
   );
+
+  // Filtra os produtos pelo termo digitado na barra de pesquisa (nome ou descrição)
+  const filteredProducts = useMemo(() => {
+    const term = search.trim().toLowerCase();
+
+    if (!term) {
+      return products;
+    }
+
+    return products.filter((product) => {
+      const name = product.name?.toLowerCase() ?? "";
+      const description = product.description?.toLowerCase() ?? "";
+      return name.includes(term) || description.includes(term);
+    });
+  }, [products, search]);
 
   function confirmDelete(product) {
     showConfirm({
@@ -272,7 +287,7 @@ export default function ProductListScreen({ navigation }) {
       ) : (
         <FlatList
           contentContainerStyle={styles.list}
-          data={products}
+          data={filteredProducts}
           keyExtractor={(item) => item.id}
           ListEmptyComponent={renderEmptyList}
           renderItem={renderProduct}

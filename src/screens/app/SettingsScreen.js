@@ -217,6 +217,41 @@ export default function SettingsScreen({ navigation }) {
           </TouchableOpacity>
         </View>
 
+        {/* SEÇÃO: AJUDA E INFORMAÇÕES */}
+        <Text style={[styles.sectionTitle, { color: theme.textMuted }]}>{t("helpAndInfo")}</Text>
+        <View style={[styles.optionsBlock, { backgroundColor: theme.card, shadowColor: isDarkMode ? "#000" : "#a39f96" }]}>
+
+          <TouchableOpacity
+            style={[styles.settingRow, { borderBottomColor: theme.divider }]}
+            activeOpacity={0.7}
+            onPress={() => navigation.navigate("Support")}
+          >
+            <View style={[styles.iconContainer, { backgroundColor: theme.iconBg }]}>
+              <MaterialIcons name="support-agent" size={22} color={theme.textPrimary} />
+            </View>
+            <View style={styles.settingTextContainer}>
+              <Text style={[styles.settingTitle, { color: theme.textPrimary }]}>{t("contactSupport")}</Text>
+              <Text style={[styles.settingSubtitle, { color: theme.textMuted }]}>{t("contactSupportSub")}</Text>
+            </View>
+            <MaterialIcons name="chevron-right" size={20} color={theme.textMuted} />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.settingRow, styles.settingRowLast]}
+            activeOpacity={0.7}
+            onPress={() => navigation.navigate("About")}
+          >
+            <View style={[styles.iconContainer, { backgroundColor: theme.iconBg }]}>
+              <MaterialIcons name="info-outline" size={22} color={theme.textPrimary} />
+            </View>
+            <View style={styles.settingTextContainer}>
+              <Text style={[styles.settingTitle, { color: theme.textPrimary }]}>{t("aboutApp")}</Text>
+              <Text style={[styles.settingSubtitle, { color: theme.textMuted }]}>{t("aboutAppSub")}</Text>
+            </View>
+            <MaterialIcons name="chevron-right" size={20} color={theme.textMuted} />
+          </TouchableOpacity>
+        </View>
+
         {/* SEÇÃO: CONTA / SAÍDA */}
         <Text style={[styles.sectionTitle, { color: theme.textMuted }]}>{t("session")}</Text>
         <View style={[styles.optionsBlock, { backgroundColor: theme.card, shadowColor: isDarkMode ? "#000" : "#a39f96" }]}>

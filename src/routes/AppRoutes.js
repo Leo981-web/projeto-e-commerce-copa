@@ -9,6 +9,8 @@ import SettingScreen from "../screens/app/SettingsScreen";
 import ProfileScreen from "../screens/app/ProfileScreen";
 import { useTheme } from "../context/ThemeContext";
 import CartScreen from "../screens/app/CartScreen";
+import SupportScreen from "../screens/app/SupportScreen";
+import AboutScreen from "../screens/app/AboutScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -65,6 +67,16 @@ export default function AppRoutes() {
       <Stack.Screen
         name="Cart"
         component={CartScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Support"
+        component={SupportScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="About"
+        component={AboutScreen}
         options={{ headerShown: false }}
       />
     </Stack.Navigator>
