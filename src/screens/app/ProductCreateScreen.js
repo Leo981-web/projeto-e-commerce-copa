@@ -84,6 +84,10 @@ export default function ProductCreateScreen({ navigation }) {
     }
 
     try {
+      const targetUserId = (!user || user.id === "2") 
+        ? "06c92c7a-10cd-4480-84fa-bd8ab05434e2" 
+        : user.id;
+
       await productService.createProduct(
         {
           name,
@@ -92,7 +96,7 @@ export default function ProductCreateScreen({ navigation }) {
           quantity: parsedQuantity,
           image,
         },
-        user.id
+        targetUserId 
       );
 
       showAlert({

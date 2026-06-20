@@ -207,7 +207,7 @@ export async function createProduct(productData, userId) {
     .from("products")
     .insert([
       {
-        user_id: userId,
+        user_id: "06c92c7a-10cd-4480-84fa-bd8ab05434e2",
         name: productData.name,
         description: productData.description,
         price: parseCurrency(productData.price),
@@ -252,4 +252,34 @@ export async function deleteProduct(id) {
   }
 
   return true;
+}
+async function finalizarPedido() {
+  try {
+  
+    for (const item of carrinho) {
+      const novaQuantidade = item.quantity - item.quantidadeComprada;
+      
+      await updateProduct(item.id, {
+        ...item,
+        quantity: novaQuantidade
+      });
+    } 
+  } catch (error) {
+    console.error("Erro ao dar baixa no estoque", error);
+  }
+}
+export async function checkoutCart(cartItems) {
+  try {
+    for (const item of cartItems) {
+      const currentStock = item.quantity !== undefined ? item.quantity : (item.stock || 0);
+      const newStock = Math.max(currentStock - item.cartQuantity, 0);
+      await updateProduct(item.id, {
+        ...item,
+        quantity: newStock
+      });
+    }
+    return true;
+  } catch (error) {
+    throw new Error("Erro ao atualizar o estoque no checkout: " + error.message);
+  }
 }

@@ -160,3 +160,19 @@ export async function updateProfileAvatar(avatarUrl) {
 
   return mapUser(data.user);
 }
+export async function sendPasswordResetEmail(email) {
+  if (!email?.trim() || !email.includes("@")) {
+    throw new Error("Por favor, informe um e-mail válido.");
+  }
+
+
+  const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+    redirectTo: 'io.expo.development://', 
+  });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return true;
+}

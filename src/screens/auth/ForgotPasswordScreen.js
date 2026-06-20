@@ -83,7 +83,7 @@ export default function ForgotPasswordScreen({ navigation }) {
                 icon="mail"
                 keyboardType="email-address"
                 onChangeText={setEmail}
-                placeholder="DIGITE SEU E-MAIL CADASTRADO"
+                placeholder="Digite seu e-mail cadastrado"
                 value={email}
                 style={styles.inputNavy}
               />

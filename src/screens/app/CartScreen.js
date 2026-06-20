@@ -50,13 +50,18 @@ export default function CartScreen({ navigation }) {
   const styles = makeStyles(theme, isDarkMode);
 
   function handleCheckout() {
-    showAlert({
-      title: t("successTitle"),
-      message: t("checkoutSuccessMessage"),
-      type: "success",
+    
+    if (cart.length === 0) {
+      showAlert({
+        title: t("attentionTitle") || "Atenção",
+        message: t("cartEmpty") || "Seu carrinho está vazio.",
+        type: "warning",
+      });
+      return;
+    }
+    navigation.navigate("Payment", {
+      total: totalPrice
     });
-    clearCart();
-    navigation.navigate("Products");
   }
 
   function handleQuantityChange(id, amount) {
