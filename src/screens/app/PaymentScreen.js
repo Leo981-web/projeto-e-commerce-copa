@@ -96,24 +96,29 @@ export default function PaymentScreen({ route, navigation }) {
 
     setLoading(true);
     try {
+      // Captura os itens ANTES de limpar o carrinho, senão a tela
+      // de comprovante receberia uma lista vazia.
+      const purchasedItems = cart;
+
       await checkoutCart(cart);
       clearCart();
 
-      let alertMessage = "";
+      let note = "";
       if (paymentMethod === "pix") {
-        alertMessage = "Seu código Pix foi gerado! Copie o código para pagar no seu banco.";
+        note = "Seu código Pix foi gerado! Copie o código para pagar no seu banco.";
       } else if (paymentMethod === "boleto") {
-        alertMessage = "Seu boleto foi gerado com sucesso! Enviamos o código de barras para o seu e-mail para a realização do pagamento.";
+        note = "Seu boleto foi gerado com sucesso! Enviamos o código de barras para o seu e-mail para a realização do pagamento.";
       } else {
-        alertMessage = "Seu pagamento foi aprovado! Enviamos os detalhes para o seu e-mail.";
+        note = "Seu pagamento foi aprovado! Enviamos os detalhes para o seu e-mail.";
       }
 
-      showAlert({
-        title: "Pedido Confirmado! 🎉",
-        message: alertMessage,
-        type: "success",
-        buttonText: "Ir para o Início",
-        onClose: () => navigation.popToTop(), 
+      navigation.replace("Receipt", {
+        items: purchasedItems,
+        total: totalValue,
+        paymentMethod,
+        orderId: Date.now().toString().slice(-8),
+        date: new Date().toISOString(),
+        note,
       });
     } catch (error) {
       showAlert({
