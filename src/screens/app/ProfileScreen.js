@@ -49,11 +49,11 @@ const maskPhone = (value) => {
   }
 
   if (v.length <= 10) {
-    
+
     v = v.replace(/(\d{2})(\d)/, "($1) $2");
     v = v.replace(/(\d{4})(\d)/, "$1-$2");
   } else {
-    
+
     v = v.replace(/(\d{2})(\d)/, "($1) $2");
     v = v.replace(/(\d{5})(\d)/, "$1-$2");
   }
@@ -197,11 +197,11 @@ export default function ProfileScreen({ navigation }) {
   // Iniciais para o avatar
   const initials = user?.name
     ? user.name
-        .split(" ")
-        .map((w) => w[0])
-        .slice(0, 2)
-        .join("")
-        .toUpperCase()
+      .split(" ")
+      .map((w) => w[0])
+      .slice(0, 2)
+      .join("")
+      .toUpperCase()
     : "?";
 
   return (
@@ -391,29 +391,48 @@ export default function ProfileScreen({ navigation }) {
         </View>
 
         {/* ── HISTÓRICO DE COMPRAS ── */}
+
+
         <Text style={[styles.sectionTitle, { color: theme.textMuted }]}>
           {t("purchaseHistory")}
         </Text>
-        <View
+
+        <TouchableOpacity
+          activeOpacity={0.7}
+          onPress={() => navigation.navigate("History")}
           style={[
             styles.optionsBlock,
             {
               backgroundColor: theme.card,
-              shadowColor: isDarkMode ? "#000" : "#a39f96",
+              shadowColor: isDarkMode ? "#000000" : "#a39f96",
+              paddingVertical: 16,
+              paddingHorizontal: 16,
             },
           ]}
         >
-          <View style={styles.emptyState}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+
             <MaterialIcons
               name="receipt-long"
-              size={36}
-              color={theme.textMuted}
+              size={24}
+              color={theme.text}
+              style={{ marginRight: 16 }}
             />
-            <Text style={[styles.emptyText, { color: theme.textMuted }]}>
-              {t("noPurchases")}
-            </Text>
+
+
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontSize: 16, fontWeight: '600', color: theme.text }}>
+                {t("purchaseHistory")}
+              </Text>
+              <Text style={{ fontSize: 12, color: theme.textMuted }}>
+                View your past orders
+              </Text>
+            </View>
+
+
+            <MaterialIcons name="chevron-right" size={24} color={theme.textMuted} />
           </View>
-        </View>
+        </TouchableOpacity>
 
         {/* ── LOGOUT ── */}
         <View
@@ -521,7 +540,7 @@ export default function ProfileScreen({ navigation }) {
         <Pressable style={styles.modalOverlay} onPress={closeEditModal}>
           <Pressable
             style={[styles.modalCard, { backgroundColor: theme.card }]}
-            onPress={() => {}}
+            onPress={() => { }}
           >
             <Text style={[styles.modalTitle, { color: theme.textPrimary }]}>
               {editModal.field === "name"

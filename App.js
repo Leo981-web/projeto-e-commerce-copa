@@ -6,6 +6,7 @@ import { CartProvider } from "./src/context/CartContext";
 import { CustomAlertProvider } from "./src/context/CustomAlertContext";
 import { FavoriteProvider } from "./src/context/FavoriteContext";
 import { LanguageProvider } from "./src/context/LanguageContext";
+import { HistoryProvider } from "./src/context/HistoryContext";
 import Routes from "./src/routes/Routes";
 
 export default function App() {
@@ -14,12 +15,14 @@ export default function App() {
       <AuthProvider>
         <FavoriteProvider>
           <CartProvider>
-            <CustomAlertProvider>
-              <NavigationContainer>
-                <Routes />
-              </NavigationContainer>
-              <StatusBar style="auto" />
-            </CustomAlertProvider>
+            <HistoryProvider>
+              <CustomAlertProvider>
+                <NavigationContainer>
+                  <Routes />
+                </NavigationContainer>
+                <StatusBar style="auto" />
+              </CustomAlertProvider>
+            </HistoryProvider>
           </CartProvider>
         </FavoriteProvider>
       </AuthProvider>

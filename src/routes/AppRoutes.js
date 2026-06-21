@@ -1,4 +1,5 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { useTheme } from "../context/ThemeContext";
 
 import ProductCreateScreen from "../screens/app/ProductCreateScreen";
 import ProductDetailsScreen from "../screens/app/ProductDetailsScreen";
@@ -7,12 +8,12 @@ import ProductListScreen from "../screens/app/ProductListScreen";
 import FavoriteScreen from "../screens/app/FavoriteScreen";
 import SettingScreen from "../screens/app/SettingsScreen";
 import ProfileScreen from "../screens/app/ProfileScreen";
-import { useTheme } from "../context/ThemeContext";
 import CartScreen from "../screens/app/CartScreen";
 import SupportScreen from "../screens/app/SupportScreen";
 import AboutScreen from "../screens/app/AboutScreen";
 import PaymentScreen from "../screens/app/PaymentScreen";
 import ReceiptScreen from "../screens/app/ReceiptScreen";
+import HistoryScreen from "../screens/app/HistoryScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -65,6 +66,16 @@ export default function AppRoutes() {
         name="Profile"
         component={ProfileScreen}
         options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="History"
+        component={HistoryScreen}
+        options={{
+          title: "Meus Pedidos",
+          headerShown: true,
+          headerStyle: { backgroundColor: theme.bg },
+          headerTintColor: theme.textPrimary,
+        }}
       />
       <Stack.Screen
         name="Cart"

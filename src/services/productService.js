@@ -255,15 +255,15 @@ export async function deleteProduct(id) {
 }
 async function finalizarPedido() {
   try {
-  
+
     for (const item of carrinho) {
       const novaQuantidade = item.quantity - item.quantidadeComprada;
-      
+
       await updateProduct(item.id, {
         ...item,
         quantity: novaQuantidade
       });
-    } 
+    }
   } catch (error) {
     console.error("Erro ao dar baixa no estoque", error);
   }
