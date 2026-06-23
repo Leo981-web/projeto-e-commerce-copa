@@ -5,9 +5,9 @@ import es from "./es.json";
 import * as Localization from "expo-localization";
 
 const translations = {
-  PT: pt,
-  EN: en,
-  ES: es,
+  pt: pt,
+  en: en,
+  es: es,
 };
   
 const i18n = new I18n(translations);

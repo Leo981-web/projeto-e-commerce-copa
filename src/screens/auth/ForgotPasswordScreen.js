@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { StyleSheet, View, Text, SafeAreaView, Dimensions } from "react-native";
+import { StyleSheet, View, Text, SafeAreaView, Dimensions, Image } from "react-native";
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useLanguage } from "../../context/LanguageContext";
 
@@ -7,6 +7,8 @@ import AppButton from "../../components/AppButton";
 import AppInput from "../../components/AppInput";
 import { sendPasswordResetEmail } from '../../services/authService';
 import { useCustomAlert } from "../../context/CustomAlertContext";
+
+import logo from "../../assets/logo.png"
 
 const NAVY = '#1A237E';
 const GREEN = '#00A650';
@@ -66,13 +68,13 @@ export default function ForgotPasswordScreen({ navigation }) {
 
 
           <View style={styles.iconBadge}>
-            <Ionicons name="football-outline" size={44} color={NAVY} />
+            <Image source={logo} style={styles.logoImage} />
           </View>
 
 
           <View style={styles.textContainer}>
-            <Text style={styles.headline}>Esqueceu sua{"\n"}seleção?</Text>
-            <Text style={styles.subheadline}>Recupere sua senha para voltar ao jogo de forma rápida e segura.</Text>
+            <Text style={styles.headline}>{t("forgotPassword?")}</Text>
+            <Text style={styles.subheadline}>{t("forgotPassword?2")}</Text>
           </View>
 
 
@@ -167,6 +169,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 
+  logoImage: {
+    width: 45,
+    height: 45,
+    resizeMode: "contain",
+  },
 
   mainCard: {
     backgroundColor: '#FFFFFF',

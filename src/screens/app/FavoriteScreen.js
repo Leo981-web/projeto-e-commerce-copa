@@ -68,9 +68,9 @@ export default function FavoriteScreen({ navigation }) {
     return (
       <View style={styles.emptyState}>
         <EmptyStateImage width={200} height={150} />
-        <Text style={styles.emptyTitle}>No favorites yet</Text>
+        <Text style={styles.emptyTitle}>{t("noFavorites")}</Text>
         <Text style={styles.emptyDesc}>
-          Tap the heart on any product to save it here.
+          {t("heartSaveIt")}
         </Text>
       </View>
     );
@@ -155,8 +155,8 @@ export default function FavoriteScreen({ navigation }) {
           <MaterialIcons name="arrow-back" size={20} color={theme.titlePrimary} />
         </TouchableOpacity>
         <View style={styles.headerContent}>
-          <Text style={styles.headerTitle}>Favorites</Text>
-          <Text style={styles.headerSubtitle}>Saved products</Text>
+          <Text style={styles.headerTitle}>{t("navFavorites")}</Text>
+          <Text style={styles.headerSubtitle}>{t("favoritesScreenSubTitle")}</Text>
         </View>
       </View>
 

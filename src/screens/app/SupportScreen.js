@@ -53,17 +53,14 @@ export default function SupportScreen({ navigation }) {
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: theme.bg }]}>
       <StatusBar barStyle="light-content" backgroundColor={GREEN_DARK} />
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
 
         {/* ── HERO VERDE ──────────────────────────────────────────────────── */}
         <View style={styles.hero}>
-
-          {/* Botão voltar centralizado verticalmente entre as 2 linhas de texto */}
           <View style={styles.heroInner}>
-            {/* Coluna do botão — centralizada entre título e subtítulo */}
             <TouchableOpacity
               style={styles.backBtn}
               onPress={() => navigation.goBack()}
@@ -73,13 +70,12 @@ export default function SupportScreen({ navigation }) {
               <Ionicons name="chevron-back" size={22} color="#FFFFFF" />
             </TouchableOpacity>
 
-            {/* Coluna dos textos empilhados */}
             <View style={styles.heroTexts}>
               <Text style={styles.heroTitle}>
-                <Text style={{ color: GOLD }}>Fale</Text>
-                {" conosco!"}
+                <Text style={{ color: GOLD }}>{t("fale")} </Text>
+                {t("conosco")}
               </Text>
-              <Text style={styles.heroSub}>Resposta em até 24 horas úteis</Text>
+              <Text style={styles.heroSub}>{t("resposta24hrs")}</Text>
             </View>
           </View>
         </View>
@@ -87,7 +83,7 @@ export default function SupportScreen({ navigation }) {
         {/* ── BARRA DE DISPONIBILIDADE ─────────────────────────────────────── */}
         <View style={styles.availabilityBar}>
           <View style={styles.availDot} />
-          <Text style={styles.availText}>Disponível agora</Text>
+          <Text style={styles.availText}>{t("disponivel")}</Text>
           <View style={styles.availSep} />
           <MaterialIcons name="schedule" size={12} color="rgba(255,255,255,0.92)" />
           <Text style={styles.availSub}>Seg–Sex · 08h–18h</Text>
@@ -97,11 +93,11 @@ export default function SupportScreen({ navigation }) {
         <View style={styles.formSection}>
           <View style={styles.sectionLabelRow}>
             <View style={styles.sectionAccent} />
-            <Text style={styles.sectionLabel}>Envie sua mensagem</Text>
+            <Text style={styles.sectionLabel}>{t("enviarMensagem")}</Text>
           </View>
 
-          <View style={[styles.formCard, { backgroundColor: theme.card }]}>
-            <Text style={styles.inputLabel}>{t("supportNameLabel")}</Text>
+          <View style={[styles.formCard, { backgroundColor: theme.card, borderColor: theme.divider }]}>
+            <Text style={[styles.inputLabel, { color: theme.textPrimary }]}>{t("supportNameLabel")}</Text>
             <AppInput
               icon="person"
               placeholder={t("supportNamePlaceholder")}
@@ -110,7 +106,7 @@ export default function SupportScreen({ navigation }) {
               autoCapitalize="words"
               style={styles.inputAccent}
             />
-            <Text style={styles.inputLabel}>{t("supportEmailLabel")}</Text>
+            <Text style={[styles.inputLabel, { color: theme.textPrimary }]}>{t("supportEmailLabel")}</Text>
             <AppInput
               icon="email"
               placeholder={t("supportEmailPlaceholder")}
@@ -120,7 +116,7 @@ export default function SupportScreen({ navigation }) {
               keyboardType="email-address"
               style={styles.inputAccent}
             />
-            <Text style={styles.inputLabel}>{t("supportSubjectLabel")}</Text>
+            <Text style={[styles.inputLabel, { color: theme.textPrimary }]}>{t("supportSubjectLabel")}</Text>
             <AppInput
               icon="subject"
               placeholder={t("supportSubjectPlaceholder")}
@@ -128,7 +124,7 @@ export default function SupportScreen({ navigation }) {
               onChangeText={(v) => updateField("subject", v)}
               style={styles.inputAccent}
             />
-            <Text style={styles.inputLabel}>{t("supportMessageLabel")}</Text>
+            <Text style={[styles.inputLabel, { color: theme.textPrimary }]}>{t("supportMessageLabel")}</Text>
             <AppInput
               icon="message"
               placeholder={t("supportMessagePlaceholder")}
@@ -150,7 +146,7 @@ export default function SupportScreen({ navigation }) {
         {/* ── RODAPÉ ──────────────────────────────────────────────────────── */}
         <View style={styles.footer}>
           <Text style={styles.footerText}>suporte@copaworld.com</Text>
-          <View style={styles.footerDot} />
+          <View style={[styles.footerDot, { backgroundColor: theme.divider }]} />
           <Text style={styles.footerText}>(49) 99999-0000</Text>
         </View>
       </ScrollView>
@@ -159,83 +155,49 @@ export default function SupportScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: "#F0F7F1" },
+  safe: { flex: 1 },
   scroll: { paddingBottom: 48 },
-
-  // ── Hero ───────────────────────────────────────────────────────────────────
   hero: {
     backgroundColor: GREEN_DARK,
     paddingTop: 16,
     paddingBottom: 22,
     paddingHorizontal: 20,
   },
-  // MUDANÇA: botão e textos lado a lado, botão centralizado entre as 2 linhas
   heroInner: {
     flexDirection: "row",
-    alignItems: "center",   // centraliza o botão verticalmente em relação ao bloco de textos
+    alignItems: "center",
     gap: 12,
   },
   backBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
+    width: 38, height: 38, borderRadius: 12,
     backgroundColor: "rgba(255,255,255,0.13)",
-    alignItems: "center",
-    justifyContent: "center",
-    flexShrink: 0,
+    alignItems: "center", justifyContent: "center", flexShrink: 0,
   },
-  heroTexts: {
-    flex: 1,
-    gap: 4,
-  },
-  heroTitle: {
-    fontSize: 28,
-    fontWeight: "900",
-    color: "#FFFFFF",
-    letterSpacing: -0.5,
-    lineHeight: 30,
-  },
-  heroSub: {
-    fontSize: 15,
-    color: "rgba(255,255,255,0.85)",
-    fontWeight: "600",
-  },
-
-  // ── Disponibilidade ────────────────────────────────────────────────────────
+  heroTexts: { flex: 1, gap: 4 },
+  heroTitle: { fontSize: 28, fontWeight: "900", color: "#FFFFFF", letterSpacing: -0.5, lineHeight: 30 },
+  heroSub: { fontSize: 15, color: "rgba(255,255,255,0.85)", fontWeight: "600" },
   availabilityBar: {
-    marginTop: 20,
-    marginHorizontal: 20,
-    marginBottom: 22,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 10,
-    backgroundColor: GREEN,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 7,
+    marginTop: 20, marginHorizontal: 20, marginBottom: 22,
+    paddingHorizontal: 16, paddingVertical: 10, borderRadius: 10,
+    backgroundColor: GREEN, flexDirection: "row", alignItems: "center", gap: 7,
   },
   availDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: GREEN_MID },
   availText: { fontSize: 12, fontWeight: "800", color: "#FFFFFF", letterSpacing: 0.2 },
   availSep: { width: 1, height: 13, backgroundColor: "rgba(255,255,255,0.93)", marginHorizontal: 2 },
   availSub: { fontSize: 11, color: "rgba(255,255,255,0.65)", fontWeight: "600" },
-
-  // ── Formulário ─────────────────────────────────────────────────────────────
   formSection: { paddingHorizontal: 20, marginBottom: 24 },
   sectionLabelRow: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 12 },
   sectionAccent: { width: 4, height: 18, borderRadius: 2, backgroundColor: GREEN },
   sectionLabel: { fontSize: 12, fontWeight: "800", color: GREEN, textTransform: "uppercase", letterSpacing: 1 },
   formCard: {
-    borderRadius: 18, padding: 16,
+    borderRadius: 18, padding: 16, borderWidth: 1.5,
     shadowColor: "#000", shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.07, shadowRadius: 12, elevation: 3,
-    borderWidth: 1.5, borderColor: "rgba(35,136,35,0.1)",
+    shadowOpacity: 0.05, shadowRadius: 12, elevation: 3,
   },
   inputAccent: { borderLeftWidth: 4, borderLeftColor: GREEN, borderRadius: 14, overflow: "hidden" },
-  inputLabel: { fontSize: 13, fontWeight: "700", color: GREEN_DARK, marginBottom: 4, marginTop: 8, marginLeft: 2 },
+  inputLabel: { fontSize: 13, fontWeight: "700", marginBottom: 4, marginTop: 8, marginLeft: 2 },
   sendBtn: { marginTop: 4, backgroundColor: GREEN_DARK },
-
-  // ── Rodapé ─────────────────────────────────────────────────────────────────
   footer: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10, paddingHorizontal: 20 },
   footerText: { fontSize: 14, color: GREEN, fontWeight: "700" },
-  footerDot: { width: 5, height: 5, borderRadius: 3, backgroundColor: "rgba(20,92,39,0.3)" },
+  footerDot: { width: 5, height: 5, borderRadius: 3 },
 });

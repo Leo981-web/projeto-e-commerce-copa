@@ -22,7 +22,7 @@ const WHITE  = "#FFFFFF";
 const TEAM_MEMBERS = [
   { name: "Artur Machado Ibãnez",       linkedinUrl: "https://www.linkedin.com/in/artur-machado-ibanez-876332359/" },
   { name: "Jamile Rockenbach Ferreira", linkedinUrl: "https://www.linkedin.com/in/jamile-rockenbach-ferreira/" },
-  { name: "Kauê Saggiorato",           linkedinUrl: "https://www.linkedin.com/in/kau%C3%AAsaggiorato/" },
+  { name: "Kauê Saggiorato",            linkedinUrl: "https://www.linkedin.com/in/kau%C3%AAsaggiorato/" },
   { name: "Leonardo Manfroi Zancanaro", linkedinUrl: "https://www.linkedin.com/in/leonardo-manfroi-zancanaro/" },
   { name: "Maria Luiza Pereto",         linkedinUrl: "https://www.linkedin.com/in/malup/" },
   { name: "Maria Eduarda Laimer",       linkedinUrl: "https://www.linkedin.com/in/maria-laimer/" },
@@ -48,11 +48,12 @@ export default function AboutScreen({ navigation }) {
   const { t } = useLanguage();
   const { showAlert } = useCustomAlert();
 
-  // MUDANÇA: fundo sempre branco, cores fixas
-  const cardBg       = WHITE;
-  const textColor    = "#111827";
-  const mutedColor   = "#6B7280";
-  const dividerColor = "rgba(21,98,42,0.08)";
+  // AJUSTE: Vinculado ao tema global da listagem
+  const screenBg     = theme.bg;
+  const cardBg       = theme.card;
+  const textColor    = theme.textPrimary;
+  const mutedColor   = theme.textMuted;
+  const dividerColor = theme.divider;
 
   async function openLinkedin(url) {
     try { await Linking.openURL(url); }
@@ -60,18 +61,18 @@ export default function AboutScreen({ navigation }) {
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <StatusBar barStyle="dark-content" backgroundColor={WHITE} />
+    <SafeAreaView style={[styles.safe, { backgroundColor: screenBg }]}>
+      <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} backgroundColor={cardBg} />
 
       {/* ── HEADER ─────────────────────────────────────────────────────────── */}
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: cardBg, borderBottomColor: dividerColor }]}>
         <TouchableOpacity
-          style={styles.backBtn}
+          style={[styles.backBtn, { backgroundColor: theme.iconBg, borderColor: dividerColor }]}
           onPress={() => navigation.goBack()}
           activeOpacity={0.6}
           hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
         >
-          <Ionicons name="chevron-back" size={22} color="#111827" />
+          <Ionicons name="chevron-back" size={22} color={textColor} />
         </TouchableOpacity>
         <View style={styles.headerCenter}>
           <Text style={[styles.headerEyebrow, { color: mutedColor }]}>
@@ -89,8 +90,8 @@ export default function AboutScreen({ navigation }) {
         <View style={[styles.heroCard, { backgroundColor: cardBg, borderColor: dividerColor }]}>
           <View style={styles.heroStripe}>
             <View style={[styles.stripeSegment, { backgroundColor: GREEN }]} />
-            <View style={[styles.stripeSegment, { backgroundColor: GOLD }]} />
-            <View style={[styles.stripeSegment, { backgroundColor: "#1a2696" }]} />
+          <View style={[styles.stripeSegment, { backgroundColor: GOLD }]} />
+          <View style={[styles.stripeSegment, { backgroundColor: "#1a2696" }]} />
           </View>
           <View style={styles.heroLogoRow}>
             <Image source={require("../../assets/logo.png")} style={styles.heroLogo} resizeMode="contain" />
@@ -109,11 +110,11 @@ export default function AboutScreen({ navigation }) {
             {t("aboutAppDescription")}
           </Text>
           <View style={styles.statsRow}>
-            <View style={[styles.statBadge, { backgroundColor: "#D4EDDA" }]}>
+            <View style={[styles.statBadge, { backgroundColor: isDarkMode ? "rgba(21,98,42,0.2)" : "#D4EDDA" }]}>
               <MaterialIcons name="sports-soccer" size={22} color={GREEN} />
               <Text style={[styles.statLabel, { color: GREEN }]}>Copa 2026</Text>
             </View>
-            <View style={[styles.statBadge, { backgroundColor: "#DBEAFE" }]}>
+            <View style={[styles.statBadge, { backgroundColor: isDarkMode ? "rgba(30,64,175,0.2)" : "#DBEAFE" }]}>
               <MaterialIcons name="shopping-bag" size={22} color="#1E40AF" />
               <Text style={[styles.statLabel, { color: "#1E40AF" }]}>E-commerce</Text>
             </View>
@@ -182,38 +183,21 @@ export default function AboutScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: "#F0F7F1" },
-
+  safe: { flex: 1 },
   header: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    paddingTop: 14,
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "rgba(21,98,42,0.08)",
-    backgroundColor: "#FFFFFF",
-    gap: 12,
+    flexDirection: "row", alignItems: "center",
+    paddingHorizontal: 20, paddingTop: 14, paddingBottom: 16,
+    borderBottomWidth: 1, gap: 12,
   },
   backBtn: {
-    width: 38, height: 38,
-    borderRadius: 10,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "rgba(21,98,42,0.07)",
-    borderWidth: 1.5,
-    borderColor: "rgba(21,98,42,0.15)",
+    width: 38, height: 38, borderRadius: 10,
+    alignItems: "center", justifyContent: "center", borderWidth: 1.5,
   },
   headerCenter: { flex: 1 },
   headerEyebrow: { fontSize: 11, fontWeight: "600", letterSpacing: 0.5, marginBottom: 1 },
   headerTitle: { fontSize: 22, fontWeight: "900", letterSpacing: -0.3 },
-
   scroll: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 40 },
-
-  heroCard: {
-    borderRadius: 20, overflow: "hidden", borderWidth: 1.5, marginBottom: 24,
-    shadowColor: GREEN, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.08, shadowRadius: 12, elevation: 3,
-  },
+  heroCard: { borderRadius: 20, overflow: "hidden", borderWidth: 1.5, marginBottom: 24, elevation: 3 },
   heroStripe: { flexDirection: "row", height: 5 },
   stripeSegment: { flex: 1 },
   heroLogoRow: { flexDirection: "row", alignItems: "center", gap: 14, paddingHorizontal: 20, paddingTop: 20, paddingBottom: 16 },
@@ -225,22 +209,16 @@ const styles = StyleSheet.create({
   statsRow: { flexDirection: "row", gap: 8, paddingHorizontal: 20, marginBottom: 16 },
   statBadge: { flex: 1, borderRadius: 10, paddingVertical: 10, alignItems: "center", gap: 4 },
   statLabel: { fontSize: 10, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.4 },
-
   sectionHeader: { flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 10 },
   sectionAccent: { width: 4, height: 36, borderRadius: 2 },
   sectionTitle: { fontSize: 12, fontWeight: "800", textTransform: "uppercase", letterSpacing: 1.2 },
   sectionSub: { fontSize: 11, marginTop: 1 },
-
-  teamCard: {
-    borderRadius: 18, overflow: "hidden", borderWidth: 1.5, marginBottom: 24,
-    shadowColor: GREEN, shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.07, shadowRadius: 8, elevation: 2,
-  },
+  teamCard: { borderRadius: 18, overflow: "hidden", borderWidth: 1.5, marginBottom: 24, elevation: 2 },
   memberRow: { flexDirection: "row", alignItems: "center", paddingVertical: 12, paddingHorizontal: 16, gap: 12 },
   avatar: { width: 38, height: 38, borderRadius: 19, alignItems: "center", justifyContent: "center" },
   avatarText: { fontSize: 13, fontWeight: "800" },
   memberName: { flex: 1, fontSize: 13, fontWeight: "700" },
   linkedinBtn: { width: 32, height: 32, borderRadius: 8, backgroundColor: "#0A66C2", alignItems: "center", justifyContent: "center" },
-
   footer: { alignItems: "center", gap: 6 },
   footerDivider: { flexDirection: "row", alignItems: "center", width: "60%", marginBottom: 4 },
   footerLine: { flex: 1, height: 1 },

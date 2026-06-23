@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { StyleSheet, View, Text, TouchableOpacity, SafeAreaView } from "react-native";
+import { StyleSheet, View, Text, TouchableOpacity, SafeAreaView, Image } from "react-native";
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useLanguage } from "../../context/LanguageContext";
 
@@ -8,6 +8,8 @@ import AppInput from "../../components/AppInput";
 import AppText from "../../components/AppText";
 import { useAuth } from "../../context/AuthContext";
 import { useCustomAlert } from "../../context/CustomAlertContext";
+
+import logo from "../../assets/logo.png"
 
 const NAVY   = '#1A237E';
 const GREEN  = '#00A650';
@@ -45,7 +47,7 @@ export default function LoginScreen({ navigation }) {
       <View style={styles.container}>
 
         <View style={styles.logoRow}>
-          <Ionicons name="football-outline" size={52} color={NAVY} />
+          <Image source={logo} style={styles.logoImage} />
           <View>
             <Text style={styles.logoTitle}>{t("logoTitle")}</Text>
             <Text style={styles.logoSub}>{t("logoSub")}</Text>
@@ -163,6 +165,13 @@ const styles = StyleSheet.create({
     gap: 10,
     marginTop: 45,
   },
+
+  logoImage: {
+    width: 45,
+    height: 45,
+    resizeMode: "contain",
+  },
+
   logoTitle: {
     fontSize: 24,
     fontWeight: '900',

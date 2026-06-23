@@ -49,26 +49,26 @@ const COUNTRY_THEMES = [
   { bg: "#F7DADA", accent: "#AA151B", flag: "🇪🇸" },
 ];
 
-// ── MUDANÇA 1: Carrossel atualizado — sem label, novos textos e imagens ────
-const HERO_BANNERS = [
+// SOLUÇÃO: Banners dinâmicos baseados no hook de idioma recebido por prop/parâmetro
+const getHeroBanners = (t) => [
   {
-    title: "COPA DO\nMUNDO 2026",
-    sub: "Itens da copa que combinam com o seu bolso. Renove seu armário para os dias de jogo!",
-    cta: "Ver coleção",
+    title: t("bannerTitle1"),
+    sub: t("bannerSub1"),
+    cta: t("bannerCta1"),
     accent: GOLD,
     image: require("../../assets/card1.jpeg"),
   },
   {
-    title: "SELEÇÃO\nBRASIL\n2026",
-    sub: "Vista as cores do seu país!",
-    cta: "Comprar agora",
+    title: t("bannerTitle2"),
+    sub: t("bannerSub2"),
+    cta: t("bannerCta2"),
     accent: GREEN_MID,
     image: require("../../assets/card2.jpeg"),
   },
   {
-    title: "NOVO ESTILO\nDE CAMPO",
-    sub: "Sinta a emoção de cada partida no seu próprio campo.",
-    cta: "Ver detalhes",
+    title: t("bannerTitle3"),
+    sub: t("bannerSub3"),
+    cta: t("bannerCta3"),
     accent: "#60A5FA",
     image: require("../../assets/card3.jpeg"),
   },
@@ -83,14 +83,13 @@ const FILTER_KEYS = [
   "filterOthers",
 ];
 
-// Ícone e label fixo para cada filtro (independente de i18n para o ícone)
 const FILTER_META = {
-  filterAll:         { icon: "apps",             label: "Todos"      },
-  filterShirts:      { icon: "checkroom",         label: "Camisas"    },
-  filterShoes:       { icon: "directions-run",    label: "Calçados"   },
-  filterAccessories: { icon: "watch",             label: "Acessórios" },
-  filterStickers:    { icon: "auto-awesome",      label: "Figurinhas" },
-  filterOthers:      { icon: "more-horiz",        label: "Outros"     },
+  filterAll:         { icon: "apps" },
+  filterShirts:      { icon: "checkroom" },
+  filterShoes:       { icon: "directions-run" },
+  filterAccessories: { icon: "watch" },
+  filterStickers:    { icon: "auto-awesome" },
+  filterOthers:      { icon: "more-horiz" },
 };
 
 const NAV_ITEMS = [
@@ -104,21 +103,22 @@ const NAV_ITEMS = [
 // ─────────────────────────────────────────────────────────────────────────────
 // Carrossel Hero
 // ─────────────────────────────────────────────────────────────────────────────
-function HeroCarousel() {
+function HeroCarousel({ t }) {
   const [active, setActive] = useState(0);
   const scrollRef = useRef(null);
+  const banners = getHeroBanners(t);
 
   useFocusEffect(
     useCallback(() => {
       const interval = setInterval(() => {
         setActive((prev) => {
-          const next = (prev + 1) % HERO_BANNERS.length;
+          const next = (prev + 1) % banners.length;
           scrollRef.current?.scrollTo({ x: next * (width - 40), animated: true });
           return next;
         });
       }, 3500);
       return () => clearInterval(interval);
-    }, [])
+    }, [banners.length])
   );
 
   function onScroll(e) {
@@ -137,15 +137,12 @@ function HeroCarousel() {
         style={{ borderRadius: 14 }}
         contentContainerStyle={{ borderRadius: 14 }}
       >
-        {HERO_BANNERS.map((b, i) => (
+        {banners.map((b, i) => (
           <View key={i} style={[carouselStyles.slide, { width: width - 40 }]}>
-            {/* Foto de fundo */}
             <Image source={b.image} style={carouselStyles.bgImage} />
-            {/* Gradiente escuro sobre a foto */}
             <View style={carouselStyles.overlay} />
 
             <View style={carouselStyles.content}>
-              {/* MUDANÇA 1: label "Copa do Mundo 2026" removido */}
               <Text style={[carouselStyles.title, { color: b.accent }]}>{b.title}</Text>
               <Text style={carouselStyles.sub}>{b.sub}</Text>
               <TouchableOpacity style={[carouselStyles.cta, { backgroundColor: b.accent }]}>
@@ -157,7 +154,7 @@ function HeroCarousel() {
       </ScrollView>
 
       <View style={carouselStyles.dots}>
-        {HERO_BANNERS.map((_, i) => (
+        {banners.map((_, i) => (
           <TouchableOpacity
             key={i}
             onPress={() => {
@@ -169,7 +166,7 @@ function HeroCarousel() {
               {
                 width: i === active ? 18 : 5,
                 backgroundColor: i === active
-                  ? HERO_BANNERS[active].accent
+                  ? banners[active].accent
                   : "rgba(255,255,255,0.38)",
               },
             ]}
@@ -194,14 +191,12 @@ const carouselStyles = StyleSheet.create({
     overflow: "hidden",
     position: "relative",
   },
-  // Foto de fundo ocupa todo o slide
   bgImage: {
     ...StyleSheet.absoluteFillObject,
     width: "100%",
     height: "100%",
     resizeMode: "cover",
   },
-  // Gradiente escuro (esquerda mais escura, direita transparente)
   overlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: "rgba(0,0,0,0.47)",
@@ -258,25 +253,28 @@ const carouselStyles = StyleSheet.create({
 // ─────────────────────────────────────────────────────────────────────────────
 // Placar Ao Vivo
 // ─────────────────────────────────────────────────────────────────────────────
-function LiveScore() {
+function LiveScore({ t }) {
   const [visible] = useState(true);
   const blink = useRef(new Animated.Value(1)).current;
 
-  useCallback(() => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(blink, { toValue: 0.3, duration: 600, useNativeDriver: true }),
-        Animated.timing(blink, { toValue: 1,   duration: 600, useNativeDriver: true }),
-      ])
-    ).start();
-  }, [])();
+  useFocusEffect(
+    useCallback(() => {
+      const animation = Animated.loop(
+        Animated.sequence([
+          Animated.timing(blink, { toValue: 0.3, duration: 600, useNativeDriver: true }),
+          Animated.timing(blink, { toValue: 1,   duration: 600, useNativeDriver: true }),
+        ])
+      );
+      animation.start();
+      return () => animation.stop();
+    }, [blink])
+  );
 
   if (!visible) return null;
 
   return (
     <View style={liveStyles.wrap}>
-      <Animated.Text style={[liveStyles.badge, { opacity: blink }]}>● AO VIVO</Animated.Text>
-      {/* MUDANÇA 3: justifyContent removido, gap reduzido para aproximar sem colar */}
+      <Animated.Text style={[liveStyles.badge, { opacity: blink }]}>● {t("liveScoreBadge")}</Animated.Text>
       <View style={liveStyles.row}>
         <Text style={liveStyles.team}>🇧🇷 BRA</Text>
         <Text style={liveStyles.score}>2 — 1</Text>
@@ -288,7 +286,6 @@ function LiveScore() {
 }
 
 const liveStyles = StyleSheet.create({
-  // MUDANÇA 3: paddingHorizontal reduzido de 16→12, gap reduzido de 12→8
   wrap: {
     marginHorizontal: 20,
     marginBottom: 14,
@@ -308,7 +305,6 @@ const liveStyles = StyleSheet.create({
     letterSpacing: 0.8,
     color: RED_LIVE,
   },
-  // MUDANÇA 3: gap reduzido de 8→6, sem justifyContent para não afastar demais
   row: {
     flexDirection: "row",
     alignItems: "center",
@@ -341,6 +337,7 @@ export default function ProductListScreen({ navigation }) {
   const { t } = useLanguage();
   const { theme } = useTheme();
   const { addToCart, totalItems, cart } = useCart();
+  const { favorites, toggleFavorite, isFavorite } = useFavorites();
 
   const styles = makeStyles(theme);
 
@@ -349,7 +346,6 @@ export default function ProductListScreen({ navigation }) {
   const [search, setSearch]             = useState("");
   const [activeFilter, setActiveFilter] = useState("filterAll");
   const [activeNav, setActiveNav]       = useState("home");
-  const { favorites, toggleFavorite, isFavorite } = useFavorites();
 
   async function loadProducts() {
     try {
@@ -508,7 +504,6 @@ export default function ProductListScreen({ navigation }) {
 
       {/* ── HEADER ─────────────────────────────────────────────────────────── */}
       <View style={styles.header}>
-        {/* MUDANÇA 2: logo e nome maiores */}
         <View style={styles.logoContainer}>
           <Image source={require("../../assets/logo.png")} style={styles.logoImage} />
           <Text style={styles.headerTitle}>
@@ -542,14 +537,16 @@ export default function ProductListScreen({ navigation }) {
       </View>
 
       {/* ── CARROSSEL HERO ─────────────────────────────────────────────────── */}
-      <HeroCarousel />
+      <HeroCarousel t={t} />
 
       {/* ── PLACAR AO VIVO ─────────────────────────────────────────────────── */}
-      <LiveScore />
+      <LiveScore t={t} />
 
       {/* ── SEÇÃO "LEVE A COPA PRA CASA" ───────────────────────────────────── */}
       <Text style={styles.customSectionTitle}>
-        Leve a <Text style={{ color: GREEN_MID }}>Copa</Text> pra casa!{" "}
+        {t("callout1")}{" "}
+        <Text style={{ color: GREEN_MID }}>{t("calloutCopa")}</Text>{" "}
+        {t("callout2")}{" "}
         <EvilIcons name="trophy" size={23} color={GOLD} />
       </Text>
 
@@ -560,7 +557,6 @@ export default function ProductListScreen({ navigation }) {
         style={styles.filtersScroll}
       >
         {FILTER_KEYS.map((f) => {
-          const meta = FILTER_META[f];
           const isActive = activeFilter === f;
           return (
             <TouchableOpacity
@@ -569,7 +565,7 @@ export default function ProductListScreen({ navigation }) {
               onPress={() => setActiveFilter(f)}
             >
               <Text style={[styles.filterChipText, isActive && styles.filterChipTextActive]}>
-                {meta.label}
+                {t(f)}
               </Text>
             </TouchableOpacity>
           );
@@ -578,14 +574,14 @@ export default function ProductListScreen({ navigation }) {
 
       {/* ── PRODUTOS ───────────────────────────────────────────────────────── */}
       <View style={styles.productsHeader}>
-        <Text style={styles.sectionTitle}>PRODUTOS</Text>
-        <Text style={styles.productsCount}>{filteredProducts.length} itens</Text>
+        <Text style={styles.sectionTitle}>{t("productsSectionTitle")}</Text>
+        <Text style={styles.productsCount}>{filteredProducts.length} {t("itemsCount")}</Text>
       </View>
 
       {loading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator color={GREEN} size="large" />
-          <Text style={styles.loadingText}>Carregando produtos...</Text>
+          <Text style={styles.loadingText}>{t("loadingProductsText")}</Text>
         </View>
       ) : (
         <FlatList
@@ -651,8 +647,6 @@ const makeStyles = (theme) =>
       flex: 1,
       backgroundColor: theme.card,
     },
-
-    // ── Header ────────────────────────────────────────────────────────────────
     header: {
       flexDirection: "row",
       alignItems: "center",
@@ -666,13 +660,11 @@ const makeStyles = (theme) =>
       alignItems: "center",
       gap: 10,
     },
-    // MUDANÇA 2: logo de 30→42
     logoImage: {
       width: 45,
       height: 45,
       resizeMode: "contain",
     },
-    // MUDANÇA 2: fontSize de 20→28, letras maiores e mais peso
     headerTitle: {
       fontSize: 26,
       fontWeight: "900",
@@ -704,8 +696,6 @@ const makeStyles = (theme) =>
       borderWidth: 1.5,
       borderColor: theme.bg ?? "#fff",
     },
-
-    // ── Busca ──────────────────────────────────────────────────────────────────
     searchRow: {
       paddingHorizontal: 20,
       marginBottom: 14,
@@ -725,8 +715,6 @@ const makeStyles = (theme) =>
       fontSize: 13,
       color: theme.textPrimary,
     },
-
-    // ── Seções ────────────────────────────────────────────────────────────────
     sectionTitle: {
       fontSize: 15,
       fontWeight: "900",
@@ -754,8 +742,6 @@ const makeStyles = (theme) =>
       color: theme.textMuted,
       fontWeight: "700",
     },
-
-    // ── Filtros ───────────────────────────────────────────────────────────────
     filtersScroll: {
       maxHeight: 72,
       marginBottom: 14,
@@ -765,7 +751,6 @@ const makeStyles = (theme) =>
       gap: 8,
       alignItems: "center",
     },
-    // Pill com ícone + label, fundo levemente esverdeado quando inativo
     filterChip: {
       flexDirection: "row",
       alignItems: "center",
@@ -780,16 +765,13 @@ const makeStyles = (theme) =>
     filterChipActive: {
       backgroundColor: GREEN,
       borderColor: GREEN,
-      // Sombra no botão ativo
       shadowColor: GREEN,
       shadowOffset: { width: 0, height: 3 },
       shadowOpacity: 0.35,
       shadowRadius: 6,
       elevation: 4,
     },
-    filterChipIcon: {
-      // espaçamento já controlado pelo gap do pai
-    },
+    filterChipIcon: {},
     filterChipText: {
       fontSize: 12,
       color: GREEN,
@@ -801,8 +783,6 @@ const makeStyles = (theme) =>
       color: "#FFFFFF",
       fontWeight: "900",
     },
-
-    // ── Lista ─────────────────────────────────────────────────────────────────
     list: {
       flexGrow: 1,
       paddingHorizontal: 16,
@@ -821,8 +801,6 @@ const makeStyles = (theme) =>
       color: theme.textMuted,
       fontWeight: "600",
     },
-
-    // ── Card ──────────────────────────────────────────────────────────────────
     card: {
       flexDirection: "row",
       marginBottom: 14,
@@ -885,13 +863,9 @@ const makeStyles = (theme) =>
     secondaryActions: { flexDirection: "row", gap: 6, marginLeft: "auto" },
     iconButton: { width: 30, height: 30, alignItems: "center", justifyContent: "center", borderRadius: 8, backgroundColor: theme.iconBg },
     deleteIconButton: { backgroundColor: theme.iconDestructiveBg },
-
-    // ── Empty state ───────────────────────────────────────────────────────────
     emptyState: { flex: 1, alignItems: "center", justifyContent: "center", paddingTop: 60, gap: 12 },
     emptyTitle: { fontSize: 20, fontWeight: "800", color: theme.titlePrimary },
     emptyDesc: { fontSize: 13, color: theme.textMuted, textAlign: "center", maxWidth: 240 },
-
-    // ── Bottom Nav ────────────────────────────────────────────────────────────
     bottomNav: {
       position: "absolute",
       bottom: 0, left: 0, right: 0,

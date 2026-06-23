@@ -4,7 +4,7 @@ import { useColorScheme, StatusBar } from 'react-native';
 // ThemeContext.js
 export const PALETTES = {
   dark: {
-    bg: "#0A180E",            // Verde quase preto de fundo
+    bg: "#0A3214",            // Verde quase preto de fundo
     card: "#122617",          // Verde escuro fechado para os cards
     textPrimary: "#E2E8F0",
     titlePrimary: "#FFFFFF",
@@ -18,7 +18,7 @@ export const PALETTES = {
     statusBar: "light-content",
   },
   light: {
-    bg: "#F4F3EB",            // Off-white levemente areia (fundo clássico Copa)
+    bg: "#fff",            // Off-white levemente areia (fundo clássico Copa)
     card: "#FFFFFF",
     textPrimary: "#1E293B",
     titlePrimary: "#0F172A",

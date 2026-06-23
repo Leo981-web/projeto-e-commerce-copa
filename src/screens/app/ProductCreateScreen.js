@@ -26,22 +26,31 @@ const GREEN_DARK = "#0D4A1A";
 const GREEN_MID  = "#22C55E";
 const GOLD       = "#F5C518";
 
-const CATEGORIES = ["Camisas", "Bolas", "Calçados", "Acessórios", "Outros"];
+const getCategories = (t) => [
+  t("Category1"), 
+  t("Category2"), 
+  t("Category3"), 
+  t("Category4"), 
+  t("Category5")
+];
 
-const TEAMS = [
-  { flag: "🇧🇷", code: "BR", name: "Brasil"    },
-  { flag: "🇦🇷", code: "AR", name: "Argentina" },
-  { flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", code: "EN", name: "Inglaterra" },
-  { flag: "🇩🇪", code: "DE", name: "Alemanha"  },
-  { flag: "🇫🇷", code: "FR", name: "França"    },
-  { flag: "🇵🇹", code: "PT", name: "Portugal"  },
+const getTeams = (t) => [
+  { flag: "🇧🇷", code: "BR", name: t("teamBrasil") },
+  { flag: "🇦🇷", code: "AR", name: t("teamArgentina") },
+  { flag: "🏴 Transm", code: "EN", name: t("teamInglaterra") },
+  { flag: "🇩🇪", code: "DE", name: t("teamAlemanha") },
+  { flag: "🇫🇷", code: "FR", name: t("teamFranca") },
+  { flag: "🇵🇹", code: "PT", name: t("teamPortugal") },
 ];
 
 export default function ProductCreateScreen({ navigation }) {
   const { showAlert } = useCustomAlert();
   const { t } = useLanguage();
-  const { theme } = useTheme();
+  const { theme, isDarkMode } = useTheme();
   const { user } = useAuth();
+
+  const categoriesList = getCategories(t);
+  const teamsList = getTeams(t);
 
   // ── Estado (LÓGICA ORIGINAL INTACTA) ─────────────────────────────────
   const [name, setName]             = useState("");
@@ -50,9 +59,8 @@ export default function ProductCreateScreen({ navigation }) {
   const [quantity, setQuantity]     = useState("");
   const [image, setImage]           = useState("");
 
-  // Estado visual extra (não interfere na lógica de submit)
-  const [activeCategory, setActiveCategory] = useState("Camisas");
-  const [activeTeam, setActiveTeam]         = useState("Brasil");
+  const [activeCategory, setActiveCategory] = useState(categoriesList[0] || "Camisas");
+  const [activeTeam, setActiveTeam]         = useState(teamsList[0]?.name || "Brasil");
 
   function getQuantityValue(value) {
     const numericValue = Number(value);
@@ -126,13 +134,19 @@ export default function ProductCreateScreen({ navigation }) {
       });
     }
   }
-  // ─────────────────────────────────────────────────────────────────────
+
+  // Cores dinâmicas injetadas diretamente do ThemeContext unificado
+  const screenBg = theme.bg;
+  const cardBg = theme.card;
+  const textColor = theme.textPrimary;
+  const placeholderColor = theme.textMuted;
+  const borderColor = theme.divider;
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: screenBg }]}>
 
       {/* ── HEADER ─────────────────────────────────────────────────────── */}
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: screenBg }]}>
         <Pressable
           hitSlop={10}
           onPress={() => navigation.goBack()}
@@ -140,7 +154,7 @@ export default function ProductCreateScreen({ navigation }) {
         >
           <Ionicons name="chevron-back" size={22} color={GREEN} />
         </Pressable>
-        <Text style={styles.headerTitle}>ADICIONAR PRODUTO</Text>
+        <Text style={[styles.headerTitle, { color: textColor }]}>{t("productCreateScreenTitle")}</Text>
       </View>
 
       <ScrollView
@@ -149,7 +163,7 @@ export default function ProductCreateScreen({ navigation }) {
         keyboardShouldPersistTaps="handled"
       >
         {/* ── ZONA DE UPLOAD DE IMAGEM ─────────────────────────────────── */}
-        <TouchableOpacity style={styles.imageUpload} activeOpacity={0.7}>
+        <TouchableOpacity style={[styles.imageUpload, isDarkMode && { backgroundColor: "rgba(255,255,255,0.02)" }]} activeOpacity={0.7}>
           {image ? (
             <View style={styles.imagePreviewWrap}>
               <View style={styles.imagePreviewIcon}>
@@ -169,21 +183,20 @@ export default function ProductCreateScreen({ navigation }) {
               <View style={styles.imageIcon}>
                 <MaterialIcons name="camera-alt" size={28} color={GREEN} />
               </View>
-              <Text style={styles.imageUploadTitle}>Adicionar foto do produto</Text>
-              <Text style={styles.imageUploadSub}>JPG, PNG ou HEIC • até 10MB</Text>
+              <Text style={[styles.imageUploadTitle, { color: textColor }]}>{t("productCreateScreenAddImageProduct")}</Text>
+              <Text style={[styles.imageUploadSub, { color: placeholderColor }]}>{t("productCreateScreenAddImageFormat")}</Text>
             </>
           )}
         </TouchableOpacity>
 
-        {/* URL da imagem (campo oculto visualmente mas funcional) */}
-        <View style={styles.urlFieldWrap}>
-          <MaterialIcons name="link" size={16} color="rgba(21,98,42,0.4)" />
+        <View style={[styles.urlFieldWrap, isDarkMode && { backgroundColor: "rgba(255,255,255,0.04)" }]}>
+          <MaterialIcons name="link" size={16} color={placeholderColor} />
           <TextInput
             autoCapitalize="none"
             keyboardType="url"
             placeholder={t("imagePlaceholder")}
-            placeholderTextColor="rgba(21,98,42,0.4)"
-            style={styles.urlField}
+            placeholderTextColor={placeholderColor}
+            style={[styles.urlField, { color: textColor }]}
             value={image}
             onChangeText={setImage}
           />
@@ -193,11 +206,11 @@ export default function ProductCreateScreen({ navigation }) {
 
           {/* ── NOME ───────────────────────────────────────────────────── */}
           <View style={styles.fieldGroup}>
-            <Text style={styles.fieldLabel}>{t("nameLabel")}</Text>
+            <Text style={[styles.fieldLabel, { color: textColor }]}>{t("nameLabel")}</Text>
             <TextInput
               placeholder={t("productNamePlaceholder")}
-              placeholderTextColor="rgba(21,98,42,0.35)"
-              style={styles.input}
+              placeholderTextColor={placeholderColor}
+              style={[styles.input, { backgroundColor: cardBg, borderColor, color: textColor }]}
               value={name}
               onChangeText={setName}
             />
@@ -205,14 +218,14 @@ export default function ProductCreateScreen({ navigation }) {
 
           {/* ── PREÇO ──────────────────────────────────────────────────── */}
           <View style={styles.fieldGroup}>
-            <Text style={styles.fieldLabel}>{t("priceLabel")}</Text>
-            <View style={styles.priceWrap}>
+            <Text style={[styles.fieldLabel, { color: textColor }]}>{t("priceLabel")}</Text>
+            <View style={[styles.priceWrap, { backgroundColor: cardBg, borderColor }]}>
               <Text style={styles.pricePrefix}>R$</Text>
               <TextInput
                 keyboardType="numeric"
                 placeholder="0,00"
-                placeholderTextColor="rgba(21,98,42,0.35)"
-                style={[styles.input, styles.priceInput]}
+                placeholderTextColor={placeholderColor}
+                style={[styles.input, styles.priceInput, { backgroundColor: cardBg, color: textColor }]}
                 value={price}
                 onChangeText={setPrice}
               />
@@ -221,18 +234,18 @@ export default function ProductCreateScreen({ navigation }) {
 
           {/* ── CATEGORIA ──────────────────────────────────────────────── */}
           <View style={styles.fieldGroup}>
-            <Text style={styles.fieldLabel}>CATEGORIA</Text>
+            <Text style={[styles.fieldLabel, { color: textColor }]}>{t("productCreateScreenCategory")}</Text>
             <View style={styles.chipsRow}>
-              {CATEGORIES.map((cat) => {
+              {categoriesList.map((cat) => {
                 const active = activeCategory === cat;
                 return (
                   <TouchableOpacity
                     key={cat}
-                    style={[styles.chip, active && styles.chipActive]}
+                    style={[styles.chip, { borderColor }, active && styles.chipActive]}
                     onPress={() => setActiveCategory(cat)}
                     activeOpacity={0.8}
                   >
-                    <Text style={[styles.chipText, active && styles.chipTextActive]}>
+                    <Text style={[styles.chipText, { color: textColor }, active && styles.chipTextActive]}>
                       {cat.toUpperCase()}
                     </Text>
                   </TouchableOpacity>
@@ -243,21 +256,21 @@ export default function ProductCreateScreen({ navigation }) {
 
           {/* ── SELEÇÃO ────────────────────────────────────────────────── */}
           <View style={styles.fieldGroup}>
-            <Text style={styles.fieldLabel}>SELEÇÃO</Text>
+            <Text style={[styles.fieldLabel, { color: textColor }]}>{t("productCreateScreenSeleção")}</Text>
             <View style={styles.teamsGrid}>
-              {TEAMS.map((team) => {
+              {teamsList.map((team) => {
                 const active = activeTeam === team.name;
                 return (
                   <TouchableOpacity
                     key={team.name}
-                    style={[styles.teamBtn, active && styles.teamBtnActive]}
+                    style={[styles.teamBtn, { backgroundColor: cardBg, borderColor }, active && styles.teamBtnActive]}
                     onPress={() => setActiveTeam(team.name)}
                     activeOpacity={0.8}
                   >
                     <Text style={styles.teamFlag}>
-                      {team.flag} <Text style={[styles.teamCode, active && { color: GREEN }]}>{team.code}</Text>
+                      {team.flag} <Text style={[styles.teamCode, active && { color: GREEN }] ?? ""}>{team.code}</Text>
                     </Text>
-                    <Text style={[styles.teamName, active && styles.teamNameActive]}>
+                    <Text style={[styles.teamName, { color: textColor }, active && styles.teamNameActive]}>
                       {team.name}
                     </Text>
                     {active && (
@@ -273,28 +286,28 @@ export default function ProductCreateScreen({ navigation }) {
 
           {/* ── QUANTIDADE ─────────────────────────────────────────────── */}
           <View style={styles.fieldGroup}>
-            <Text style={styles.fieldLabel}>QUANTIDADE</Text>
+            <Text style={[styles.fieldLabel, { color: textColor }]}>{t("productCreateScreenQuantidade")}</Text>
             <View style={styles.qtyRow}>
               <Pressable
                 disabled={getQuantityValue(quantity) === 0}
                 hitSlop={8}
                 onPress={decrementQuantity}
-                style={[styles.qtyBtn, getQuantityValue(quantity) === 0 && styles.qtyBtnDisabled]}
+                style={[styles.qtyBtn, { backgroundColor: cardBg, borderColor }, getQuantityValue(quantity) === 0 && styles.qtyBtnDisabled]}
               >
                 <MaterialIcons name="remove" size={20} color={getQuantityValue(quantity) === 0 ? "rgba(21,98,42,0.3)" : GREEN} />
               </Pressable>
               <TextInput
                 keyboardType="numeric"
                 placeholder="0"
-                placeholderTextColor="rgba(21,98,42,0.35)"
-                style={styles.qtyInput}
+                placeholderTextColor={placeholderColor}
+                style={[styles.qtyInput, { backgroundColor: cardBg, borderColor, color: textColor }]}
                 value={quantity}
                 onChangeText={handleQuantityChange}
               />
               <Pressable
                 hitSlop={8}
                 onPress={incrementQuantity}
-                style={styles.qtyBtn}
+                style={[styles.qtyBtn, { backgroundColor: cardBg, borderColor }]}
               >
                 <MaterialIcons name="add" size={20} color={GREEN} />
               </Pressable>
@@ -303,12 +316,12 @@ export default function ProductCreateScreen({ navigation }) {
 
           {/* ── DESCRIÇÃO ──────────────────────────────────────────────── */}
           <View style={styles.fieldGroup}>
-            <Text style={styles.fieldLabel}>{t("descriptionLabel")} <Text style={styles.optional}>(OPCIONAL)</Text></Text>
+            <Text style={[styles.fieldLabel, { color: textColor }]}>{t("descriptionLabel")} <Text style={styles.optional}>{t("productCreateScreenOpcional")}</Text></Text>
             <TextInput
               multiline
               placeholder={t("descriptionPlaceholder")}
-              placeholderTextColor="rgba(21,98,42,0.35)"
-              style={[styles.input, styles.textarea]}
+              placeholderTextColor={placeholderColor}
+              style={[styles.input, styles.textarea, { backgroundColor: cardBg, borderColor, color: textColor }]}
               value={description}
               onChangeText={setDescription}
               textAlignVertical="top"
@@ -319,9 +332,9 @@ export default function ProductCreateScreen({ navigation }) {
       </ScrollView>
 
       {/* ── BOTÃO PUBLICAR FIXO ─────────────────────────────────────────── */}
-      <View style={styles.footer}>
+      <View style={[styles.footer, { backgroundColor: screenBg, borderTopColor: borderColor }]}>
         <TouchableOpacity style={styles.publishBtn} onPress={handleSubmit} activeOpacity={0.85}>
-          <Text style={styles.publishText}>PUBLICAR PRODUTO</Text>
+          <Text style={styles.publishText}>{t("productCreateScreenPublicProduct")}</Text>
         </TouchableOpacity>
       </View>
 
@@ -332,10 +345,7 @@ export default function ProductCreateScreen({ navigation }) {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: "#F0F7F1",
   },
-
-  // ── Header ────────────────────────────────────────────────────────────────
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -343,7 +353,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 16,
     paddingBottom: 14,
-    backgroundColor: "#F0F7F1",
   },
   backBtn: {
     width: 40,
@@ -356,17 +365,12 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 20,
     fontWeight: "900",
-    color: GREEN_DARK,
     letterSpacing: 0.5,
   },
-
-  // ── Scroll ────────────────────────────────────────────────────────────────
   scroll: {
     paddingHorizontal: 20,
     paddingBottom: 120,
   },
-
-  // ── Upload de imagem ──────────────────────────────────────────────────────
   imageUpload: {
     width: "100%",
     height: 150,
@@ -391,13 +395,10 @@ const styles = StyleSheet.create({
   imageUploadTitle: {
     fontSize: 13,
     fontWeight: "800",
-    color: GREEN_DARK,
   },
   imageUploadSub: {
     fontSize: 11,
-    color: GREEN_DARK,
     fontWeight: "600",
-    opacity: 0.6,
   },
   imagePreviewWrap: {
     flexDirection: "row",
@@ -428,8 +429,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-
-  // URL field compacto
   urlFieldWrap: {
     flexDirection: "row",
     alignItems: "center",
@@ -443,11 +442,8 @@ const styles = StyleSheet.create({
   urlField: {
     flex: 1,
     fontSize: 11,
-    color: GREEN,
     fontWeight: "500",
   },
-
-  // ── Campos ────────────────────────────────────────────────────────────────
   fields: {
     gap: 20,
   },
@@ -457,7 +453,6 @@ const styles = StyleSheet.create({
   fieldLabel: {
     fontSize: 10,
     fontWeight: "900",
-    color: GREEN_DARK,
     letterSpacing: 1.2,
     textTransform: "uppercase",
   },
@@ -467,29 +462,22 @@ const styles = StyleSheet.create({
     color: "rgba(13,74,26,0.50)",
   },
   input: {
-    backgroundColor: "#FFFFFF",
     borderRadius: 16,
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 14,
-    color: GREEN_DARK,
     fontWeight: "600",
     borderWidth: 1.5,
-    borderColor: "rgba(21,98,42,0.15)",
   },
   textarea: {
     minHeight: 90,
     paddingTop: 14,
   },
-
-  // Preço
   priceWrap: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#FFFFFF",
     borderRadius: 16,
     borderWidth: 1.5,
-    borderColor: "rgba(21,98,42,0.12)",
     overflow: "hidden",
   },
   pricePrefix: {
@@ -506,8 +494,6 @@ const styles = StyleSheet.create({
     borderRadius: 0,
     fontVariant: ["tabular-nums"],
   },
-
-  // Categorias
   chipsRow: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -518,7 +504,6 @@ const styles = StyleSheet.create({
     paddingVertical: 9,
     borderRadius: 999,
     borderWidth: 1.5,
-    borderColor: "rgba(21,98,42,0.2)",
     backgroundColor: "transparent",
   },
   chipActive: {
@@ -528,14 +513,11 @@ const styles = StyleSheet.create({
   chipText: {
     fontSize: 11,
     fontWeight: "900",
-    color: GREEN_DARK,
     letterSpacing: 0.5,
   },
   chipTextActive: {
     color: "#FFFFFF",
   },
-
-  // Seleções (grid 2 colunas)
   teamsGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -549,8 +531,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     borderRadius: 16,
     borderWidth: 1.5,
-    borderColor: "rgba(21,98,42,0.15)",
-    backgroundColor: "#FFFFFF",
     gap: 6,
     position: "relative",
   },
@@ -571,7 +551,6 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 13,
     fontWeight: "700",
-    color: GREEN_DARK,
   },
   teamNameActive: {
     color: GREEN,
@@ -584,8 +563,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-
-  // Quantidade
   qtyRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -596,8 +573,6 @@ const styles = StyleSheet.create({
     height: 44,
     borderRadius: 14,
     borderWidth: 1.5,
-    borderColor: "rgba(21,98,42,0.2)",
-    backgroundColor: "#FFFFFF",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -606,20 +581,15 @@ const styles = StyleSheet.create({
   },
   qtyInput: {
     flex: 1,
-    backgroundColor: "#FFFFFF",
     borderRadius: 14,
     borderWidth: 1.5,
-    borderColor: "rgba(21,98,42,0.12)",
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 18,
     fontWeight: "900",
-    color: GREEN_DARK,
     textAlign: "center",
     fontVariant: ["tabular-nums"],
   },
-
-  // ── Rodapé fixo ───────────────────────────────────────────────────────────
   footer: {
     position: "absolute",
     bottom: 0,
@@ -628,9 +598,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 30,
     paddingTop: 14,
-    backgroundColor: "#F0F7F1",
     borderTopWidth: 1,
-    borderTopColor: "rgba(21,98,42,0.08)",
   },
   publishBtn: {
     backgroundColor: GOLD,
@@ -651,8 +619,5 @@ const styles = StyleSheet.create({
     fontWeight: "900",
     color: GREEN_DARK,
     letterSpacing: 0.8,
-  },
-  publishEmoji: {
-    fontSize: 16,
   },
 });

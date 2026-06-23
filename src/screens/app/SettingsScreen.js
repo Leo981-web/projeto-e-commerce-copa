@@ -81,15 +81,15 @@ export default function SettingsScreen({ navigation }) {
   const [pushNotifications, setPushNotifications] = useState(true);
   const [biometrics, setBiometrics]               = useState(false);
 
-  const screenBg     = isDarkMode ? "#0F1117" : "#F0F7F1";
-  const cardBg       = isDarkMode ? "#1C1F2A" : WHITE;
-  const textColor    = isDarkMode ? "#F3F4F6" : "#111827";
-  const mutedColor   = isDarkMode ? "#9CA3AF" : "#6B7280";
-  const dividerColor = isDarkMode ? "rgba(255,255,255,0.07)" : "rgba(21,98,42,0.08)";
-  const iconBg       = isDarkMode ? "rgba(255,255,255,0.07)" : "rgba(21,98,42,0.08)";
-  const backIconColor = isDarkMode ? "#F3F4F6" : WHITE;
+  // AJUSTE: Cores vinculadas às variáveis do PALETTES dinâmico
+  const screenBg     = theme.bg;
+  const cardBg       = theme.card;
+  const textColor    = theme.textPrimary;
+  const mutedColor   = theme.textMuted;
+  const dividerColor = theme.divider;
+  const iconBg       = theme.iconBg;
   const chevronColor = isDarkMode ? "#4B5563" : "#9CA3AF";
-  const statusBar    = "light-content"; // sempre claro pois o hero é escuro
+  const statusBar    = "light-content";
 
   async function handleLogout() {
     try { await logout(); }
@@ -110,9 +110,8 @@ export default function SettingsScreen({ navigation }) {
     <SafeAreaView style={[styles.safe, { backgroundColor: screenBg }]}>
       <StatusBar barStyle={statusBar} backgroundColor={GREEN_DARK} />
 
-      {/* ── HERO VERDE ESCURO (igual ao Support) ───────────────────────────── */}
+      {/* ── HERO VERDE ESCURO ───────────────────────────────────────────── */}
       <View style={styles.hero}>
-        {/* Listras decorativas */}
         <View style={styles.stripe1} pointerEvents="none" />
         <View style={styles.stripe2} pointerEvents="none" />
 
@@ -127,7 +126,7 @@ export default function SettingsScreen({ navigation }) {
           </TouchableOpacity>
 
           <View style={styles.heroTexts}>
-            <Text style={styles.heroEyebrow}>Preferências Globais</Text>
+            <Text style={styles.heroEyebrow}>{t("globalPreferences")}</Text>
             <Text style={styles.heroTitle}>
               <Text style={{ color: GOLD }}>{t("settingsTitle")}</Text>
             </Text>
@@ -145,11 +144,11 @@ export default function SettingsScreen({ navigation }) {
           <SettingRow {...rowTheme} icon="g-translate" title={t("appLanguage")} subtitle={t("appLanguageSub")} last
             right={
               <View style={[styles.langSelector, { backgroundColor: iconBg }]}>
-                {["PT", "EN", "ES"].map((lang) => {
+                {["pt", "en", "es"].map((lang) => {
                   const isSelected = locale === lang;
                   return (
                     <TouchableOpacity key={lang} style={[styles.langOption, isSelected && styles.langOptionActive]} onPress={() => changeLanguage(lang)}>
-                      <Text style={[styles.langText, { color: isSelected ? WHITE : mutedColor }]}>{lang}</Text>
+                      <Text style={[styles.langText, { color: isSelected ? WHITE : mutedColor }]}>{lang.toUpperCase()}</Text>
                     </TouchableOpacity>
                   );
                 })}
@@ -210,8 +209,6 @@ export default function SettingsScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-
-  // ── Hero verde escuro ───────────────────────────────────────────────────────
   hero: {
     backgroundColor: GREEN_DARK,
     paddingTop: 16,
@@ -251,7 +248,6 @@ const styles = StyleSheet.create({
     fontSize: 26, fontWeight: "900",
     letterSpacing: -0.3, lineHeight: 28,
   },
-
   scroll: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 40 },
   langSelector: { flexDirection: "row", borderRadius: 10, padding: 3, gap: 2 },
   langOption: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8 },

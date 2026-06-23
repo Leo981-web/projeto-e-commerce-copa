@@ -10,6 +10,7 @@ import {
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useTheme } from "../../context/ThemeContext";
 import { useAuth } from "../../context/AuthContext";
+import { useLanguage } from "../../context/LanguageContext";
 
 const GREEN      = "#15622A";
 const GREEN_DARK = "#0D4A1A";
@@ -17,20 +18,20 @@ const GREEN_MID  = "#22C55E";
 const GOLD       = "#F5C518";
 const RED_LIVE   = "#EF4444";
 
-// Notificações fixas — a mensagem de boas-vindas + exemplos temáticos
-const NOTIFICATIONS = [
+// SOLUÇÃO: Mudamos o array para uma função que recebe 't' como argumento
+const getNotifications = (t) => [
   {
     id: "1",
     icon: "favorite",
     iconLib: "material",
     iconBg: "#FEE2E2",
     iconColor: "#991B1B",
-    tag: "BOAS-VINDAS",
+    tag: t("notificationsScreenTag1"), // Removido a interpolação desnecessária `${}`
     tagColor: GOLD,
     tagText: "#92400E",
-    title: "Bem-vindo ao GolUp! 🎉",
-    body: "Sua loja oficial de produtos da Copa do Mundo 2026. Explore camisas, bolas e acessórios das melhores seleções do mundo!",
-    time: "Agora",
+    title: t("notificationsScreenTitle1"), // Ajuste as chaves conforme seu JSON
+    body: t("notificationsScreenBody1"),
+    time: t("notificationsScreenTime1"),
     unread: true,
   },
   {
@@ -39,12 +40,12 @@ const NOTIFICATIONS = [
     iconLib: "material",
     iconBg: "#D4EDDA",
     iconColor: GREEN,
-    tag: "PROMOÇÃO",
+    tag: t("notificationsScreenTag2"),
     tagColor: "#D4EDDA",
     tagText: GREEN,
-    title: "Oferta especial de lançamento",
-    body: "Aproveite até 30% de desconto em camisas oficiais das seleções. Oferta válida por tempo limitado!",
-    time: "1h atrás",
+    title: t("notificationsScreenTitle2"),
+    body: t("notificationsScreenBody2"),
+    time: t("notificationsScreenTime2"),
     unread: true,
   },
   {
@@ -53,12 +54,12 @@ const NOTIFICATIONS = [
     iconLib: "material",
     iconBg: "#DBEAFE",
     iconColor: "#1E40AF",
-    tag: "COPA 2026",
+    tag: t("notificationsScreenTag3"),
     tagColor: "#DBEAFE",
     tagText: "#1E40AF",
-    title: "A Copa do Mundo começa em breve",
-    body: "Prepare-se para o maior evento do futebol mundial. Garanta já os produtos oficiais antes que acabem!",
-    time: "Ontem",
+    title: t("notificationsScreenTitle3"),
+    body: t("notificationsScreenBody3"),
+    time: t("notificationsScreenTime3"),
     unread: true,
   },
 ];
@@ -66,8 +67,11 @@ const NOTIFICATIONS = [
 export default function NotificationsScreen({ navigation }) {
   const { theme, isDarkMode } = useTheme();
   const { user } = useAuth();
+  const { t } = useLanguage();
 
-  const unreadCount = NOTIFICATIONS.filter((n) => n.unread).length;
+  // Geramos as notificações dinamicamente passando a função 't' ativa
+  const notificationsList = getNotifications(t);
+  const unreadCount = notificationsList.filter((n) => n.unread).length;
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -85,31 +89,29 @@ export default function NotificationsScreen({ navigation }) {
             <Ionicons name="chevron-back" size={22} color={GREEN} />
           </TouchableOpacity>
           <Text style={styles.heroTitle}>
-            <Text style={{ color: GREEN }}>Notifi</Text>
-            {"cações"}
+            <Text style={{ color: GREEN }}>{t("notificationsScreenTitle")}</Text>
           </Text>
           {unreadCount > 0 && (
             <View style={styles.heroBadge}>
-              <Text style={styles.heroBadgeText}>{unreadCount} novas</Text>
+              <Text style={styles.heroBadgeText}>{unreadCount} {t("notificationsScreenNew")}</Text>
             </View>
           )}
         </View>
         <Text style={styles.heroSub}>
           {unreadCount > 0
-            ? `Você tem ${unreadCount} notificações não lidas.`
-            : "Você está em dia com tudo!"}
+            ? `${t("notificationsScreenNotificationsUnread1")} ${unreadCount} ${t("notificationsScreenNotificationsUnread2")}`
+            : t("notificationsScreenNotificationsUnread3")}
         </Text>
-        {/* Linha fina verde com efeito de luz */}
         <View style={styles.heroLine} />
       </View>
 
       {/* ── BARRA "AO VIVO" ─────────────────────────────────────────────── */}
       <View style={styles.statusBar}>
         <View style={styles.statusDot} />
-        <Text style={styles.statusText}>Central de avisos</Text>
+        <Text style={styles.statusText}>{t("notificationsScreenCentraldeAvisos")}</Text>
         <View style={styles.statusSep} />
         <MaterialIcons name="notifications-active" size={12} color="rgba(255,255,255,0.65)" />
-        <Text style={styles.statusSub}>Atualizado agora</Text>
+        <Text style={styles.statusSub}>{t("notificationsScreenAtualizadoAgora")}</Text>
       </View>
 
       <ScrollView
@@ -119,11 +121,11 @@ export default function NotificationsScreen({ navigation }) {
         {/* ── LABEL SEÇÃO ──────────────────────────────────────────────── */}
         <View style={styles.sectionRow}>
           <View style={styles.sectionAccent} />
-          <Text style={styles.sectionLabel}>Todas as notificações</Text>
+          <Text style={styles.sectionLabel}>{t("notificationsScreenTodasNotificações")}</Text>
         </View>
 
         {/* ── LISTA ────────────────────────────────────────────────────── */}
-        {NOTIFICATIONS.map((notif, index) => (
+        {notificationsList.map((notif) => (
           <View
             key={notif.id}
             style={[
@@ -132,7 +134,6 @@ export default function NotificationsScreen({ navigation }) {
               notif.unread && styles.cardUnread,
             ]}
           >
-            {/* Indicador lateral para não lida */}
             {notif.unread && <View style={styles.unreadBar} />}
 
             <View style={[styles.iconWrap, { backgroundColor: notif.iconBg }]}>
@@ -162,7 +163,7 @@ export default function NotificationsScreen({ navigation }) {
         {/* ── RODAPÉ ───────────────────────────────────────────────────── */}
         <View style={styles.footer}>
           <MaterialIcons name="notifications-none" size={18} color="rgba(21,98,42,0.35)" />
-          <Text style={styles.footerText}>Fim das notificações</Text>
+          <Text style={styles.footerText}>{t("notificationsScreenFooter")}</Text>
         </View>
       </ScrollView>
     </SafeAreaView>

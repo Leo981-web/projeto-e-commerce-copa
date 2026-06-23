@@ -36,16 +36,16 @@ const NAV_ITEMS = [
 ];
 
 // ─── Modal de edição de perfil ─────────────────────────────────────────────
-function EditProfileModal({ visible, onClose, user, onSave, isDarkMode }) {
+function EditProfileModal({ visible, onClose, user, onSave, theme, isDarkMode }) {
   const [name,  setName]  = useState(user?.name  ?? "");
   const [email, setEmail] = useState(user?.email ?? "");
   const [phone, setPhone] = useState(user?.phone ?? "");
 
-  const cardBg       = isDarkMode ? "#1C1F2A" : WHITE;
-  const textColor    = isDarkMode ? "#F3F4F6" : "#111827";
-  const mutedColor   = isDarkMode ? "#9CA3AF" : "#6B7280";
-  const inputBg      = isDarkMode ? "#111318" : "#F7F8FA";
-  const inputBorder  = isDarkMode ? "rgba(255,255,255,0.10)" : "rgba(21,98,42,0.15)";
+  const cardBg       = theme.card;
+  const textColor    = theme.textPrimary;
+  const mutedColor   = theme.textMuted;
+  const inputBg      = isDarkMode ? "#0A3214" : "#F7F8FA";
+  const inputBorder  = theme.divider;
 
   function Field({ label, icon, value, onChange, keyboard, placeholder }) {
     return (
@@ -75,11 +75,10 @@ function EditProfileModal({ visible, onClose, user, onSave, isDarkMode }) {
       >
         <TouchableOpacity style={modalStyles.backdrop} activeOpacity={1} onPress={onClose} />
 
-        <View style={[modalStyles.sheet, { backgroundColor: cardBg }]}>
-          {/* Alça */}
-          <View style={[modalStyles.handle, { backgroundColor: isDarkMode ? "#374151" : "#E5E7EB" }]} />
+        <View style={[modalStyles.sheet, { backgroundColor: cardBg, borderColor: theme.divider, borderTopWidth: 1.5 }]}>
+          <View style={[modalStyles.handle, { backgroundColor: theme.divider }]} />
 
-          <Text style={[modalStyles.sheetTitle, { color: GREEN }]}>Editar Perfil</Text>
+          <Text style={[modalStyles.sheetTitle, { color: theme.navActive }]}>Editar Perfil</Text>
           <Text style={[modalStyles.sheetSub, { color: mutedColor }]}>Atualize suas informações pessoais</Text>
 
           <Field
@@ -108,14 +107,14 @@ function EditProfileModal({ visible, onClose, user, onSave, isDarkMode }) {
 
           <View style={modalStyles.sheetActions}>
             <TouchableOpacity
-              style={[modalStyles.btnCancel, { borderColor: isDarkMode ? "#374151" : "#E5E7EB" }]}
+              style={[modalStyles.btnCancel, { borderColor: theme.divider }]}
               onPress={onClose}
               activeOpacity={0.7}
             >
               <Text style={[modalStyles.btnCancelText, { color: mutedColor }]}>Cancelar</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={modalStyles.btnSave}
+              style={[modalStyles.btnSave, { backgroundColor: theme.navActive }]}
               onPress={() => { onSave({ name, email, phone }); onClose(); }}
               activeOpacity={0.8}
             >
@@ -206,7 +205,6 @@ const modalStyles = StyleSheet.create({
     flex: 2,
     flexDirection: "row",
     borderRadius: 14,
-    backgroundColor: GREEN,
     paddingVertical: 14,
     alignItems: "center",
     justifyContent: "center",
@@ -267,7 +265,7 @@ export default function ProfileScreen({ navigation }) {
   const { logout, user } = useAuth();
   const { showAlert, showConfirm } = useCustomAlert();
   const { t } = useLanguage();
-  const { isDarkMode } = useTheme();
+  const { isDarkMode, theme } = useTheme();
   const { totalItems } = useCart();
   const { favorites } = useFavorites();
 
@@ -279,14 +277,12 @@ export default function ProfileScreen({ navigation }) {
     phone: user?.phone ?? "",
   });
 
-  // Cores derivadas do tema
-  const screenBg     = isDarkMode ? "#0F1117" : "#F7F8FA";
-  const cardBg       = isDarkMode ? "#1C1F2A" : WHITE;
-  const textColor    = isDarkMode ? "#F3F4F6" : "#111827";
-  const mutedColor   = isDarkMode ? "#9CA3AF" : "#6B7280";
-  const dividerColor = isDarkMode ? "rgba(255,255,255,0.07)" : "rgba(21,98,42,0.08)";
+  const screenBg     = theme.bg; 
+  const cardBg       = theme.card;
+  const textColor    = theme.textPrimary;
+  const mutedColor   = theme.textMuted;
+  const dividerColor = theme.divider;
 
-  // Iniciais do avatar
   const initials = profileData.name
     .split(" ")
     .slice(0, 2)
@@ -321,14 +317,12 @@ export default function ProfileScreen({ navigation }) {
 
       {/* ── HERO HEADER verde ─────────────────────────────────────────────── */}
       <View style={styles.hero}>
-        {/* Grade decorativa tipo campo */}
         <View style={styles.heroGrid} pointerEvents="none">
           {[...Array(8)].map((_, i) => (
             <View key={i} style={styles.heroGridLine} />
           ))}
         </View>
 
-        {/* Topo: título + lápis */}
         <View style={styles.heroTop}>
           <TouchableOpacity
             style={styles.heroBackBtn}
@@ -337,7 +331,7 @@ export default function ProfileScreen({ navigation }) {
           >
             <Ionicons name="chevron-back" size={22} color={WHITE} />
           </TouchableOpacity>
-          <Text style={styles.heroTitle}>MEU PERFIL</Text>
+          <Text style={styles.heroTitle}>{t("profileScreenTitle")}</Text>
           <TouchableOpacity
             style={styles.heroEditBtn}
             onPress={() => setEditVisible(true)}
@@ -347,9 +341,7 @@ export default function ProfileScreen({ navigation }) {
           </TouchableOpacity>
         </View>
 
-        {/* Avatar + info */}
         <View style={styles.heroInfo}>
-          {/* Avatar */}
           <View style={styles.avatarWrap}>
             <View style={styles.avatar}>
               <Text style={styles.avatarText}>{initials}</Text>
@@ -359,7 +351,6 @@ export default function ProfileScreen({ navigation }) {
             </View>
           </View>
 
-          {/* Nome / email / badge */}
           <View style={styles.heroUserInfo}>
             <Text style={styles.heroName}>{profileData.name.toUpperCase()}</Text>
             <Text style={styles.heroEmail}>{profileData.email}</Text>
@@ -367,7 +358,7 @@ export default function ProfileScreen({ navigation }) {
               <Text style={styles.heroPhone}>{profileData.phone}</Text>
             ) : null}
             <View style={styles.heroBadge}>
-              <Text style={styles.heroBadgeText}>🇧🇷 TORCEDOR BRASIL</Text>
+              <Text style={styles.heroBadgeText}>🇧🇷 {t("profileFanText")}</Text>
             </View>
           </View>
         </View>
@@ -380,12 +371,12 @@ export default function ProfileScreen({ navigation }) {
         {/* ── STATS card flutuante ─────────────────────────────────────────── */}
         <View style={[styles.statsCard, { backgroundColor: cardBg, borderColor: dividerColor }]}>
           {[
-            { icon: "receipt-long", label: "Pedidos",    value: "0",                    color: GOLD   },
-            { icon: "favorite",     label: "Favoritos",  value: `${favorites?.length ?? 0}`, color: RED    },
-            { icon: "star",         label: "Avaliações", value: "0",                    color: "#FBBF24" },
+            { icon: "receipt-long", label: t("profileScreenOrders"),     value: "0",                     color: GOLD   },
+            { icon: "favorite",     label: t("profileScreenFavorites"),  value: `${favorites?.length ?? 0}`, color: RED    },
+            { icon: "star",         label: t("profileScreenFavorites"), value: "0",                     color: "#FBBF24" },
           ].map((s, i, arr) => (
             <View
-              key={s.label}
+              key={s.label + i}
               style={[
                 styles.statItem,
                 i < arr.length - 1 && { borderRightWidth: 1, borderRightColor: dividerColor },
@@ -403,10 +394,10 @@ export default function ProfileScreen({ navigation }) {
           <MenuItem
             {...rowTheme}
             icon="history"
-            iconColor={GREEN}
-            iconBg={isDarkMode ? "rgba(21,98,42,0.25)" : "#D4EDDA"}
-            label="Histórico de Compras"
-            sub="Veja todas as suas compras"
+            iconColor={theme.navActive}
+            iconBg={theme.iconBg}
+            label={t("profileScreenOrderHistory")}
+            sub={t("profileScreenOrderHistoryText")}
             onPress={() => navigation.navigate("Orders")}
           />
           <MenuItem
@@ -414,8 +405,8 @@ export default function ProfileScreen({ navigation }) {
             icon="location-on"
             iconColor="#3B82F6"
             iconBg={isDarkMode ? "rgba(59,130,246,0.15)" : "#DBEAFE"}
-            label="Endereços"
-            sub="Gerenciar endereços de entrega"
+            label={t("profileScreenAdress")}
+            sub={t("profileScreenAdressText")}
             onPress={() => navigation.navigate("Addresses")}
           />
           <MenuItem
@@ -423,8 +414,8 @@ export default function ProfileScreen({ navigation }) {
             icon="lock-outline"
             iconColor="#8B5CF6"
             iconBg={isDarkMode ? "rgba(139,92,246,0.15)" : "#EDE9FE"}
-            label="Alterar Senha"
-            sub="Atualize sua senha de acesso"
+            label={t("profileScreenResetPassword")}
+            sub={t("profileScreenResetPasswordText")}
             onPress={() => navigation.navigate("ChangePassword")}
           />
           <MenuItem
@@ -432,17 +423,17 @@ export default function ProfileScreen({ navigation }) {
             icon="star-outline"
             iconColor="#FBBF24"
             iconBg={isDarkMode ? "rgba(245,197,24,0.15)" : "#FEF3C7"}
-            label="Minhas Avaliações"
-            sub="Produtos avaliados por você"
+            label={t("profileScreenMyReviews")}
+            sub={t("profileScreenMyReviewsText")}
             onPress={() => navigation.navigate("Reviews")}
           />
           <MenuItem
             {...rowTheme}
             icon="logout"
             iconColor={RED}
-            iconBg={isDarkMode ? "rgba(239,68,68,0.12)" : "#FEE2E2"}
-            label="Sair da conta"
-            sub="Encerrar sessão atual"
+            iconBg={theme.iconDestructiveBg}
+            label={t("profileScreenLogut")}
+            sub={t("profileScreenLogoutText")}
             onPress={confirmLogout}
             last
             danger
@@ -456,6 +447,7 @@ export default function ProfileScreen({ navigation }) {
         onClose={() => setEditVisible(false)}
         user={profileData}
         onSave={(data) => setProfileData((prev) => ({ ...prev, ...data }))}
+        theme={theme}
         isDarkMode={isDarkMode}
       />
 
@@ -474,19 +466,19 @@ export default function ProfileScreen({ navigation }) {
             }}
           >
             {tab.center ? (
-              <View style={styles.navCreateBtn}>
+              <View style={[styles.navCreateBtn, { borderColor: cardBg }]}>
                 <Ionicons name="add" size={26} color={GREEN_DARK} />
               </View>
             ) : (
               <>
                 <View style={[
                   styles.navIconWrap,
-                  activeNav === tab.key && styles.navIconWrapActive,
+                  activeNav === tab.key && { backgroundColor: theme.iconBg },
                 ]}>
                   <Ionicons
                     name={activeNav === tab.key ? tab.icon : tab.iconOff}
                     size={20}
-                    color={activeNav === tab.key ? GREEN : mutedColor}
+                    color={activeNav === tab.key ? theme.navActive : theme.navInactive}
                   />
                   {tab.key === "cart" && totalItems > 0 && (
                     <View style={styles.cartBadge}>
@@ -496,8 +488,8 @@ export default function ProfileScreen({ navigation }) {
                 </View>
                 <Text style={[
                   styles.navLabel,
-                  { color: mutedColor },
-                  activeNav === tab.key && { color: GREEN, fontWeight: "800" },
+                  { color: theme.navInactive },
+                  activeNav === tab.key && { color: theme.navActive, fontWeight: "800" },
                 ]}>
                   {t(tab.labelKey)}
                 </Text>
@@ -512,14 +504,11 @@ export default function ProfileScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-
-  // ── Hero
   hero: {
     paddingHorizontal: 20,
     paddingTop: 16,
     paddingBottom: 52,
     overflow: "hidden",
-    background: "linear-gradient(160deg, #0A3214, #15622A)",
     backgroundColor: GREEN_DARK,
   },
   heroGrid: {
@@ -625,19 +614,15 @@ const styles = StyleSheet.create({
     color: GREEN_DARK,
     letterSpacing: 0.5,
   },
-
-  // ── Scroll
   scroll: {
     paddingHorizontal: 20,
     paddingTop: 0,
   },
-
-  // ── Stats card
   statsCard: {
     flexDirection: "row",
     borderRadius: 20,
     borderWidth: 1.5,
-    marginTop: -28,
+    marginTop: 5,
     marginBottom: 20,
     overflow: "hidden",
     shadowColor: GREEN,
@@ -661,8 +646,6 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: "600",
   },
-
-  // ── Card de menu
   card: {
     borderRadius: 20,
     borderWidth: 1.5,
@@ -674,23 +657,6 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 2,
   },
-
-  // ── Footer
-  footer: {
-    alignItems: "center",
-    gap: 6,
-    marginTop: 4,
-  },
-  footerDivider: {
-    flexDirection: "row",
-    alignItems: "center",
-    width: "60%",
-    marginBottom: 4,
-  },
-  footerLine: { flex: 1, height: 1 },
-  footerText: { fontSize: 12, fontWeight: "600" },
-
-  // ── Bottom Nav
   bottomNav: {
     position: "absolute",
     bottom: 0, left: 0, right: 0,
@@ -721,9 +687,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  navIconWrapActive: {
-    backgroundColor: "rgba(21,98,42,0.08)",
-  },
   navCreateBtn: {
     width: 52, height: 52,
     borderRadius: 12,
@@ -731,7 +694,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 3,
-    borderColor: WHITE,
     shadowColor: GOLD,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.5,
