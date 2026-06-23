@@ -8,7 +8,7 @@ import {
   StatusBar,
   TouchableOpacity,
 } from "react-native";
-import { MaterialIcons, Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 
 import { useTheme } from "../../context/ThemeContext";
 import { useCustomAlert } from "../../context/CustomAlertContext";
@@ -16,20 +16,17 @@ import { useLanguage } from "../../context/LanguageContext";
 import AppInput from "../../components/AppInput";
 import AppButton from "../../components/AppButton";
 
-const SUPPORT_EMAIL = "suporte@copaworld.com";
-const SUPPORT_PHONE = "(49) 99999-0000";
+const GREEN      = "#15622A";
+const GREEN_DARK = "#0D4A1A";
+const GREEN_MID  = "#22C55E";
+const GOLD       = "#F5C518";
 
 export default function SupportScreen({ navigation }) {
   const { theme, isDarkMode } = useTheme();
   const { showAlert } = useCustomAlert();
   const { t } = useLanguage();
 
-  const [form, setForm] = useState({
-    name: "",
-    email: "",
-    subject: "",
-    message: "",
-  });
+  const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" });
   const [sending, setSending] = useState(false);
 
   function updateField(field, value) {
@@ -38,166 +35,123 @@ export default function SupportScreen({ navigation }) {
 
   function handleSend() {
     const { name, email, subject, message } = form;
-
     if (!name.trim() || !email.trim() || !subject.trim() || !message.trim()) {
-      showAlert({
-        title: t("requiredFieldsTitle"),
-        message: t("supportRequiredFieldsMessage"),
-        type: "warning",
-      });
+      showAlert({ title: t("requiredFieldsTitle"), message: t("supportRequiredFieldsMessage"), type: "warning" });
       return;
     }
-
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      showAlert({
-        title: t("invalidEmailTitle"),
-        message: t("invalidEmailMessage"),
-        type: "danger",
-      });
+      showAlert({ title: t("invalidEmailTitle"), message: t("invalidEmailMessage"), type: "danger" });
       return;
     }
-
     setSending(true);
     setTimeout(() => {
       setSending(false);
       setForm({ name: "", email: "", subject: "", message: "" });
-      showAlert({
-        title: t("successTitle"),
-        message: t("supportSuccessMessage"),
-        type: "success",
-      });
+      showAlert({ title: t("successTitle"), message: t("supportSuccessMessage"), type: "success" });
     }, 900);
   }
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: theme.bg }]}>
-      <StatusBar barStyle={theme.statusBar} backgroundColor={theme.bg} />
+    <SafeAreaView style={styles.safe}>
+      <StatusBar barStyle="light-content" backgroundColor={GREEN_DARK} />
 
-      {/* HEADER */}
-      <View style={styles.header}>
-        <Text style={[styles.headerSubtitle, { color: theme.textMuted }]}>
-          {t("supportHeaderSub")}
-        </Text>
-        <View style={styles.headerTitleRow}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => navigation.goBack()}
-            activeOpacity={0.6}
-            hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
-          >
-            <Ionicons name="chevron-back" size={24} color={theme.titlePrimary} />
-          </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: theme.titlePrimary }]}>
-            {t("supportTitle")}
-          </Text>
-        </View>
-      </View>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        {/* FORMULÁRIO */}
-        <View
-          style={[
-            styles.formCard,
-            { backgroundColor: theme.card, shadowColor: isDarkMode ? "#000" : "#a39f96" },
-          ]}
-        >
-          <AppInput
-            label={t("supportNameLabel")}
-            icon="person"
-            placeholder={t("supportNamePlaceholder")}
-            value={form.name}
-            onChangeText={(value) => updateField("name", value)}
-            autoCapitalize="words"
-          />
+        {/* ── HERO VERDE ──────────────────────────────────────────────────── */}
+        <View style={styles.hero}>
 
-          <AppInput
-            label={t("supportEmailLabel")}
-            icon="email"
-            placeholder={t("supportEmailPlaceholder")}
-            value={form.email}
-            onChangeText={(value) => updateField("email", value)}
-            autoCapitalize="none"
-            keyboardType="email-address"
-          />
+          {/* Botão voltar centralizado verticalmente entre as 2 linhas de texto */}
+          <View style={styles.heroInner}>
+            {/* Coluna do botão — centralizada entre título e subtítulo */}
+            <TouchableOpacity
+              style={styles.backBtn}
+              onPress={() => navigation.goBack()}
+              activeOpacity={0.7}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            >
+              <Ionicons name="chevron-back" size={22} color="#FFFFFF" />
+            </TouchableOpacity>
 
-          <AppInput
-            label={t("supportSubjectLabel")}
-            icon="subject"
-            placeholder={t("supportSubjectPlaceholder")}
-            value={form.subject}
-            onChangeText={(value) => updateField("subject", value)}
-          />
-
-          <AppInput
-            label={t("supportMessageLabel")}
-            icon="message"
-            placeholder={t("supportMessagePlaceholder")}
-            value={form.message}
-            onChangeText={(value) => updateField("message", value)}
-            multiline
-          />
-
-          <AppButton
-            title={sending ? t("supportSending") : t("supportSendButton")}
-            onPress={handleSend}
-            disabled={sending}
-            icon="send"
-            style={{ marginTop: 4 }}
-          />
+            {/* Coluna dos textos empilhados */}
+            <View style={styles.heroTexts}>
+              <Text style={styles.heroTitle}>
+                <Text style={{ color: GOLD }}>Fale</Text>
+                {" conosco!"}
+              </Text>
+              <Text style={styles.heroSub}>Resposta em até 24 horas úteis</Text>
+            </View>
+          </View>
         </View>
 
-        {/* CANAIS DE CONTATO */}
-        <Text style={[styles.sectionTitle, { color: theme.textMuted }]}>
-          {t("supportChannelsTitle")}
-        </Text>
-        <View
-          style={[
-            styles.optionsBlock,
-            { backgroundColor: theme.card, shadowColor: isDarkMode ? "#000" : "#a39f96" },
-          ]}
-        >
-          <View style={[styles.channelRow, { borderBottomColor: theme.divider }]}>
-            <View style={[styles.iconContainer, { backgroundColor: theme.iconBg }]}>
-              <MaterialIcons name="email" size={20} color={theme.textPrimary} />
-            </View>
-            <View style={styles.channelTextContainer}>
-              <Text style={[styles.channelLabel, { color: theme.textMuted }]}>
-                {t("supportChannelEmailLabel")}
-              </Text>
-              <Text style={[styles.channelValue, { color: theme.textPrimary }]}>
-                {SUPPORT_EMAIL}
-              </Text>
-            </View>
+        {/* ── BARRA DE DISPONIBILIDADE ─────────────────────────────────────── */}
+        <View style={styles.availabilityBar}>
+          <View style={styles.availDot} />
+          <Text style={styles.availText}>Disponível agora</Text>
+          <View style={styles.availSep} />
+          <MaterialIcons name="schedule" size={12} color="rgba(255,255,255,0.92)" />
+          <Text style={styles.availSub}>Seg–Sex · 08h–18h</Text>
+        </View>
+
+        {/* ── FORMULÁRIO ──────────────────────────────────────────────────── */}
+        <View style={styles.formSection}>
+          <View style={styles.sectionLabelRow}>
+            <View style={styles.sectionAccent} />
+            <Text style={styles.sectionLabel}>Envie sua mensagem</Text>
           </View>
 
-          <View style={[styles.channelRow, { borderBottomColor: theme.divider }]}>
-            <View style={[styles.iconContainer, { backgroundColor: theme.iconBg }]}>
-              <MaterialIcons name="phone" size={20} color={theme.textPrimary} />
-            </View>
-            <View style={styles.channelTextContainer}>
-              <Text style={[styles.channelLabel, { color: theme.textMuted }]}>
-                {t("supportChannelPhoneLabel")}
-              </Text>
-              <Text style={[styles.channelValue, { color: theme.textPrimary }]}>
-                {SUPPORT_PHONE}
-              </Text>
-            </View>
+          <View style={[styles.formCard, { backgroundColor: theme.card }]}>
+            <Text style={styles.inputLabel}>{t("supportNameLabel")}</Text>
+            <AppInput
+              icon="person"
+              placeholder={t("supportNamePlaceholder")}
+              value={form.name}
+              onChangeText={(v) => updateField("name", v)}
+              autoCapitalize="words"
+              style={styles.inputAccent}
+            />
+            <Text style={styles.inputLabel}>{t("supportEmailLabel")}</Text>
+            <AppInput
+              icon="email"
+              placeholder={t("supportEmailPlaceholder")}
+              value={form.email}
+              onChangeText={(v) => updateField("email", v)}
+              autoCapitalize="none"
+              keyboardType="email-address"
+              style={styles.inputAccent}
+            />
+            <Text style={styles.inputLabel}>{t("supportSubjectLabel")}</Text>
+            <AppInput
+              icon="subject"
+              placeholder={t("supportSubjectPlaceholder")}
+              value={form.subject}
+              onChangeText={(v) => updateField("subject", v)}
+              style={styles.inputAccent}
+            />
+            <Text style={styles.inputLabel}>{t("supportMessageLabel")}</Text>
+            <AppInput
+              icon="message"
+              placeholder={t("supportMessagePlaceholder")}
+              value={form.message}
+              onChangeText={(v) => updateField("message", v)}
+              multiline
+              style={styles.inputAccent}
+            />
+            <AppButton
+              title={sending ? t("supportSending") : t("supportSendButton")}
+              onPress={handleSend}
+              disabled={sending}
+              icon="send"
+              style={styles.sendBtn}
+            />
           </View>
+        </View>
 
-          <View style={[styles.channelRow, styles.channelRowLast]}>
-            <View style={[styles.iconContainer, { backgroundColor: theme.iconBg }]}>
-              <MaterialIcons name="schedule" size={20} color={theme.textPrimary} />
-            </View>
-            <View style={styles.channelTextContainer}>
-              <Text style={[styles.channelLabel, { color: theme.textMuted }]}>
-                {t("supportChannelHoursLabel")}
-              </Text>
-              <Text style={[styles.channelValue, { color: theme.textPrimary }]}>
-                {t("supportChannelHoursValue")}
-              </Text>
-            </View>
-          </View>
+        {/* ── RODAPÉ ──────────────────────────────────────────────────────── */}
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>suporte@copaworld.com</Text>
+          <View style={styles.footerDot} />
+          <Text style={styles.footerText}>(49) 99999-0000</Text>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -205,70 +159,83 @@ export default function SupportScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1 },
-  header: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 12 },
-  headerSubtitle: {
-    fontSize: 13,
-    fontWeight: "500",
-    marginBottom: 4,
-    marginLeft: 2,
+  safe: { flex: 1, backgroundColor: "#F0F7F1" },
+  scroll: { paddingBottom: 48 },
+
+  // ── Hero ───────────────────────────────────────────────────────────────────
+  hero: {
+    backgroundColor: GREEN_DARK,
+    paddingTop: 16,
+    paddingBottom: 22,
+    paddingHorizontal: 20,
   },
-  headerTitleRow: { flexDirection: "row", alignItems: "center", gap: 6 },
-  backButton: {
-    justifyContent: "center",
-    alignItems: "center",
-    paddingVertical: 4,
-    paddingRight: 4,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: "900",
-    letterSpacing: 3,
-  },
-  scrollContent: { paddingHorizontal: 20, paddingBottom: 40 },
-  formCard: {
-    borderRadius: 18,
-    padding: 16,
-    marginBottom: 20,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 10,
-    elevation: 3,
-  },
-  sectionTitle: {
-    fontSize: 12,
-    fontWeight: "700",
-    textTransform: "uppercase",
-    letterSpacing: 1.2,
-    marginBottom: 8,
-    marginLeft: 4,
-  },
-  optionsBlock: {
-    borderRadius: 18,
-    overflow: "hidden",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 10,
-    elevation: 3,
-  },
-  channelRow: {
+  // MUDANÇA: botão e textos lado a lado, botão centralizado entre as 2 linhas
+  heroInner: {
     flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    borderBottomWidth: 1.5,
+    alignItems: "center",   // centraliza o botão verticalmente em relação ao bloco de textos
+    gap: 12,
   },
-  channelRowLast: {
-    borderBottomWidth: 0,
-  },
-  iconContainer: {
+  backBtn: {
     width: 38,
     height: 38,
-    borderRadius: 10,
+    borderRadius: 12,
+    backgroundColor: "rgba(255,255,255,0.13)",
     alignItems: "center",
     justifyContent: "center",
+    flexShrink: 0,
   },
-  channelTextContainer: { flex: 1, marginLeft: 14 },
-  channelLabel: { fontSize: 11, fontWeight: "600", marginBottom: 2 },
-  channelValue: { fontSize: 14, fontWeight: "700" },
+  heroTexts: {
+    flex: 1,
+    gap: 4,
+  },
+  heroTitle: {
+    fontSize: 28,
+    fontWeight: "900",
+    color: "#FFFFFF",
+    letterSpacing: -0.5,
+    lineHeight: 30,
+  },
+  heroSub: {
+    fontSize: 15,
+    color: "rgba(255,255,255,0.85)",
+    fontWeight: "600",
+  },
+
+  // ── Disponibilidade ────────────────────────────────────────────────────────
+  availabilityBar: {
+    marginTop: 20,
+    marginHorizontal: 20,
+    marginBottom: 22,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 10,
+    backgroundColor: GREEN,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 7,
+  },
+  availDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: GREEN_MID },
+  availText: { fontSize: 12, fontWeight: "800", color: "#FFFFFF", letterSpacing: 0.2 },
+  availSep: { width: 1, height: 13, backgroundColor: "rgba(255,255,255,0.93)", marginHorizontal: 2 },
+  availSub: { fontSize: 11, color: "rgba(255,255,255,0.65)", fontWeight: "600" },
+
+  // ── Formulário ─────────────────────────────────────────────────────────────
+  formSection: { paddingHorizontal: 20, marginBottom: 24 },
+  sectionLabelRow: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 12 },
+  sectionAccent: { width: 4, height: 18, borderRadius: 2, backgroundColor: GREEN },
+  sectionLabel: { fontSize: 12, fontWeight: "800", color: GREEN, textTransform: "uppercase", letterSpacing: 1 },
+  formCard: {
+    borderRadius: 18, padding: 16,
+    shadowColor: "#000", shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.07, shadowRadius: 12, elevation: 3,
+    borderWidth: 1.5, borderColor: "rgba(35,136,35,0.1)",
+  },
+  inputAccent: { borderLeftWidth: 4, borderLeftColor: GREEN, borderRadius: 14, overflow: "hidden" },
+  inputLabel: { fontSize: 13, fontWeight: "700", color: GREEN_DARK, marginBottom: 4, marginTop: 8, marginLeft: 2 },
+  sendBtn: { marginTop: 4, backgroundColor: GREEN_DARK },
+
+  // ── Rodapé ─────────────────────────────────────────────────────────────────
+  footer: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10, paddingHorizontal: 20 },
+  footerText: { fontSize: 14, color: GREEN, fontWeight: "700" },
+  footerDot: { width: 5, height: 5, borderRadius: 3, backgroundColor: "rgba(20,92,39,0.3)" },
 });

@@ -8,601 +8,504 @@ import {
   StatusBar,
   TouchableOpacity,
   Modal,
-  Pressable,
+  TextInput,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { MaterialIcons, Ionicons } from "@expo/vector-icons";
 
-import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
+import { useAuth } from "../../context/AuthContext";
 import { useCustomAlert } from "../../context/CustomAlertContext";
 import { useLanguage } from "../../context/LanguageContext";
-import AppInput from "../../components/AppInput";
-import AppButton from "../../components/AppButton";
-import * as authService from "../../services/authService";
+import { useCart } from "../../context/CartContext";
+import { useFavorites } from "../../context/FavoriteContext";
 
-const WHITE = "#FFFFFF";
-const NAVY_BLUE = "#1A237E";
+const GREEN      = "#15622A";
+const GREEN_DARK = "#0A3214";
+const GOLD       = "#F5C518";
+const WHITE      = "#FFFFFF";
+const RED        = "#EF4444";
 
 const NAV_ITEMS = [
-  { key: "home", icon: "home", iconOff: "home-outline", labelKey: "navHome" },
-  {
-    key: "favorites",
-    icon: "heart",
-    iconOff: "heart-outline",
-    labelKey: "navFavorites",
-  },
-  { key: "create", icon: "add", center: true },
-  { key: "cart", icon: "cart", iconOff: "cart-outline", labelKey: "navCart" },
-  {
-    key: "profile",
-    icon: "person",
-    iconOff: "person-outline",
-    labelKey: "navProfile",
-  },
+  { key: "home",      icon: "home",    iconOff: "home-outline",    labelKey: "navHome"      },
+  { key: "favorites", icon: "heart",   iconOff: "heart-outline",   labelKey: "navFavorites" },
+  { key: "create",    center: true },
+  { key: "cart",      icon: "cart",    iconOff: "cart-outline",    labelKey: "navCart"      },
+  { key: "profile",   icon: "person",  iconOff: "person-outline",  labelKey: "navProfile"   },
 ];
 
-const maskPhone = (value) => {
-  let v = value.replace(/\D/g, ""); // Remove tudo o que não é dígito
+// ─── Modal de edição de perfil ─────────────────────────────────────────────
+function EditProfileModal({ visible, onClose, user, onSave, isDarkMode }) {
+  const [name,  setName]  = useState(user?.name  ?? "");
+  const [email, setEmail] = useState(user?.email ?? "");
+  const [phone, setPhone] = useState(user?.phone ?? "");
 
-  if (v.length > 11) {
-    v = v.slice(0, 11); // Limita a 11 dígitos
+  const cardBg       = isDarkMode ? "#1C1F2A" : WHITE;
+  const textColor    = isDarkMode ? "#F3F4F6" : "#111827";
+  const mutedColor   = isDarkMode ? "#9CA3AF" : "#6B7280";
+  const inputBg      = isDarkMode ? "#111318" : "#F7F8FA";
+  const inputBorder  = isDarkMode ? "rgba(255,255,255,0.10)" : "rgba(21,98,42,0.15)";
+
+  function Field({ label, icon, value, onChange, keyboard, placeholder }) {
+    return (
+      <View style={modalStyles.field}>
+        <Text style={[modalStyles.fieldLabel, { color: mutedColor }]}>{label}</Text>
+        <View style={[modalStyles.fieldInput, { backgroundColor: inputBg, borderColor: inputBorder }]}>
+          <MaterialIcons name={icon} size={18} color={GREEN} style={{ marginRight: 10 }} />
+          <TextInput
+            style={[modalStyles.fieldText, { color: textColor }]}
+            value={value}
+            onChangeText={onChange}
+            placeholder={placeholder}
+            placeholderTextColor={mutedColor}
+            keyboardType={keyboard ?? "default"}
+            autoCapitalize="none"
+          />
+        </View>
+      </View>
+    );
   }
 
-  if (v.length <= 10) {
+  return (
+    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
+      <KeyboardAvoidingView
+        style={modalStyles.overlay}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
+        <TouchableOpacity style={modalStyles.backdrop} activeOpacity={1} onPress={onClose} />
 
-    v = v.replace(/(\d{2})(\d)/, "($1) $2");
-    v = v.replace(/(\d{4})(\d)/, "$1-$2");
-  } else {
+        <View style={[modalStyles.sheet, { backgroundColor: cardBg }]}>
+          {/* Alça */}
+          <View style={[modalStyles.handle, { backgroundColor: isDarkMode ? "#374151" : "#E5E7EB" }]} />
 
-    v = v.replace(/(\d{2})(\d)/, "($1) $2");
-    v = v.replace(/(\d{5})(\d)/, "$1-$2");
-  }
+          <Text style={[modalStyles.sheetTitle, { color: GREEN }]}>Editar Perfil</Text>
+          <Text style={[modalStyles.sheetSub, { color: mutedColor }]}>Atualize suas informações pessoais</Text>
 
-  return v;
-};
+          <Field
+            label="Nome completo"
+            icon="person"
+            value={name}
+            onChange={setName}
+            placeholder="Seu nome"
+          />
+          <Field
+            label="E-mail"
+            icon="email"
+            value={email}
+            onChange={setEmail}
+            keyboard="email-address"
+            placeholder="seu@email.com"
+          />
+          <Field
+            label="Telefone"
+            icon="phone"
+            value={phone}
+            onChange={setPhone}
+            keyboard="phone-pad"
+            placeholder="(00) 00000-0000"
+          />
 
+          <View style={modalStyles.sheetActions}>
+            <TouchableOpacity
+              style={[modalStyles.btnCancel, { borderColor: isDarkMode ? "#374151" : "#E5E7EB" }]}
+              onPress={onClose}
+              activeOpacity={0.7}
+            >
+              <Text style={[modalStyles.btnCancelText, { color: mutedColor }]}>Cancelar</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={modalStyles.btnSave}
+              onPress={() => { onSave({ name, email, phone }); onClose(); }}
+              activeOpacity={0.8}
+            >
+              <MaterialIcons name="check" size={16} color={WHITE} />
+              <Text style={modalStyles.btnSaveText}>Salvar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </KeyboardAvoidingView>
+    </Modal>
+  );
+}
+
+const modalStyles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    justifyContent: "flex-end",
+  },
+  backdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.5)",
+  },
+  sheet: {
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    paddingHorizontal: 24,
+    paddingBottom: 40,
+    paddingTop: 12,
+  },
+  handle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    alignSelf: "center",
+    marginBottom: 20,
+  },
+  sheetTitle: {
+    fontSize: 20,
+    fontWeight: "900",
+    marginBottom: 4,
+  },
+  sheetSub: {
+    fontSize: 12,
+    marginBottom: 24,
+  },
+  field: {
+    marginBottom: 16,
+  },
+  fieldLabel: {
+    fontSize: 11,
+    fontWeight: "700",
+    textTransform: "uppercase",
+    letterSpacing: 0.8,
+    marginBottom: 6,
+    marginLeft: 2,
+  },
+  fieldInput: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderRadius: 12,
+    borderWidth: 1.5,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+  fieldText: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  sheetActions: {
+    flexDirection: "row",
+    gap: 12,
+    marginTop: 8,
+  },
+  btnCancel: {
+    flex: 1,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    paddingVertical: 14,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  btnCancelText: {
+    fontSize: 14,
+    fontWeight: "700",
+  },
+  btnSave: {
+    flex: 2,
+    flexDirection: "row",
+    borderRadius: 14,
+    backgroundColor: GREEN,
+    paddingVertical: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+  },
+  btnSaveText: {
+    fontSize: 14,
+    fontWeight: "800",
+    color: WHITE,
+  },
+});
+
+// ─── Linha de menu ─────────────────────────────────────────────────────────
+function MenuItem({ icon, iconColor, iconBg, label, sub, textColor, mutedColor, dividerColor, last, onPress, danger }) {
+  return (
+    <TouchableOpacity
+      activeOpacity={0.7}
+      onPress={onPress}
+      style={[
+        menuStyles.row,
+        !last && { borderBottomWidth: 1, borderBottomColor: dividerColor },
+      ]}
+    >
+      <View style={[menuStyles.iconWrap, { backgroundColor: iconBg }]}>
+        <MaterialIcons name={icon} size={20} color={iconColor} />
+      </View>
+      <View style={menuStyles.textWrap}>
+        <Text style={[menuStyles.label, { color: danger ? RED : textColor }]}>{label}</Text>
+        {sub ? <Text style={[menuStyles.sub, { color: mutedColor }]}>{sub}</Text> : null}
+      </View>
+      <MaterialIcons name="chevron-right" size={20} color={danger ? RED : mutedColor} style={{ opacity: 0.7 }} />
+    </TouchableOpacity>
+  );
+}
+
+const menuStyles = StyleSheet.create({
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    gap: 14,
+  },
+  iconWrap: {
+    width: 38,
+    height: 38,
+    borderRadius: 11,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  textWrap: { flex: 1 },
+  label: { fontSize: 14, fontWeight: "700" },
+  sub: { fontSize: 11, marginTop: 2, lineHeight: 15 },
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
 export default function ProfileScreen({ navigation }) {
-  const { user, refreshUser, logout } = useAuth();
-  const { isDarkMode, theme } = useTheme();
+  const { logout, user } = useAuth();
   const { showAlert, showConfirm } = useCustomAlert();
   const { t } = useLanguage();
+  const { isDarkMode } = useTheme();
+  const { totalItems } = useCart();
+  const { favorites } = useFavorites();
 
-  const [activeNav, setActiveNav] = useState("profile");
-  const [savingField, setSavingField] = useState(false);
-  const [editModal, setEditModal] = useState({
-    visible: false,
-    field: null,
-    value: "",
+  const [activeNav, setActiveNav]   = useState("profile");
+  const [editVisible, setEditVisible] = useState(false);
+  const [profileData, setProfileData] = useState({
+    name:  user?.name  ?? "Usuário",
+    email: user?.email ?? "",
+    phone: user?.phone ?? "",
   });
 
-  // ─── Modal de edição ──────────────────────────────────────
-  function openEditModal(field) {
-    const value =
-      field === "name"
-        ? (user?.name ?? "")
-        : field === "email"
-          ? (user?.email ?? "")
-          : (user?.phone ?? "");
-    setEditModal({ visible: true, field, value });
-  }
+  // Cores derivadas do tema
+  const screenBg     = isDarkMode ? "#0F1117" : "#F7F8FA";
+  const cardBg       = isDarkMode ? "#1C1F2A" : WHITE;
+  const textColor    = isDarkMode ? "#F3F4F6" : "#111827";
+  const mutedColor   = isDarkMode ? "#9CA3AF" : "#6B7280";
+  const dividerColor = isDarkMode ? "rgba(255,255,255,0.07)" : "rgba(21,98,42,0.08)";
 
-  function closeEditModal() {
-    setEditModal({ visible: false, field: null, value: "" });
-  }
+  // Iniciais do avatar
+  const initials = profileData.name
+    .split(" ")
+    .slice(0, 2)
+    .map((w) => w[0] ?? "")
+    .join("")
+    .toUpperCase();
 
-  async function handleSaveField() {
-    if (!editModal.value.trim()) return;
-    if (editModal.field === "phone") {
-      const rawPhone = editModal.value.replace(/\D/g, "");
-
-      const ddd = rawPhone.substring(0, 2);
-
-      if (rawPhone.length < 10 || ddd === "00" || Number(ddd) < 11) {
-        showAlert({
-          title: t("invalidPhoneTitle"),
-          message: t("invalidPhoneMessage"),
-          type: "danger",
-        });
-        return;
-      }
-    }
+  async function handleLogout() {
     try {
-      if (editModal.field === "name") {
-        await authService.updateProfileName(editModal.value);
-        showAlert({
-          title: t("successTitle"),
-          message: t("updateNameSuccess"),
-          type: "success",
-        });
-        return;
-      } else if (editModal.field === "email") {
-        if (editModal.field === "email") {
-          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-          if (!emailRegex.test(editModal.value)) {
-            showAlert({
-              title: t("invalidEmailTitle"),
-              message: t("invalidEmailMessage"),
-              type: "danger",
-            });
-            return;
-          }
-        }
-        await authService.updateProfileEmail(editModal.value);
-        showAlert({
-          title: t("successTitle"),
-          message: t("updateEmailSuccess"),
-          type: "success",
-        });
-      } else {
-        await authService.updateProfilePhone(editModal.value);
-        showAlert({
-          title: t("successTitle"),
-          message: t("updatePhoneSuccess"),
-          type: "success",
-        });
-      }
-      await refreshUser();
-      closeEditModal();
+      await logout();
     } catch (error) {
-      showAlert({
-        title: t("profileUpdateError"),
-        message: error.message,
-        type: "danger",
-      });
-    } finally {
-      setSavingField(false);
+      showAlert({ title: t("logoutErrorTitle"), message: error.message, type: "danger" });
     }
   }
 
-  // ─── Logout ───────────────────────────────────────────────
-  function handleLogout() {
+  function confirmLogout() {
     showConfirm({
       title: t("logoutAlertTitle"),
       message: t("logoutAlertMessage"),
       confirmText: t("logoutConfirm"),
       cancelText: t("cancel"),
       type: "danger",
-      onConfirm: async () => {
-        try {
-          await logout();
-        } catch (error) {
-          showAlert({
-            title: t("logoutErrorTitle"),
-            message: error.message,
-            type: "danger",
-          });
-        }
-      },
+      onConfirm: handleLogout,
     });
   }
 
-  // ─── Alterar senha ────────────────────────────────────────
-  async function handleChangePassword() {
-    try {
-      await authService.sendPasswordResetEmail(user.email);
-      showAlert({
-        title: t("successTitle"),
-        message: t("passwordResetSent"),
-        type: "success",
-      });
-    } catch (error) {
-      showAlert({
-        title: t("profileUpdateError"),
-        message: error.message,
-        type: "danger",
-      });
-    }
-  }
-
-  // Iniciais para o avatar
-  const initials = user?.name
-    ? user.name
-      .split(" ")
-      .map((w) => w[0])
-      .slice(0, 2)
-      .join("")
-      .toUpperCase()
-    : "?";
+  const rowTheme = { textColor, mutedColor, dividerColor };
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: theme.bg }]}>
-      <StatusBar barStyle={theme.statusBar} backgroundColor={theme.bg} />
+    <SafeAreaView style={[styles.safe, { backgroundColor: screenBg }]}>
+      <StatusBar barStyle="light-content" backgroundColor={GREEN_DARK} />
 
-      {/* ── HEADER ── */}
-      <View style={styles.header}>
-        <Text style={[styles.headerSubtitle, { color: theme.textMuted }]}>
-          {t("myAccount")}
-        </Text>
-        <View style={styles.headerTitleRow}>
+      {/* ── HERO HEADER verde ─────────────────────────────────────────────── */}
+      <View style={styles.hero}>
+        {/* Grade decorativa tipo campo */}
+        <View style={styles.heroGrid} pointerEvents="none">
+          {[...Array(8)].map((_, i) => (
+            <View key={i} style={styles.heroGridLine} />
+          ))}
+        </View>
+
+        {/* Topo: título + lápis */}
+        <View style={styles.heroTop}>
           <TouchableOpacity
-            style={styles.backButton}
+            style={styles.heroBackBtn}
             onPress={() => navigation.goBack()}
-            activeOpacity={0.6}
-            hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
-            <Ionicons
-              name="chevron-back"
-              size={24}
-              color={theme.titlePrimary}
-            />
+            <Ionicons name="chevron-back" size={22} color={WHITE} />
           </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: theme.titlePrimary }]}>
-            {t("profileTitle")}
-          </Text>
+          <Text style={styles.heroTitle}>MEU PERFIL</Text>
+          <TouchableOpacity
+            style={styles.heroEditBtn}
+            onPress={() => setEditVisible(true)}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <MaterialIcons name="edit" size={16} color={WHITE} />
+          </TouchableOpacity>
+        </View>
+
+        {/* Avatar + info */}
+        <View style={styles.heroInfo}>
+          {/* Avatar */}
+          <View style={styles.avatarWrap}>
+            <View style={styles.avatar}>
+              <Text style={styles.avatarText}>{initials}</Text>
+            </View>
+            <View style={styles.avatarCameraBtn}>
+              <MaterialIcons name="camera-alt" size={11} color={GREEN_DARK} />
+            </View>
+          </View>
+
+          {/* Nome / email / badge */}
+          <View style={styles.heroUserInfo}>
+            <Text style={styles.heroName}>{profileData.name.toUpperCase()}</Text>
+            <Text style={styles.heroEmail}>{profileData.email}</Text>
+            {profileData.phone ? (
+              <Text style={styles.heroPhone}>{profileData.phone}</Text>
+            ) : null}
+            <View style={styles.heroBadge}>
+              <Text style={styles.heroBadgeText}>🇧🇷 TORCEDOR BRASIL</Text>
+            </View>
+          </View>
         </View>
       </View>
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[styles.scroll, { paddingBottom: 110 }]}
       >
-        {/* ── CARD DE AVATAR ── */}
-        <View
-          style={[
-            styles.avatarCard,
-            {
-              backgroundColor: theme.card,
-              shadowColor: isDarkMode ? "#000" : "#a39f96",
-            },
-          ]}
-        >
-          <View
-            style={[styles.avatarPlaceholder, { backgroundColor: NAVY_BLUE }]}
-          >
-            <Text style={styles.avatarInitials}>{initials}</Text>
-          </View>
-          <Text style={[styles.avatarName, { color: theme.textPrimary }]}>
-            {t("hello")}, {user?.name}!
-          </Text>
-          <Text style={[styles.avatarEmail, { color: theme.textMuted }]}>
-            {user?.email}
-          </Text>
+        {/* ── STATS card flutuante ─────────────────────────────────────────── */}
+        <View style={[styles.statsCard, { backgroundColor: cardBg, borderColor: dividerColor }]}>
+          {[
+            { icon: "receipt-long", label: "Pedidos",    value: "0",                    color: GOLD   },
+            { icon: "favorite",     label: "Favoritos",  value: `${favorites?.length ?? 0}`, color: RED    },
+            { icon: "star",         label: "Avaliações", value: "0",                    color: "#FBBF24" },
+          ].map((s, i, arr) => (
+            <View
+              key={s.label}
+              style={[
+                styles.statItem,
+                i < arr.length - 1 && { borderRightWidth: 1, borderRightColor: dividerColor },
+              ]}
+            >
+              <MaterialIcons name={s.icon} size={22} color={s.color} />
+              <Text style={[styles.statValue, { color: textColor }]}>{s.value}</Text>
+              <Text style={[styles.statLabel, { color: mutedColor }]}>{s.label}</Text>
+            </View>
+          ))}
         </View>
 
-        {/* ── DADOS PESSOAIS ── */}
-        <Text style={[styles.sectionTitle, { color: theme.textMuted }]}>
-          {t("personalData")}
-        </Text>
-        <View
-          style={[
-            styles.optionsBlock,
-            {
-              backgroundColor: theme.card,
-              shadowColor: isDarkMode ? "#000" : "#a39f96",
-            },
-          ]}
-        >
-          <TouchableOpacity
-            style={[styles.settingRow, { borderBottomColor: theme.divider }]}
-            activeOpacity={0.7}
-            onPress={() => openEditModal("name")}
-          >
-            <View
-              style={[styles.iconContainer, { backgroundColor: theme.iconBg }]}
-            >
-              <MaterialIcons
-                name="person"
-                size={22}
-                color={theme.textPrimary}
-              />
-            </View>
-            <View style={styles.settingTextContainer}>
-              <Text style={[styles.settingLabel, { color: theme.textMuted }]}>
-                {t("profileName")}
-              </Text>
-              <Text
-                style={[styles.settingValue, { color: theme.textPrimary }]}
-                numberOfLines={1}
-              >
-                {user?.name}
-              </Text>
-            </View>
-            <MaterialIcons name="edit" size={20} color={theme.textMuted} />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.settingRow, { borderBottomColor: theme.divider }]}
-            activeOpacity={0.7}
-            onPress={() => openEditModal("email")}
-          >
-            <View
-              style={[styles.iconContainer, { backgroundColor: theme.iconBg }]}
-            >
-              <MaterialIcons name="email" size={22} color={theme.textPrimary} />
-            </View>
-            <View style={styles.settingTextContainer}>
-              <Text style={[styles.settingLabel, { color: theme.textMuted }]}>
-                {t("profileEmail")}
-              </Text>
-              <Text
-                style={[styles.settingValue, { color: theme.textPrimary }]}
-                numberOfLines={1}
-              >
-                {user?.email}
-              </Text>
-            </View>
-            <MaterialIcons name="edit" size={20} color={theme.textMuted} />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.settingRow, styles.settingRowLast]}
-            activeOpacity={0.7}
-            onPress={() => openEditModal("phone")}
-          >
-            <View
-              style={[styles.iconContainer, { backgroundColor: theme.iconBg }]}
-            >
-              <MaterialIcons name="phone" size={22} color={theme.textPrimary} />
-            </View>
-            <View style={styles.settingTextContainer}>
-              <Text style={[styles.settingLabel, { color: theme.textMuted }]}>
-                {t("profilePhone")}
-              </Text>
-              <Text
-                style={[styles.settingValue, { color: theme.textPrimary }]}
-                numberOfLines={1}
-              >
-                {user?.phone || "—"}
-              </Text>
-            </View>
-            <MaterialIcons name="edit" size={20} color={theme.textMuted} />
-          </TouchableOpacity>
-        </View>
-
-        {/* ── SEGURANÇA ── */}
-        <Text style={[styles.sectionTitle, { color: theme.textMuted }]}>
-          {t("security")}
-        </Text>
-        <View
-          style={[
-            styles.optionsBlock,
-            {
-              backgroundColor: theme.card,
-              shadowColor: isDarkMode ? "#000" : "#a39f96",
-            },
-          ]}
-        >
-          <TouchableOpacity
-            style={[styles.settingRow, styles.settingRowLast]}
-            activeOpacity={0.7}
-            onPress={handleChangePassword}
-          >
-            <View
-              style={[styles.iconContainer, { backgroundColor: theme.iconBg }]}
-            >
-              <MaterialIcons name="lock" size={22} color={theme.textPrimary} />
-            </View>
-            <View style={styles.settingTextContainer}>
-              <Text style={[styles.settingTitle, { color: theme.textPrimary }]}>
-                {t("changePassword")}
-              </Text>
-              <Text
-                style={[styles.settingSubtitle, { color: theme.textMuted }]}
-              >
-                {t("changePasswordSub")}
-              </Text>
-            </View>
-            <MaterialIcons
-              name="chevron-right"
-              size={20}
-              color={theme.textMuted}
-            />
-          </TouchableOpacity>
-        </View>
-
-        {/* ── HISTÓRICO DE COMPRAS ── */}
-
-
-        <Text style={[styles.sectionTitle, { color: theme.textMuted }]}>
-          {t("purchaseHistory")}
-        </Text>
-
-        <TouchableOpacity
-          activeOpacity={0.7}
-          onPress={() => navigation.navigate("History")}
-          style={[
-            styles.optionsBlock,
-            {
-              backgroundColor: theme.card,
-              shadowColor: isDarkMode ? "#000000" : "#a39f96",
-              paddingVertical: 16,
-              paddingHorizontal: 16,
-            },
-          ]}
-        >
-          <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-
-            <MaterialIcons
-              name="receipt-long"
-              size={24}
-              color={theme.text}
-              style={{ marginRight: 16 }}
-            />
-
-
-            <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 16, fontWeight: '600', color: theme.text }}>
-                {t("purchaseHistory")}
-              </Text>
-              <Text style={{ fontSize: 12, color: theme.textMuted }}>
-                View your past orders
-              </Text>
-            </View>
-
-
-            <MaterialIcons name="chevron-right" size={24} color={theme.textMuted} />
-          </View>
-        </TouchableOpacity>
-
-        {/* ── LOGOUT ── */}
-        <View
-          style={[
-            styles.optionsBlock,
-            {
-              backgroundColor: theme.card,
-              shadowColor: isDarkMode ? "#000" : "#a39f96",
-            },
-          ]}
-        >
-          <TouchableOpacity
-            style={[styles.settingRow, styles.settingRowLast]}
-            activeOpacity={0.7}
-            onPress={handleLogout}
-          >
-            <View
-              style={[styles.iconContainer, { backgroundColor: "#fff0ed" }]}
-            >
-              <MaterialIcons name="logout" size={22} color="#b42318" />
-            </View>
-            <View style={styles.settingTextContainer}>
-              <Text style={[styles.settingTitle, { color: "#b42318" }]}>
-                {t("logoutProfile")}
-              </Text>
-              <Text
-                style={[styles.settingSubtitle, { color: theme.textMuted }]}
-              >
-                {t("logoutProfileSub")}
-              </Text>
-            </View>
-            <MaterialIcons name="chevron-right" size={20} color="#b42318" />
-          </TouchableOpacity>
+        {/* ── MENU PRINCIPAL ───────────────────────────────────────────────── */}
+        <View style={[styles.card, { backgroundColor: cardBg, borderColor: dividerColor }]}>
+          <MenuItem
+            {...rowTheme}
+            icon="history"
+            iconColor={GREEN}
+            iconBg={isDarkMode ? "rgba(21,98,42,0.25)" : "#D4EDDA"}
+            label="Histórico de Compras"
+            sub="Veja todas as suas compras"
+            onPress={() => navigation.navigate("Orders")}
+          />
+          <MenuItem
+            {...rowTheme}
+            icon="location-on"
+            iconColor="#3B82F6"
+            iconBg={isDarkMode ? "rgba(59,130,246,0.15)" : "#DBEAFE"}
+            label="Endereços"
+            sub="Gerenciar endereços de entrega"
+            onPress={() => navigation.navigate("Addresses")}
+          />
+          <MenuItem
+            {...rowTheme}
+            icon="lock-outline"
+            iconColor="#8B5CF6"
+            iconBg={isDarkMode ? "rgba(139,92,246,0.15)" : "#EDE9FE"}
+            label="Alterar Senha"
+            sub="Atualize sua senha de acesso"
+            onPress={() => navigation.navigate("ChangePassword")}
+          />
+          <MenuItem
+            {...rowTheme}
+            icon="star-outline"
+            iconColor="#FBBF24"
+            iconBg={isDarkMode ? "rgba(245,197,24,0.15)" : "#FEF3C7"}
+            label="Minhas Avaliações"
+            sub="Produtos avaliados por você"
+            onPress={() => navigation.navigate("Reviews")}
+          />
+          <MenuItem
+            {...rowTheme}
+            icon="logout"
+            iconColor={RED}
+            iconBg={isDarkMode ? "rgba(239,68,68,0.12)" : "#FEE2E2"}
+            label="Sair da conta"
+            sub="Encerrar sessão atual"
+            onPress={confirmLogout}
+            last
+            danger
+          />
         </View>
       </ScrollView>
 
-      {/* ── BOTTOM NAV ── */}
-      <View style={[styles.bottomNav, { backgroundColor: theme.card }]}>
+      {/* ── MODAL EDITAR PERFIL ───────────────────────────────────────────── */}
+      <EditProfileModal
+        visible={editVisible}
+        onClose={() => setEditVisible(false)}
+        user={profileData}
+        onSave={(data) => setProfileData((prev) => ({ ...prev, ...data }))}
+        isDarkMode={isDarkMode}
+      />
+
+      {/* ── BOTTOM NAV ───────────────────────────────────────────────────── */}
+      <View style={[styles.bottomNav, { backgroundColor: cardBg, borderColor: dividerColor }]}>
         {NAV_ITEMS.map((tab) => (
           <TouchableOpacity
             key={tab.key}
             style={[styles.navItem, tab.center && styles.navItemCenter]}
             onPress={() => {
               setActiveNav(tab.key);
-              if (tab.center) navigation.navigate("ProductCreate");
-              if (tab.key === "home") navigation.navigate("Products");
-              if (tab.key === "cart") navigation.navigate("Cart");
+              if (tab.key === "create")    navigation.navigate("ProductCreate");
+              if (tab.key === "home")      navigation.navigate("Products");
+              if (tab.key === "cart")      navigation.navigate("Cart");
+              if (tab.key === "favorites") navigation.navigate("Favorites");
             }}
           >
             {tab.center ? (
-              <View
-                style={[
-                  styles.navCreateBtn,
-                  {
-                    borderColor: theme.card,
-                    backgroundColor: NAVY_BLUE,
-                    shadowColor: NAVY_BLUE,
-                  },
-                ]}
-              >
-                <Ionicons name="add" size={28} color={WHITE} />
+              <View style={styles.navCreateBtn}>
+                <Ionicons name="add" size={26} color={GREEN_DARK} />
               </View>
             ) : (
               <>
-                <Ionicons
-                  name={activeNav === tab.key ? tab.icon : tab.iconOff}
-                  size={22}
-                  color={
-                    activeNav === tab.key ? theme.navActive : theme.navInactive
-                  }
-                />
-                <Text
-                  style={[
-                    styles.navLabel,
-                    { color: theme.navInactive },
-                    activeNav === tab.key && {
-                      color: theme.navActive,
-                      fontWeight: "700",
-                    },
-                  ]}
-                >
+                <View style={[
+                  styles.navIconWrap,
+                  activeNav === tab.key && styles.navIconWrapActive,
+                ]}>
+                  <Ionicons
+                    name={activeNav === tab.key ? tab.icon : tab.iconOff}
+                    size={20}
+                    color={activeNav === tab.key ? GREEN : mutedColor}
+                  />
+                  {tab.key === "cart" && totalItems > 0 && (
+                    <View style={styles.cartBadge}>
+                      <Text style={styles.cartBadgeText}>{totalItems}</Text>
+                    </View>
+                  )}
+                </View>
+                <Text style={[
+                  styles.navLabel,
+                  { color: mutedColor },
+                  activeNav === tab.key && { color: GREEN, fontWeight: "800" },
+                ]}>
                   {t(tab.labelKey)}
                 </Text>
-                {activeNav === tab.key && (
-                  <View
-                    style={[
-                      styles.navDot,
-                      { backgroundColor: theme.navActive },
-                    ]}
-                  />
-                )}
               </>
             )}
           </TouchableOpacity>
         ))}
       </View>
-
-      {/* ── MODAL DE EDIÇÃO ── */}
-      <Modal
-        visible={editModal.visible}
-        transparent
-        animationType="fade"
-        onRequestClose={closeEditModal}
-      >
-        <Pressable style={styles.modalOverlay} onPress={closeEditModal}>
-          <Pressable
-            style={[styles.modalCard, { backgroundColor: theme.card }]}
-            onPress={() => { }}
-          >
-            <Text style={[styles.modalTitle, { color: theme.textPrimary }]}>
-              {editModal.field === "name"
-                ? t("editName")
-                : editModal.field === "email"
-                  ? t("editEmail")
-                  : t("editPhone")}
-            </Text>
-            <AppInput
-              label={
-                editModal.field === "name"
-                  ? t("newNameLabel")
-                  : editModal.field === "email"
-                    ? t("newEmailLabel")
-                    : t("newPhoneLabel")
-              }
-              icon={
-                editModal.field === "name"
-                  ? "person"
-                  : editModal.field === "email"
-                    ? "email"
-                    : "phone"
-              }
-              placeholder={
-                editModal.field === "name"
-                  ? t("namePlaceholder")
-                  : editModal.field === "email"
-                    ? t("emailPlaceholder")
-                    : t("phonePlaceholder")
-              }
-              value={editModal.value}
-              onChangeText={(v) => {
-                let formattedValue = v;
-                if (editModal.field === "phone") {
-                  formattedValue = maskPhone(v);
-                }
-                setEditModal((prev) => ({ ...prev, value: formattedValue }));
-              }}
-              autoCapitalize={editModal.field === "name" ? "words" : "none"}
-              keyboardType={
-                editModal.field === "email"
-                  ? "email-address"
-                  : editModal.field === "phone"
-                    ? "phone-pad"
-                    : "default"
-              }
-              autoFocus
-            />
-            <AppButton
-              title={savingField ? t("loading") : t("saveChanges")}
-              onPress={handleSaveField}
-              disabled={savingField || !editModal.value.trim()}
-              style={{ marginBottom: 8 }}
-            />
-            <AppButton
-              title={t("cancel")}
-              variant="ghost"
-              onPress={closeEditModal}
-            />
-          </Pressable>
-        </Pressable>
-      </Modal>
     </SafeAreaView>
   );
 }
@@ -610,143 +513,246 @@ export default function ProfileScreen({ navigation }) {
 const styles = StyleSheet.create({
   safe: { flex: 1 },
 
-  header: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 12 },
-  headerSubtitle: {
-    fontSize: 13,
-    fontWeight: "500",
-    marginBottom: 4,
-    marginLeft: 2,
+  // ── Hero
+  hero: {
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 52,
+    overflow: "hidden",
+    background: "linear-gradient(160deg, #0A3214, #15622A)",
+    backgroundColor: GREEN_DARK,
   },
-  headerTitleRow: { flexDirection: "row", alignItems: "center", gap: 6 },
-  backButton: {
-    justifyContent: "center",
+  heroGrid: {
+    ...StyleSheet.absoluteFillObject,
+    flexDirection: "row",
+  },
+  heroGridLine: {
+    flex: 1,
+    borderRightWidth: 1,
+    borderRightColor: "rgba(255,255,255,0.04)",
+  },
+  heroTop: {
+    flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 4,
-    paddingRight: 4,
+    justifyContent: "space-between",
+    marginBottom: 24,
   },
-  headerTitle: { fontSize: 20, fontWeight: "900", letterSpacing: 3 },
-
-  scrollContent: { paddingHorizontal: 20, paddingBottom: 130 },
-
-  avatarCard: {
+  heroBackBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: "rgba(255,255,255,0.12)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  heroTitle: {
+    fontSize: 18,
+    fontWeight: "900",
+    color: WHITE,
+    letterSpacing: 3,
+  },
+  heroEditBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: "rgba(255,255,255,0.12)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  heroInfo: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 16,
+  },
+  avatarWrap: { position: "relative" },
+  avatar: {
+    width: 76,
+    height: 76,
     borderRadius: 18,
-    paddingVertical: 24,
-    paddingHorizontal: 16,
-    alignItems: "center",
-    marginBottom: 20,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 10,
-    elevation: 3,
-  },
-  avatarPlaceholder: {
-    width: 90,
-    height: 90,
-    borderRadius: 45,
+    backgroundColor: GOLD,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 12,
+    borderWidth: 3,
+    borderColor: "rgba(245,197,24,0.4)",
   },
-  avatarInitials: { color: WHITE, fontSize: 30, fontWeight: "800" },
-  avatarName: { fontSize: 18, fontWeight: "800", marginBottom: 4 },
-  avatarEmail: { fontSize: 13 },
-
-  sectionTitle: {
+  avatarText: {
+    fontSize: 28,
+    fontWeight: "900",
+    color: GREEN_DARK,
+  },
+  avatarCameraBtn: {
+    position: "absolute",
+    bottom: -4,
+    right: -4,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: GOLD,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 2,
+    borderColor: GREEN_DARK,
+  },
+  heroUserInfo: { flex: 1 },
+  heroName: {
+    fontSize: 22,
+    fontWeight: "900",
+    color: WHITE,
+    letterSpacing: 0.5,
+    lineHeight: 24,
+  },
+  heroEmail: {
     fontSize: 12,
-    fontWeight: "700",
-    textTransform: "uppercase",
-    letterSpacing: 1.2,
+    color: "rgba(255,255,255,0.6)",
+    marginTop: 2,
+    marginBottom: 2,
+  },
+  heroPhone: {
+    fontSize: 12,
+    color: "rgba(255,255,255,0.5)",
     marginBottom: 8,
-    marginLeft: 4,
+  },
+  heroBadge: {
+    alignSelf: "flex-start",
+    backgroundColor: GOLD,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 20,
+  },
+  heroBadgeText: {
+    fontSize: 10,
+    fontWeight: "900",
+    color: GREEN_DARK,
+    letterSpacing: 0.5,
+  },
+
+  // ── Scroll
+  scroll: {
+    paddingHorizontal: 20,
+    paddingTop: 0,
+  },
+
+  // ── Stats card
+  statsCard: {
+    flexDirection: "row",
+    borderRadius: 20,
+    borderWidth: 1.5,
+    marginTop: -28,
+    marginBottom: 20,
+    overflow: "hidden",
+    shadowColor: GREEN,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.10,
+    shadowRadius: 12,
+    elevation: 5,
+  },
+  statItem: {
+    flex: 1,
+    alignItems: "center",
+    paddingVertical: 16,
+    gap: 4,
+  },
+  statValue: {
+    fontSize: 22,
+    fontWeight: "900",
+    lineHeight: 24,
+  },
+  statLabel: {
+    fontSize: 10,
+    fontWeight: "600",
+  },
+
+  // ── Card de menu
+  card: {
+    borderRadius: 20,
+    borderWidth: 1.5,
+    overflow: "hidden",
+    marginBottom: 20,
+    shadowColor: GREEN,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.07,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+
+  // ── Footer
+  footer: {
+    alignItems: "center",
+    gap: 6,
     marginTop: 4,
   },
-  optionsBlock: {
-    borderRadius: 18,
-    marginBottom: 16,
-    overflow: "hidden",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 10,
-    elevation: 3,
-  },
-  settingRow: {
+  footerDivider: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    borderBottomWidth: 1.5,
+    width: "60%",
+    marginBottom: 4,
   },
-  settingRowLast: {
+  footerLine: { flex: 1, height: 1 },
+  footerText: { fontSize: 12, fontWeight: "600" },
+
+  // ── Bottom Nav
+  bottomNav: {
+    position: "absolute",
+    bottom: 0, left: 0, right: 0,
     flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    borderBottomWidth: 0,
+    paddingTop: 12,
+    paddingBottom: 26,
+    paddingHorizontal: 10,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    borderTopWidth: 1,
+    shadowColor: GREEN,
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    elevation: 10,
   },
-  iconContainer: {
-    width: 38,
-    height: 38,
+  navItem: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 3,
+  },
+  navItemCenter: { marginTop: -16 },
+  navIconWrap: {
+    width: 36,
+    height: 36,
     borderRadius: 10,
     alignItems: "center",
     justifyContent: "center",
   },
-  settingTextContainer: { flex: 1, marginLeft: 14, paddingRight: 8 },
-  settingLabel: { fontSize: 11, fontWeight: "600", marginBottom: 2 },
-  settingValue: { fontSize: 15, fontWeight: "700" },
-  settingTitle: { fontSize: 14, fontWeight: "700" },
-  settingSubtitle: { fontSize: 11, marginTop: 2, lineHeight: 14 },
-
-  emptyState: { paddingVertical: 28, alignItems: "center", gap: 10 },
-  emptyText: { fontSize: 13, fontWeight: "500", textAlign: "center" },
-
-  bottomNav: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    flexDirection: "row",
-    paddingTop: 10,
-    paddingBottom: 24,
-    paddingHorizontal: 10,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 16,
-    elevation: 10,
+  navIconWrapActive: {
+    backgroundColor: "rgba(21,98,42,0.08)",
   },
-  navItem: { flex: 1, alignItems: "center", justifyContent: "center", gap: 2 },
-  navItemCenter: { marginTop: -28 },
   navCreateBtn: {
-    width: 54,
-    height: 54,
-    borderRadius: 27,
+    width: 52, height: 52,
+    borderRadius: 12,
+    backgroundColor: GOLD,
     alignItems: "center",
     justifyContent: "center",
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.4,
-    shadowRadius: 10,
-    elevation: 8,
-    borderWidth: 4,
+    borderWidth: 3,
+    borderColor: WHITE,
+    shadowColor: GOLD,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.5,
+    shadowRadius: 8,
+    elevation: 6,
   },
-  navLabel: { fontSize: 10, fontWeight: "500" },
-  navDot: { width: 4, height: 4, borderRadius: 2 },
-
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.45)",
+  navLabel: {
+    fontSize: 10,
+    fontWeight: "600",
+  },
+  cartBadge: {
+    position: "absolute",
+    top: -4, right: -8,
+    backgroundColor: RED,
+    borderRadius: 10,
+    minWidth: 16, height: 16,
     justifyContent: "center",
     alignItems: "center",
-    paddingHorizontal: 24,
+    paddingHorizontal: 4,
+    borderWidth: 1.5,
+    borderColor: WHITE,
   },
-  modalCard: {
-    width: "100%",
-    borderRadius: 20,
-    padding: 24,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.2,
-    shadowRadius: 16,
-    elevation: 10,
-  },
-  modalTitle: { fontSize: 18, fontWeight: "800", marginBottom: 20 },
+  cartBadgeText: { color: WHITE, fontSize: 9, fontWeight: "bold" },
 });

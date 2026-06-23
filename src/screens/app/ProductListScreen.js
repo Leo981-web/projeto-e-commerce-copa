@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, useRef } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -11,18 +11,21 @@ import {
   SafeAreaView,
   Dimensions,
   TouchableOpacity,
+  Animated,
+  Image,
 } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { MaterialIcons } from "@expo/vector-icons";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import EvilIcons from "@expo/vector-icons/EvilIcons";
 
 import EmptyStateImage from "../../assets/empty_state.svg";
 import AppText from "../../components/AppText";
 import ProductImage from "../../components/ProductImage";
 import { useAuth } from "../../context/AuthContext";
-import { useCart } from "../../context/CartContext"; 
+import { useCart } from "../../context/CartContext";
 import { useCustomAlert } from "../../context/CustomAlertContext";
-import { useLanguage } from "../../context/LanguageContext"; 
+import { useLanguage } from "../../context/LanguageContext";
 import { formatCurrency } from "../../services/formatters";
 import * as productService from "../../services/productService";
 import { useTheme } from "../../context/ThemeContext";
@@ -30,40 +33,322 @@ import { useFavorites } from "../../context/FavoriteContext";
 
 const { width } = Dimensions.get("window");
 
+// ── Paleta Copa do Mundo ───────────────────────────────────────────────────
+const GREEN      = "#15622A";
+const GREEN_DARK = "#0D4A1A";
+const GREEN_MID  = "#22C55E";
+const GOLD       = "#F5C518";
+const RED_LIVE   = "#EF4444";
 
 const COUNTRY_THEMES = [
-  { bg: "#D4EDDA", accent: "#009C3B", flag: "🇧🇷" }, // Brasil
-  { bg: "#D6E8F5", accent: "#74ACDF", flag: "🇦🇷" }, // Argentina
-  { bg: "#DDEAF7", accent: "#002395", flag: "🇫🇷" }, // França
-  { bg: "#E8E8E8", accent: "#333333", flag: "🇩🇪" }, // Alemanha
-  { bg: "#D4EDDA", accent: "#006600", flag: "🇵🇹" }, // Portugal
-  { bg: "#F7DADA", accent: "#AA151B", flag: "🇪🇸" }, // Espanha
+  { bg: "#D4EDDA", accent: "#009C3B", flag: "🇧🇷" },
+  { bg: "#D6E8F5", accent: "#1565C0", flag: "🇦🇷" },
+  { bg: "#DDEAF7", accent: "#002395", flag: "🇫🇷" },
+  { bg: "#E8E8E8", accent: "#333333", flag: "🇩🇪" },
+  { bg: "#D4EDDA", accent: "#006600", flag: "🇵🇹" },
+  { bg: "#F7DADA", accent: "#AA151B", flag: "🇪🇸" },
 ];
 
-const FILTER_KEYS = ["filterAll", "filterShirts", "filterShoes", "filterAccessories", "filterStickers"];
+// ── MUDANÇA 1: Carrossel atualizado — sem label, novos textos e imagens ────
+const HERO_BANNERS = [
+  {
+    title: "COPA DO\nMUNDO 2026",
+    sub: "Itens da copa que combinam com o seu bolso. Renove seu armário para os dias de jogo!",
+    cta: "Ver coleção",
+    accent: GOLD,
+    image: require("../../assets/card1.jpeg"),
+  },
+  {
+    title: "SELEÇÃO\nBRASIL\n2026",
+    sub: "Vista as cores do seu país!",
+    cta: "Comprar agora",
+    accent: GREEN_MID,
+    image: require("../../assets/card2.jpeg"),
+  },
+  {
+    title: "NOVO ESTILO\nDE CAMPO",
+    sub: "Sinta a emoção de cada partida no seu próprio campo.",
+    cta: "Ver detalhes",
+    accent: "#60A5FA",
+    image: require("../../assets/card3.jpeg"),
+  },
+];
+
+const FILTER_KEYS = [
+  "filterAll",
+  "filterShirts",
+  "filterShoes",
+  "filterAccessories",
+  "filterStickers",
+  "filterOthers",
+];
+
+// Ícone e label fixo para cada filtro (independente de i18n para o ícone)
+const FILTER_META = {
+  filterAll:         { icon: "apps",             label: "Todos"      },
+  filterShirts:      { icon: "checkroom",         label: "Camisas"    },
+  filterShoes:       { icon: "directions-run",    label: "Calçados"   },
+  filterAccessories: { icon: "watch",             label: "Acessórios" },
+  filterStickers:    { icon: "auto-awesome",      label: "Figurinhas" },
+  filterOthers:      { icon: "more-horiz",        label: "Outros"     },
+};
 
 const NAV_ITEMS = [
-  { key: "home",      icon: "home",           iconOff: "home-outline",        labelKey: "navHome"      },
-  { key: "favorites", icon: "heart",          iconOff: "heart-outline",       labelKey: "navFavorites" },
-  { key: "create",    icon: "add",            center: true                                             },
-  { key: "cart",      icon: "cart",           iconOff: "cart-outline",        labelKey: "navCart"      },
-  { key: "profile",   icon: "person",         iconOff: "person-outline",      labelKey: "navProfile"   },
+  { key: "home",      icon: "home",    iconOff: "home-outline",    labelKey: "navHome"      },
+  { key: "favorites", icon: "heart",   iconOff: "heart-outline",   labelKey: "navFavorites" },
+  { key: "create",    center: true },
+  { key: "cart",      icon: "cart",    iconOff: "cart-outline",    labelKey: "navCart"      },
+  { key: "profile",   icon: "person",  iconOff: "person-outline",  labelKey: "navProfile"   },
 ];
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Carrossel Hero
+// ─────────────────────────────────────────────────────────────────────────────
+function HeroCarousel() {
+  const [active, setActive] = useState(0);
+  const scrollRef = useRef(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      const interval = setInterval(() => {
+        setActive((prev) => {
+          const next = (prev + 1) % HERO_BANNERS.length;
+          scrollRef.current?.scrollTo({ x: next * (width - 40), animated: true });
+          return next;
+        });
+      }, 3500);
+      return () => clearInterval(interval);
+    }, [])
+  );
+
+  function onScroll(e) {
+    const idx = Math.round(e.nativeEvent.contentOffset.x / (width - 40));
+    setActive(idx);
+  }
+
+  return (
+    <View style={carouselStyles.wrap}>
+      <ScrollView
+        ref={scrollRef}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        onMomentumScrollEnd={onScroll}
+        style={{ borderRadius: 14 }}
+        contentContainerStyle={{ borderRadius: 14 }}
+      >
+        {HERO_BANNERS.map((b, i) => (
+          <View key={i} style={[carouselStyles.slide, { width: width - 40 }]}>
+            {/* Foto de fundo */}
+            <Image source={b.image} style={carouselStyles.bgImage} />
+            {/* Gradiente escuro sobre a foto */}
+            <View style={carouselStyles.overlay} />
+
+            <View style={carouselStyles.content}>
+              {/* MUDANÇA 1: label "Copa do Mundo 2026" removido */}
+              <Text style={[carouselStyles.title, { color: b.accent }]}>{b.title}</Text>
+              <Text style={carouselStyles.sub}>{b.sub}</Text>
+              <TouchableOpacity style={[carouselStyles.cta, { backgroundColor: b.accent }]}>
+                <Text style={carouselStyles.ctaText}>{b.cta}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        ))}
+      </ScrollView>
+
+      <View style={carouselStyles.dots}>
+        {HERO_BANNERS.map((_, i) => (
+          <TouchableOpacity
+            key={i}
+            onPress={() => {
+              scrollRef.current?.scrollTo({ x: i * (width - 40), animated: true });
+              setActive(i);
+            }}
+            style={[
+              carouselStyles.dot,
+              {
+                width: i === active ? 18 : 5,
+                backgroundColor: i === active
+                  ? HERO_BANNERS[active].accent
+                  : "rgba(255,255,255,0.38)",
+              },
+            ]}
+          />
+        ))}
+      </View>
+    </View>
+  );
+}
+
+const carouselStyles = StyleSheet.create({
+  wrap: {
+    marginHorizontal: 20,
+    marginBottom: 14,
+    borderRadius: 14,
+    overflow: "hidden",
+    height: 200,
+  },
+  slide: {
+    height: 200,
+    borderRadius: 14,
+    overflow: "hidden",
+    position: "relative",
+  },
+  // Foto de fundo ocupa todo o slide
+  bgImage: {
+    ...StyleSheet.absoluteFillObject,
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover",
+  },
+  // Gradiente escuro (esquerda mais escura, direita transparente)
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.47)",
+  },
+  content: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    bottom: 0,
+    justifyContent: "center",
+    paddingHorizontal: 22,
+    paddingVertical: 20,
+    maxWidth: "68%",
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: "900",
+    lineHeight: 26,
+    marginBottom: 8,
+  },
+  sub: {
+    fontSize: 11,
+    color: "rgba(255,255,255,0.82)",
+    lineHeight: 16,
+    marginBottom: 14,
+  },
+  cta: {
+    alignSelf: "flex-start",
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: 8,
+  },
+  ctaText: {
+    fontSize: 11,
+    fontWeight: "800",
+    color: "#0D1B0F",
+    textTransform: "uppercase",
+    letterSpacing: 0.6,
+  },
+  dots: {
+    position: "absolute",
+    bottom: 12,
+    right: 16,
+    flexDirection: "row",
+    gap: 5,
+    alignItems: "center",
+  },
+  dot: {
+    height: 5,
+    borderRadius: 3,
+  },
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Placar Ao Vivo
+// ─────────────────────────────────────────────────────────────────────────────
+function LiveScore() {
+  const [visible] = useState(true);
+  const blink = useRef(new Animated.Value(1)).current;
+
+  useCallback(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(blink, { toValue: 0.3, duration: 600, useNativeDriver: true }),
+        Animated.timing(blink, { toValue: 1,   duration: 600, useNativeDriver: true }),
+      ])
+    ).start();
+  }, [])();
+
+  if (!visible) return null;
+
+  return (
+    <View style={liveStyles.wrap}>
+      <Animated.Text style={[liveStyles.badge, { opacity: blink }]}>● AO VIVO</Animated.Text>
+      {/* MUDANÇA 3: justifyContent removido, gap reduzido para aproximar sem colar */}
+      <View style={liveStyles.row}>
+        <Text style={liveStyles.team}>🇧🇷 BRA</Text>
+        <Text style={liveStyles.score}>2 — 1</Text>
+        <Text style={liveStyles.team}>ARG 🇦🇷</Text>
+        <Text style={liveStyles.time}> • 73'</Text>
+      </View>
+    </View>
+  );
+}
+
+const liveStyles = StyleSheet.create({
+  // MUDANÇA 3: paddingHorizontal reduzido de 16→12, gap reduzido de 12→8
+  wrap: {
+    marginHorizontal: 20,
+    marginBottom: 14,
+    paddingHorizontal: 25,
+    paddingVertical: 11,
+    borderRadius: 10,
+    backgroundColor: GREEN_DARK,
+    borderWidth: 1,
+    borderColor: "rgba(245,197,24,0.18)",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 25,
+  },
+  badge: {
+    fontSize: 10,
+    fontWeight: "700",
+    letterSpacing: 0.8,
+    color: RED_LIVE,
+  },
+  // MUDANÇA 3: gap reduzido de 8→6, sem justifyContent para não afastar demais
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  team: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#fff",
+  },
+  score: {
+    fontSize: 17,
+    fontWeight: "700",
+    color: GOLD,
+    fontVariant: ["tabular-nums"],
+  },
+  time: {
+    fontSize: 11,
+    color: "rgba(255,255,255,0.5)",
+    fontVariant: ["tabular-nums"],
+  },
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Tela Principal
+// ─────────────────────────────────────────────────────────────────────────────
 export default function ProductListScreen({ navigation }) {
   const { logout, user } = useAuth();
   const { showAlert, showConfirm } = useCustomAlert();
   const { t } = useLanguage();
   const { theme } = useTheme();
-  const { addToCart, totalItems, cart } = useCart(); 
+  const { addToCart, totalItems, cart } = useCart();
 
   const styles = makeStyles(theme);
 
-  const [loading, setLoading] = useState(true);
-  const [products, setProducts] = useState([]);
-  const [search, setSearch] = useState("");
-  const [activeFilter, setActiveFilter] = useState("filterAll"); 
-  const [activeNav, setActiveNav] = useState("home");
+  const [loading, setLoading]           = useState(true);
+  const [products, setProducts]         = useState([]);
+  const [search, setSearch]             = useState("");
+  const [activeFilter, setActiveFilter] = useState("filterAll");
+  const [activeNav, setActiveNav]       = useState("home");
   const { favorites, toggleFavorite, isFavorite } = useFavorites();
 
   async function loadProducts() {
@@ -82,21 +367,16 @@ export default function ProductListScreen({ navigation }) {
     useCallback(() => {
       loadProducts();
       setActiveNav("home");
-    }, []),
+    }, [])
   );
 
-  // Filtra os produtos pelo termo digitado na barra de pesquisa (nome ou descrição)
   const filteredProducts = useMemo(() => {
     const term = search.trim().toLowerCase();
-
-    if (!term) {
-      return products;
-    }
-
-    return products.filter((product) => {
-      const name = product.name?.toLowerCase() ?? "";
-      const description = product.description?.toLowerCase() ?? "";
-      return name.includes(term) || description.includes(term);
+    if (!term) return products;
+    return products.filter((p) => {
+      const name = p.name?.toLowerCase() ?? "";
+      const desc = p.description?.toLowerCase() ?? "";
+      return name.includes(term) || desc.includes(term);
     });
   }, [products, search]);
 
@@ -129,32 +409,46 @@ export default function ProductListScreen({ navigation }) {
   }
 
   function renderProduct({ item, index }) {
-    const countryTheme = COUNTRY_THEMES[index % COUNTRY_THEMES.length];
-    const cartItem = cart.find(c => c.id === item.id);
+    const countryTheme   = COUNTRY_THEMES[index % COUNTRY_THEMES.length];
+    const cartItem       = cart.find((c) => c.id === item.id);
     const quantityInCart = cartItem ? cartItem.cartQuantity : 0;
-    const availableQuantity = item.quantity - quantityInCart;
-    const isFavoriteProduct = isFavorite(item.id);
+    const availableQty   = item.quantity - quantityInCart;
+    const isFav          = isFavorite(item.id);
+
+    const stockRatio   = item.quantity > 0 ? availableQty / item.quantity : 0;
+    const stockPercent = Math.min(Math.max(stockRatio, 0), 1) * 100;
+    const stockColor   =
+      stockRatio <= 0.2 ? theme.textDestructive
+      : stockRatio <= 0.5 ? GOLD
+      : GREEN_MID;
 
     return (
       <Pressable
         onPress={() => navigation.navigate("ProductDetails", { productId: item.id })}
-        style={[styles.card, { borderLeftColor: countryTheme.accent, borderLeftWidth: 4 }]}
+        style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
       >
-        <View style={[styles.cardImageWrap, { backgroundColor: countryTheme.bg }]}>
-          <Text style={styles.cardFlag}>{countryTheme.flag}</Text>
-          <ProductImage
-            name={item.name}
-            sourceUrl={item.image}
-            style={styles.productImage}
-          />
+        <View style={styles.cardImageWrap}>
+          <ProductImage name={item.name} sourceUrl={item.image} style={styles.productImage} />
+          <View style={[styles.flagBadge, { backgroundColor: countryTheme.bg }]}>
+            <Text style={styles.flagBadgeText}>{countryTheme.flag}</Text>
+          </View>
+          <Pressable
+            hitSlop={8}
+            onPress={(e) => { e.stopPropagation(); toggleFavorite(item); }}
+            style={styles.favoriteOverlay}
+          >
+            <MaterialIcons
+              name={isFav ? "favorite" : "favorite-border"}
+              size={15}
+              color={isFav ? "#FF3B6F" : "#FFFFFF"}
+            />
+          </Pressable>
         </View>
 
         <View style={styles.cardContent}>
           <View style={styles.cardHeader}>
-            <AppText numberOfLines={1} style={styles.productName}>
-              {item.name}
-            </AppText>
-            <AppText style={[styles.productPrice, { color: countryTheme.accent }]}> 
+            <AppText numberOfLines={1} style={styles.productName}>{item.name}</AppText>
+            <AppText style={[styles.productPrice, { color: countryTheme.accent }]}>
               {formatCurrency(item.price)}
             </AppText>
           </View>
@@ -163,57 +457,44 @@ export default function ProductListScreen({ navigation }) {
             {item.description}
           </AppText>
 
-          <View style={styles.cardFooter}>
-            <View style={[styles.quantityBadge, { backgroundColor: countryTheme.bg }]}>
-              <MaterialIcons name="inventory-2" size={13} color={countryTheme.accent} />
-              <Text style={[styles.productQuantity, { color: countryTheme.accent }]}> 
-                {availableQuantity} {t("inStock")}
-              </Text>
+          <View style={styles.stockRow}>
+            <View style={styles.stockTrack}>
+              <View style={[styles.stockFill, { width: `${stockPercent}%`, backgroundColor: stockColor }]} />
             </View>
+            <Text style={[styles.stockLabel, { color: stockColor }]}>
+              {availableQty} {t("inStock")}
+            </Text>
+          </View>
 
-            <View style={styles.actions}>
-              <Pressable
-                hitSlop={8}
-                onPress={(e) => {
-                  e.stopPropagation();
-                  toggleFavorite(item);
-                }}
-                style={[styles.iconButton, isFavoriteProduct && styles.favoriteIconButton]}
-              >
-                <MaterialIcons
-                  name={isFavoriteProduct ? "favorite" : "favorite-border"}
-                  size={18}
-                  color={isFavoriteProduct ? "#009C3B" : theme.titlePrimary}
-                />
-              </Pressable>
+          <View style={styles.cardFooter}>
+            <Pressable
+              hitSlop={8}
+              onPress={(e) => {
+                e.stopPropagation();
+                const added = addToCart({ ...item, stock: item.quantity });
+                if (!added) {
+                  showAlert({ title: t("opsTitle"), message: t("stockLimitMessage"), type: "danger" });
+                }
+              }}
+              style={({ pressed }) => [styles.addToCartBtn, pressed && { opacity: 0.8 }]}
+            >
+              <MaterialIcons name="add-shopping-cart" size={14} color="#FFFFFF" />
+            </Pressable>
 
-              <Pressable
-                hitSlop={8}
-                onPress={(e) => { 
-                  e.stopPropagation(); 
-                  const wasAdded = addToCart({ ...item, stock: item.quantity });
-                  if (!wasAdded) {
-                    showAlert({ title: t("opsTitle"), message: t("stockLimitMessage"), type: "danger" });
-                  }
-                }}
-                style={styles.iconButton}
-              >
-                <MaterialIcons name="add-shopping-cart" size={18} color={theme.titlePrimary} />
-              </Pressable>
-
+            <View style={styles.secondaryActions}>
               <Pressable
                 hitSlop={8}
                 onPress={(e) => { e.stopPropagation(); navigation.navigate("ProductEdit", { productId: item.id }); }}
                 style={styles.iconButton}
               >
-                <MaterialIcons name="edit" size={18} color={theme.titlePrimary} />
+                <MaterialIcons name="edit" size={15} color={theme.titlePrimary} />
               </Pressable>
               <Pressable
                 hitSlop={8}
                 onPress={(e) => { e.stopPropagation(); confirmDelete(item); }}
                 style={[styles.iconButton, styles.deleteIconButton]}
               >
-                <MaterialIcons name="delete-outline" size={19} color={theme.textDestructive} />
+                <MaterialIcons name="delete-outline" size={16} color={theme.textDestructive} />
               </Pressable>
             </View>
           </View>
@@ -225,21 +506,31 @@ export default function ProductListScreen({ navigation }) {
   return (
     <SafeAreaView style={styles.safe}>
 
-      {/* HEADER */}
+      {/* ── HEADER ─────────────────────────────────────────────────────────── */}
       <View style={styles.header}>
-        <View>
-          <Text style={styles.greeting}>{t("hello")}, {user?.name} 👋</Text>
-          <Text style={styles.headerTitle}>{t("logoTitle")}</Text>
+        {/* MUDANÇA 2: logo e nome maiores */}
+        <View style={styles.logoContainer}>
+          <Image source={require("../../assets/logo.png")} style={styles.logoImage} />
+          <Text style={styles.headerTitle}>
+            <Text style={{ color: GREEN }}>Gol</Text>
+            <Text style={{ color: GOLD }}>Up</Text>
+          </Text>
         </View>
-        <Pressable onPress={() => navigation.navigate("Settings")} style={styles.settingsBtn}>
-          <MaterialIcons name="settings" size={20} color={theme.titlePrimary} />
-        </Pressable>
+        <View style={styles.headerActions}>
+          <Pressable style={styles.iconBtn} onPress={() => navigation.navigate("Notification")}>
+            <MaterialIcons name="notifications-none" size={22} color={theme.titlePrimary} />
+            <View style={styles.notifDot} />
+          </Pressable>
+          <Pressable style={styles.iconBtn} onPress={() => navigation.navigate("Settings")}>
+            <MaterialIcons name="settings" size={22} color={theme.titlePrimary} />
+          </Pressable>
+        </View>
       </View>
 
-      {/* BUSCA */}
+      {/* ── BUSCA ──────────────────────────────────────────────────────────── */}
       <View style={styles.searchRow}>
         <View style={styles.searchBox}>
-          <MaterialIcons name="search" size={20} color={theme.textMuted} style={{ marginRight: 8 }} />
+          <MaterialIcons name="search" size={18} color={theme.textMuted} style={{ marginRight: 8 }} />
           <TextInput
             style={styles.searchInput}
             placeholder={t("searchPlaceholder")}
@@ -248,41 +539,53 @@ export default function ProductListScreen({ navigation }) {
             onChangeText={setSearch}
           />
         </View>
-        <TouchableOpacity style={styles.filterIconBtn}>
-          <MaterialIcons name="tune" size={20} color={theme.card} />
-        </TouchableOpacity>
       </View>
 
-      {/* CHAMADA */}
-      <View style={styles.callout}>
-        <Text style={styles.calloutText}>{t("callout1")} <Text style={styles.calloutGreen}>{t("calloutCopa")}</Text> {t("callout2")}</Text>
-        <Text style={styles.calloutSub}>{t("calloutSub")}</Text>
-      </View>
+      {/* ── CARROSSEL HERO ─────────────────────────────────────────────────── */}
+      <HeroCarousel />
 
-      {/* FILTROS */}
+      {/* ── PLACAR AO VIVO ─────────────────────────────────────────────────── */}
+      <LiveScore />
+
+      {/* ── SEÇÃO "LEVE A COPA PRA CASA" ───────────────────────────────────── */}
+      <Text style={styles.customSectionTitle}>
+        Leve a <Text style={{ color: GREEN_MID }}>Copa</Text> pra casa!{" "}
+        <EvilIcons name="trophy" size={23} color={GOLD} />
+      </Text>
+
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.filtersRow}
         style={styles.filtersScroll}
       >
-        {FILTER_KEYS.map(f => (
-          <TouchableOpacity
-            key={f}
-            style={[styles.filterChip, activeFilter === f && styles.filterChipActive]}
-            onPress={() => setActiveFilter(f)}
-          >
-            <Text style={[styles.filterChipText, activeFilter === f && styles.filterChipTextActive]}>
-              {t(f)}
-            </Text>
-          </TouchableOpacity>
-        ))}
+        {FILTER_KEYS.map((f) => {
+          const meta = FILTER_META[f];
+          const isActive = activeFilter === f;
+          return (
+            <TouchableOpacity
+              key={f}
+              style={[styles.filterChip, isActive && styles.filterChipActive]}
+              onPress={() => setActiveFilter(f)}
+            >
+              <Text style={[styles.filterChipText, isActive && styles.filterChipTextActive]}>
+                {meta.label}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
       </ScrollView>
 
-      {/* LISTA DE PRODUTOS */}
+      {/* ── PRODUTOS ───────────────────────────────────────────────────────── */}
+      <View style={styles.productsHeader}>
+        <Text style={styles.sectionTitle}>PRODUTOS</Text>
+        <Text style={styles.productsCount}>{filteredProducts.length} itens</Text>
+      </View>
+
       {loading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator color={theme.navActive} size="large" />
+          <ActivityIndicator color={GREEN} size="large" />
+          <Text style={styles.loadingText}>Carregando produtos...</Text>
         </View>
       ) : (
         <FlatList
@@ -295,7 +598,7 @@ export default function ProductListScreen({ navigation }) {
         />
       )}
 
-      {/* BOTTOM NAV */}
+      {/* ── BOTTOM NAV ─────────────────────────────────────────────────────── */}
       <View style={styles.bottomNav}>
         {NAV_ITEMS.map((tab) => (
           <TouchableOpacity
@@ -303,42 +606,33 @@ export default function ProductListScreen({ navigation }) {
             style={[styles.navItem, tab.center && styles.navItemCenter]}
             onPress={() => {
               setActiveNav(tab.key);
-              if (tab.key === "create") navigation.navigate("ProductCreate");
-              if (tab.key === "profile") navigation.navigate("Profile");
-              if (tab.key === "cart") navigation.navigate("Cart");
+              if (tab.key === "create")    navigation.navigate("ProductCreate");
+              if (tab.key === "profile")   navigation.navigate("Profile");
+              if (tab.key === "cart")      navigation.navigate("Cart");
               if (tab.key === "favorites") navigation.navigate("Favorites");
             }}
           >
             {tab.center ? (
               <View style={styles.navCreateBtn}>
-                <Ionicons name="add" size={28} color={theme.card} />
+                <Ionicons name="add" size={26} color={GREEN_DARK} />
               </View>
             ) : (
               <>
-                <View style={{ position: "relative" }}>
+                <View style={[styles.navIconWrap, activeNav === tab.key && styles.navIconWrapActive]}>
                   <Ionicons
                     name={activeNav === tab.key ? tab.icon : tab.iconOff}
-                    size={22}
-                    color={activeNav === tab.key ? theme.titlePrimary : theme.navInactive}
+                    size={20}
+                    color={activeNav === tab.key ? GREEN : theme.navInactive}
                   />
-
-                  {/* Badge de Itens Globais do Carrinho */}
                   {tab.key === "cart" && totalItems > 0 && (
                     <View style={styles.cartBadge}>
                       <Text style={styles.cartBadgeText}>{totalItems}</Text>
                     </View>
                   )}
                 </View>
-
-                <Text
-                  style={[
-                    styles.navLabel,
-                    activeNav === tab.key && styles.navLabelActive,
-                  ]}
-                >
+                <Text style={[styles.navLabel, activeNav === tab.key && styles.navLabelActive]}>
                   {t(tab.labelKey)}
                 </Text>
-                {activeNav === tab.key && <View style={styles.navDot} />}
               </>
             )}
           </TouchableOpacity>
@@ -348,97 +642,122 @@ export default function ProductListScreen({ navigation }) {
   );
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Estilos
+// ─────────────────────────────────────────────────────────────────────────────
 const makeStyles = (theme) =>
   StyleSheet.create({
     safe: {
       flex: 1,
-      backgroundColor: theme.bg,
+      backgroundColor: theme.card,
     },
+
+    // ── Header ────────────────────────────────────────────────────────────────
     header: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
       paddingHorizontal: 20,
-      paddingTop: 12,
-      paddingBottom: 8,
+      paddingTop: 14,
+      paddingBottom: 12,
     },
-    greeting: {
-      fontSize: 13,
-      color: theme.textMuted,
-      fontWeight: "500",
-    },
-    headerTitle: {
-      fontSize: 20,
-      fontWeight: "900",
-      color: theme.titlePrimary,
-      letterSpacing: 3,
-      marginTop: 2,
-    },
-    settingsBtn: {
-      width: 44,
-      height: 44,
-      borderRadius: 22,
-      backgroundColor: theme.card,
-      alignItems: "center",
-      justifyContent: "center",
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.07,
-      shadowRadius: 6,
-      elevation: 2,
-    },
-    searchRow: {
+    logoContainer: {
       flexDirection: "row",
-      paddingHorizontal: 20,
+      alignItems: "center",
       gap: 10,
-      marginBottom: 16,
     },
-    searchBox: {
-      flex: 1,
+    // MUDANÇA 2: logo de 30→42
+    logoImage: {
+      width: 45,
+      height: 45,
+      resizeMode: "contain",
+    },
+    // MUDANÇA 2: fontSize de 20→28, letras maiores e mais peso
+    headerTitle: {
+      fontSize: 26,
+      fontWeight: "900",
+      letterSpacing: -0.5,
+    },
+    headerActions: {
       flexDirection: "row",
-      alignItems: "center",
+      gap: 8,
+    },
+    iconBtn: {
+      width: 42,
+      height: 42,
+      borderRadius: 10,
       backgroundColor: theme.card,
-      borderRadius: 14,
-      paddingHorizontal: 14,
-      height: 46,
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.06,
-      shadowRadius: 8,
-      elevation: 2,
-    },
-    searchInput: {
-      flex: 1,
-      fontSize: 14,
-      color: theme.textPrimary,
-    },
-    filterIconBtn: {
-      width: 46,
-      height: 46,
-      borderRadius: 14,
-      backgroundColor: theme.titlePrimary,
       alignItems: "center",
       justifyContent: "center",
+      position: "relative",
+      borderWidth: 1,
+      borderColor: theme.divider,
     },
-    callout: {
+    notifDot: {
+      position: "absolute",
+      top: 9,
+      right: 9,
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      backgroundColor: RED_LIVE,
+      borderWidth: 1.5,
+      borderColor: theme.bg ?? "#fff",
+    },
+
+    // ── Busca ──────────────────────────────────────────────────────────────────
+    searchRow: {
       paddingHorizontal: 20,
       marginBottom: 14,
     },
-    calloutText: {
-      fontSize: 20,
+    searchBox: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: theme.card,
+      borderRadius: 10,
+      paddingHorizontal: 14,
+      height: 46,
+      borderWidth: 1.5,
+      borderColor: theme.divider,
+    },
+    searchInput: {
+      flex: 1,
+      fontSize: 13,
+      color: theme.textPrimary,
+    },
+
+    // ── Seções ────────────────────────────────────────────────────────────────
+    sectionTitle: {
+      fontSize: 15,
+      fontWeight: "900",
+      color: theme.titlePrimary,
+      letterSpacing: 0.5,
+      marginBottom: 10,
+    },
+    customSectionTitle: {
+      fontSize: 16,
       fontWeight: "800",
       color: theme.titlePrimary,
+      paddingHorizontal: 20,
+      marginBottom: 12,
     },
-    calloutGreen: {
-      color: "green",
+    productsHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: 20,
+      marginBottom: 10,
+      marginTop: 6,
     },
-    calloutSub: {
-      fontSize: 12,
+    productsCount: {
+      fontSize: 14,
       color: theme.textMuted,
-      marginTop: 2,
+      fontWeight: "700",
     },
+
+    // ── Filtros ───────────────────────────────────────────────────────────────
     filtersScroll: {
-      maxHeight: 44,
+      maxHeight: 72,
       marginBottom: 14,
     },
     filtersRow: {
@@ -446,27 +765,44 @@ const makeStyles = (theme) =>
       gap: 8,
       alignItems: "center",
     },
+    // Pill com ícone + label, fundo levemente esverdeado quando inativo
     filterChip: {
-      paddingHorizontal: 16,
-      paddingVertical: 7,
-      borderRadius: 20,
-      backgroundColor: theme.card,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 5,
+      paddingHorizontal: 14,
+      paddingVertical: 9,
+      borderRadius: 999,
+      backgroundColor: "rgba(21,98,42,0.07)",
       borderWidth: 1.5,
-      borderColor: theme.divider,
+      borderColor: "rgba(21,98,42,0.18)",
     },
     filterChipActive: {
-      backgroundColor: theme.titlePrimary,
-      borderColor: theme.titlePrimary,
+      backgroundColor: GREEN,
+      borderColor: GREEN,
+      // Sombra no botão ativo
+      shadowColor: GREEN,
+      shadowOffset: { width: 0, height: 3 },
+      shadowOpacity: 0.35,
+      shadowRadius: 6,
+      elevation: 4,
+    },
+    filterChipIcon: {
+      // espaçamento já controlado pelo gap do pai
     },
     filterChipText: {
       fontSize: 12,
-      color: theme.textMuted,
-      fontWeight: "600",
+      color: GREEN,
+      fontWeight: "800",
+      textTransform: "uppercase",
+      letterSpacing: 0.4,
     },
     filterChipTextActive: {
-      color: theme.card,
-      fontWeight: "700",
+      color: "#FFFFFF",
+      fontWeight: "900",
     },
+
+    // ── Lista ─────────────────────────────────────────────────────────────────
     list: {
       flexGrow: 1,
       paddingHorizontal: 16,
@@ -478,192 +814,128 @@ const makeStyles = (theme) =>
       alignItems: "center",
       justifyContent: "center",
       paddingBottom: 90,
+      gap: 10,
     },
+    loadingText: {
+      fontSize: 13,
+      color: theme.textMuted,
+      fontWeight: "600",
+    },
+
+    // ── Card ──────────────────────────────────────────────────────────────────
     card: {
       flexDirection: "row",
-      marginBottom: 12,
-      borderRadius: 18,
+      marginBottom: 14,
+      borderRadius: 12,
       backgroundColor: theme.card,
       overflow: "hidden",
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 3 },
-      shadowOpacity: 0.07,
-      shadowRadius: 10,
-      elevation: 3,
+      padding: 10,
+      borderWidth: 1.5,
+      borderColor: theme.divider,
     },
+    cardPressed: { opacity: 0.85 },
     cardImageWrap: {
-      width: 90,
+      width: 96,
+      height: 112,
+      borderRadius: 12,
+      overflow: "hidden",
+      backgroundColor: theme.iconBg,
+      position: "relative",
+    },
+    productImage: { width: "100%", height: "100%" },
+    flagBadge: {
+      position: "absolute",
+      top: 6, left: 6,
+      width: 22, height: 22,
+      borderRadius: 11,
       alignItems: "center",
       justifyContent: "center",
-      position: "relative",
-      paddingVertical: 8,
     },
-    cardFlag: {
+    flagBadgeText: { fontSize: 12 },
+    favoriteOverlay: {
       position: "absolute",
-      top: 6,
-      left: 6,
-      fontSize: 14,
-    },
-    productImage: {
-      width: 70,
-      height: 80,
-      borderRadius: 12,
+      top: 6, right: 6,
+      width: 26, height: 26,
+      borderRadius: 13,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: "rgba(0,0,0,0.35)",
     },
     cardContent: {
       flex: 1,
-      padding: 12,
+      marginLeft: 12,
+      paddingVertical: 2,
+      justifyContent: "space-between",
     },
     cardHeader: {
       flexDirection: "row",
-      alignItems: "center",
+      alignItems: "flex-start",
       justifyContent: "space-between",
       gap: 8,
     },
-    productName: {
-      flex: 1,
-      fontSize: 15,
-      fontWeight: "800",
-      color: theme.textPrimary,
-    },
-    productPrice: {
-      fontSize: 14,
-      fontWeight: "800",
-    },
-    productDescription: {
-      marginTop: 5,
-      fontSize: 12,
-      lineHeight: 18,
-      color: theme.textMuted,
-    },
-    cardFooter: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      marginTop: 8,
-    },
-    quantityBadge: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 4,
-      paddingVertical: 4,
-      paddingHorizontal: 8,
-      borderRadius: 999,
-    },
-    productQuantity: {
-      fontSize: 11,
-      fontWeight: "700",
-    },
-    actions: {
-      flexDirection: "row",
-      gap: 6,
-    },
-    iconButton: {
-      width: 32,
-      height: 32,
-      alignItems: "center",
-      justifyContent: "center",
-      borderRadius: 16,
-      backgroundColor: theme.iconBg,
-    },
-    favoriteIconButton: {
-      backgroundColor: "#FFE8EE",
-    },
-    deleteIconButton: {
-      backgroundColor: theme.iconDestructiveBg,
-    },
-    emptyState: {
-      flex: 1,
-      alignItems: "center",
-      justifyContent: "center",
-      paddingTop: 60,
-      gap: 12,
-    },
-    emptyTitle: {
-      fontSize: 20,
-      fontWeight: "800",
-      color: theme.titlePrimary,
-    },
-    emptyDesc: {
-      fontSize: 13,
-      color: theme.textMuted,
-      textAlign: "center",
-      maxWidth: 240,
-    },
+    productName: { flex: 1, fontSize: 14, fontWeight: "800", color: theme.textPrimary },
+    productPrice: { fontSize: 13, fontWeight: "900" },
+    productDescription: { marginTop: 3, fontSize: 11, lineHeight: 15, color: theme.textMuted },
+    stockRow: { flexDirection: "row", alignItems: "center", gap: 6, marginTop: 7 },
+    stockTrack: { flex: 1, height: 4, borderRadius: 2, backgroundColor: theme.divider, overflow: "hidden" },
+    stockFill: { height: "100%", borderRadius: 2 },
+    stockLabel: { fontSize: 9, fontWeight: "800" },
+    cardFooter: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 8, gap: 6 },
+    addToCartBtn: { width: 30, height: 30, alignItems: "center", justifyContent: "center", backgroundColor: GREEN, borderRadius: 8 },
+    secondaryActions: { flexDirection: "row", gap: 6, marginLeft: "auto" },
+    iconButton: { width: 30, height: 30, alignItems: "center", justifyContent: "center", borderRadius: 8, backgroundColor: theme.iconBg },
+    deleteIconButton: { backgroundColor: theme.iconDestructiveBg },
+
+    // ── Empty state ───────────────────────────────────────────────────────────
+    emptyState: { flex: 1, alignItems: "center", justifyContent: "center", paddingTop: 60, gap: 12 },
+    emptyTitle: { fontSize: 20, fontWeight: "800", color: theme.titlePrimary },
+    emptyDesc: { fontSize: 13, color: theme.textMuted, textAlign: "center", maxWidth: 240 },
+
+    // ── Bottom Nav ────────────────────────────────────────────────────────────
     bottomNav: {
       position: "absolute",
-      bottom: 0,
-      left: 0,
-      right: 0,
+      bottom: 0, left: 0, right: 0,
       flexDirection: "row",
       backgroundColor: theme.card,
-      paddingTop: 10,
-      paddingBottom: 24,
+      paddingTop: 12,
+      paddingBottom: 26,
       paddingHorizontal: 10,
       borderTopLeftRadius: 24,
       borderTopRightRadius: 24,
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: -4 },
-      shadowOpacity: 0.08,
-      shadowRadius: 16,
-      elevation: 10,
+      borderTopWidth: 1,
+      borderColor: theme.divider,
     },
-    navItem: {
-      flex: 1,
-      alignItems: "center",
-      justifyContent: "center",
-      gap: 2,
-    },
-    navItemCenter: {
-      marginTop: -28,
-    },
+    navItem: { flex: 1, alignItems: "center", justifyContent: "center", gap: 3 },
+    navItemCenter: { marginTop: -16 },
+    navIconWrap: { width: 36, height: 36, borderRadius: 10, alignItems: "center", justifyContent: "center" },
+    navIconWrapActive: { backgroundColor: theme.iconBg },
     navCreateBtn: {
-      width: 54,
-      height: 54,
-      borderRadius: 27,
-      backgroundColor: theme.navActive,
+      width: 52, height: 52,
+      borderRadius: 12,
+      backgroundColor: GOLD,
       alignItems: "center",
       justifyContent: "center",
-      shadowColor: theme.navActive,
-      shadowOffset: { width: 0, height: 6 },
-      shadowOpacity: 0.4,
-      shadowRadius: 10,
-      elevation: 8,
-      borderWidth: 4,
+      borderWidth: 3,
       borderColor: theme.card,
+      shadowColor: GOLD,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.5,
+      shadowRadius: 8,
+      elevation: 6,
     },
-    navLabel: {
-      fontSize: 10,
-      color: theme.navInactive,
-      fontWeight: "500",
-    },
-    navLabelActive: {
-      color: theme.titlePrimary,
-      fontWeight: "700",
-    },
-    navDot: {
-      width: 4,
-      height: 4,
-      borderRadius: 2,
-      backgroundColor: theme.titlePrimary,
-    },
-    
+    navLabel: { fontSize: 10, color: theme.navInactive, fontWeight: "600" },
+    navLabelActive: { color: GREEN, fontWeight: "800" },
     cartBadge: {
       position: "absolute",
-      top: -6,
-      right: -10,
-      backgroundColor: "#FF3B30", 
+      top: -4, right: -8,
+      backgroundColor: RED_LIVE,
       borderRadius: 10,
-      minWidth: 16,
-      height: 16,
+      minWidth: 16, height: 16,
       justifyContent: "center",
       alignItems: "center",
       paddingHorizontal: 4,
       borderWidth: 1.5,
-      borderColor: "#FFF", 
+      borderColor: theme.card,
     },
-    cartBadgeText: {
-      color: "#FFF",
-      fontSize: 9,
-      fontWeight: "bold",
-    },
+    cartBadgeText: { color: "#FFF", fontSize: 9, fontWeight: "bold" },
   });

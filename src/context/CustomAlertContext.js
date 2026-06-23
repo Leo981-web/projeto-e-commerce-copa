@@ -1,27 +1,49 @@
 import { createContext, useContext, useMemo, useState } from "react";
-import { Modal, Pressable, StyleSheet, View } from "react-native";
+import { Modal, Pressable, StyleSheet, View, Text } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 
-import AppButton from "../components/AppButton";
 import AppText from "../components/AppText";
 
 const CustomAlertContext = createContext(null);
 
-const alertIcons = {
+const GREEN      = "#15622A";
+const GREEN_MID  = "#22C55E";
+const GREEN_DARK = "#0D4A1A";
+const GOLD       = "#F5C518";
+const RED        = "#EF4444";
+const RED_DARK   = "#991B1B";
+
+// ── Config por tipo ────────────────────────────────────────────────────────
+const ALERT_CONFIG = {
+  success: {
+    icon:        "check-circle",
+    iconColor:   GREEN_MID,
+    iconBg:      "rgba(34,197,94,0.13)",
+    stripe1:     GREEN,
+    stripe2:     GOLD,
+    stripe3:     GREEN_MID,
+    btnBg:       GREEN_DARK,
+    glowColor:   "rgba(34,197,94,0.18)",
+  },
   warning: {
-    name: "info-outline",
-    color: "#b7791f",
-    backgroundColor: "#fff7e6",
+    icon:        "warning",
+    iconColor:   GOLD,
+    iconBg:      "rgba(245,197,24,0.14)",
+    stripe1:     GOLD,
+    stripe2:     GREEN,
+    stripe3:     "#F97316",
+    btnBg:       "#92400E",
+    glowColor:   "rgba(245,197,24,0.18)",
   },
   danger: {
-    name: "error-outline",
-    color: "#b42318",
-    backgroundColor: "#fff0ed",
-  },
-  success: {
-    name: "check-circle-outline",
-    color: "#2d7d59",
-    backgroundColor: "#edf7f1",
+    icon:        "delete-forever",
+    iconColor:   RED,
+    iconBg:      "rgba(239,68,68,0.12)",
+    stripe1:     RED,
+    stripe2:     RED_DARK,
+    stripe3:     "#FCA5A5",
+    btnBg:       RED,
+    glowColor:   "rgba(239,68,68,0.15)",
   },
 };
 
@@ -29,132 +51,98 @@ export function CustomAlertProvider({ children }) {
   const [alertConfig, setAlertConfig] = useState(null);
 
   function closeAlert() {
-    const closeAction = alertConfig?.onClose;
+    const cb = alertConfig?.onClose;
     setAlertConfig(null);
-
-    if (closeAction) {
-      closeAction();
-    }
+    if (cb) cb();
   }
 
-  function showAlert({
-    title,
-    message,
-    type = "warning",
-    buttonText = "Entendi",
-    onClose,
-  }) {
-    setAlertConfig({
-      title,
-      message,
-      type,
-      buttonText,
-      onClose,
-      isConfirm: false,
-    });
+  function showAlert({ title, message, type = "warning", buttonText = "Entendi", onClose }) {
+    setAlertConfig({ title, message, type, buttonText, onClose, isConfirm: false });
   }
 
-  function dismissConfirm() {
-    setAlertConfig(null);
-  }
+  function dismissConfirm() { setAlertConfig(null); }
 
-  function showConfirm({
-    title,
-    message,
-    type = "danger",
-    confirmText = "Confirmar",
-    cancelText = "Cancelar",
-    onConfirm,
-  }) {
-    setAlertConfig({
-      title,
-      message,
-      type,
-      confirmText,
-      cancelText,
-      onConfirm,
-      isConfirm: true,
-    });
+  function showConfirm({ title, message, type = "danger", confirmText = "Confirmar", cancelText = "Cancelar", onConfirm }) {
+    setAlertConfig({ title, message, type, confirmText, cancelText, onConfirm, isConfirm: true });
   }
 
   async function handleConfirm() {
-    const confirmAction = alertConfig?.onConfirm;
+    const cb = alertConfig?.onConfirm;
     setAlertConfig(null);
-
-    if (confirmAction) {
-      await confirmAction();
-    }
+    if (cb) await cb();
   }
 
-  const value = useMemo(
-    () => ({
-      showAlert,
-      showConfirm,
-    }),
-    [],
-  );
-
-  const icon = alertIcons[alertConfig?.type] ?? alertIcons.warning;
+  const value = useMemo(() => ({ showAlert, showConfirm }), []);
+  const cfg = ALERT_CONFIG[alertConfig?.type] ?? ALERT_CONFIG.warning;
 
   return (
     <CustomAlertContext.Provider value={value}>
       {children}
 
-      <Modal
-        animationType="fade"
-        onRequestClose={closeAlert}
-        transparent
-        visible={Boolean(alertConfig)}
-      >
+      <Modal animationType="fade" onRequestClose={closeAlert} transparent visible={Boolean(alertConfig)}>
         <View style={styles.overlay}>
+
+          {/* Glow difuso colorido atrás do card */}
+          <View style={[styles.glow, { backgroundColor: cfg.glowColor, shadowColor: cfg.iconColor }]} />
+
           <View style={styles.card}>
+
+            {/* Faixa 3 cores no topo */}
+            <View style={styles.stripeRow}>
+              <View style={[styles.stripe, { backgroundColor: cfg.stripe1 }]} />
+              <View style={[styles.stripe, { backgroundColor: cfg.stripe2 }]} />
+              <View style={[styles.stripe, { backgroundColor: cfg.stripe3 }]} />
+            </View>
+
+            {/* Botão fechar */}
             <Pressable
               hitSlop={10}
               onPress={alertConfig?.isConfirm ? dismissConfirm : closeAlert}
-              style={styles.closeButton}
+              style={styles.closeBtn}
             >
-              <MaterialIcons name="close" size={22} color="#69707d" />
+              <MaterialIcons name="close" size={16} color="#6B7280" />
             </Pressable>
 
-            <View
-              style={[
-                styles.iconContainer,
-                { backgroundColor: icon.backgroundColor },
-              ]}
-            >
-              <MaterialIcons name={icon.name} size={30} color={icon.color} />
+            {/* Ícone grande centralizado */}
+            <View style={styles.iconWrap}>
+              <View style={[styles.iconBg, { backgroundColor: cfg.iconBg }]}>
+                <MaterialIcons name={cfg.icon} size={44} color={cfg.iconColor} />
+              </View>
             </View>
 
-            <AppText variant="title" style={styles.title}>
-              {alertConfig?.title}
-            </AppText>
-            <AppText variant="subtitle" style={styles.message}>
-              {alertConfig?.message}
-            </AppText>
+            {/* Título */}
+            <Text style={styles.title}>{alertConfig?.title}</Text>
 
+            {/* Mensagem */}
+            <Text style={styles.message}>{alertConfig?.message}</Text>
+
+            {/* Divisor */}
+            <View style={styles.divider} />
+
+            {/* Botões */}
             {alertConfig?.isConfirm ? (
               <View style={styles.actions}>
-                <AppButton
-                  onPress={dismissConfirm}
-                  style={styles.actionButton}
-                  title={alertConfig.cancelText}
-                  variant="secondary"
-                />
-
-                <AppButton
-                  onPress={handleConfirm}
-                  style={styles.actionButton}
-                  title={alertConfig.confirmText}
-                  variant={alertConfig.type === "danger" ? "danger" : "primary"}
-                />
+                {/* Cancelar — neutro escuro igual à ref */}
+                <Pressable style={styles.cancelBtn} onPress={dismissConfirm}>
+                  <Text style={styles.cancelText}>{alertConfig.cancelText}</Text>
+                </Pressable>
+                {/* Confirmar — cor do tipo */}
+                <Pressable style={[styles.actionBtn, { backgroundColor: cfg.btnBg }]} onPress={handleConfirm}>
+                  <MaterialIcons
+                    name={alertConfig.type === "danger" ? "delete-outline" : "check"}
+                    size={16}
+                    color="#fff"
+                    style={{ marginRight: 6 }}
+                  />
+                  <Text style={styles.actionText}>{alertConfig.confirmText}</Text>
+                </Pressable>
               </View>
             ) : (
-              <AppButton
-                onPress={closeAlert}
-                style={styles.singleButton}
-                title={alertConfig?.buttonText}
-              />
+              <Pressable style={[styles.singleBtn, { backgroundColor: cfg.btnBg }]} onPress={closeAlert}>
+                <Text style={styles.singleBtnText}>{alertConfig?.buttonText}</Text>
+              </Pressable>
             )}
+
           </View>
         </View>
       </Modal>
@@ -163,15 +151,9 @@ export function CustomAlertProvider({ children }) {
 }
 
 export function useCustomAlert() {
-  const context = useContext(CustomAlertContext);
-
-  if (!context) {
-    throw new Error(
-      "useCustomAlert deve ser usado dentro de CustomAlertProvider.",
-    );
-  }
-
-  return context;
+  const ctx = useContext(CustomAlertContext);
+  if (!ctx) throw new Error("useCustomAlert deve ser usado dentro de CustomAlertProvider.");
+  return ctx;
 }
 
 const styles = StyleSheet.create({
@@ -179,54 +161,119 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    padding: 24,
-    backgroundColor: "rgba(32, 36, 44, 0.42)",
+    padding: 28,
+    backgroundColor: "rgba(3,10,5,0.72)",
   },
+
+  // Glow difuso atrás do card
+  glow: {
+    position: "absolute",
+    width: 260,
+    height: 260,
+    borderRadius: 130,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 60,
+  },
+
   card: {
     width: "100%",
-    padding: 22,
-    paddingTop: 24,
     borderRadius: 22,
-    backgroundColor: "#ffffff",
-    borderWidth: 1,
-    borderColor: "#eee4d8",
+    backgroundColor: "#FFFFFF",
+    overflow: "hidden",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.22,
+    shadowRadius: 24,
+    elevation: 14,
   },
-  closeButton: {
-    position: "absolute",
-    top: 14,
-    right: 14,
-    zIndex: 1,
-    width: 36,
-    height: 36,
+
+  // Faixa 3 cores no topo
+  stripeRow: { flexDirection: "row", height: 5 },
+  stripe: { flex: 1 },
+
+  // Fechar
+  closeBtn: {
+    position: "absolute", top: 14, right: 14, zIndex: 2,
+    width: 30, height: 30, borderRadius: 8,
+    backgroundColor: "rgba(0,0,0,0.06)",
+    alignItems: "center", justifyContent: "center",
+  },
+
+  // Ícone centralizado
+  iconWrap: { alignItems: "center", marginTop: 28, marginBottom: 16 },
+  iconBg: {
+    width: 88, height: 88,
+    borderRadius: 22,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 18,
-    backgroundColor: "#f4f0ea",
   },
-  iconContainer: {
-    width: 58,
-    height: 58,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 29,
-    marginBottom: 16,
-  },
+
   title: {
     fontSize: 22,
+    fontWeight: "900",
+    color: "#111827",
+    textAlign: "center",
+    paddingHorizontal: 24,
+    letterSpacing: -0.4,
+    marginBottom: 6,
   },
   message: {
-    marginTop: 8,
+    fontSize: 13,
+    color: "#6B7280",
+    textAlign: "center",
+    paddingHorizontal: 28,
+    lineHeight: 19,
   },
+
+  divider: {
+    height: 1,
+    backgroundColor: "rgba(0,0,0,0.06)",
+    marginHorizontal: 24,
+    marginTop: 20,
+    marginBottom: 16,
+  },
+
+  // Botão único
+  singleBtn: {
+    marginHorizontal: 22,
+    marginBottom: 22,
+    paddingVertical: 14,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  singleBtnText: {
+    color: "#fff", fontSize: 15, fontWeight: "800", letterSpacing: 0.2,
+  },
+
+  // 2 botões
   actions: {
     flexDirection: "row",
     gap: 10,
-    marginTop: 22,
+    marginHorizontal: 22,
+    marginBottom: 22,
   },
-  actionButton: {
+  cancelBtn: {
     flex: 1,
+    paddingVertical: 14,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#1F2937",
   },
-  singleButton: {
-    width: "100%",
-    marginTop: 22,
+  cancelText: {
+    color: "#fff", fontSize: 14, fontWeight: "700",
+  },
+  actionBtn: {
+    flex: 1,
+    flexDirection: "row",
+    paddingVertical: 14,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  actionText: {
+    color: "#fff", fontSize: 14, fontWeight: "800",
   },
 });
