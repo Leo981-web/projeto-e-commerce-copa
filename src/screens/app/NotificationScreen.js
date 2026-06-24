@@ -18,7 +18,6 @@ const GREEN_MID  = "#22C55E";
 const GOLD       = "#F5C518";
 const RED_LIVE   = "#EF4444";
 
-// SOLUÇÃO: Mudamos o array para uma função que recebe 't' como argumento
 const getNotifications = (t) => [
   {
     id: "1",
@@ -26,10 +25,10 @@ const getNotifications = (t) => [
     iconLib: "material",
     iconBg: "#FEE2E2",
     iconColor: "#991B1B",
-    tag: t("notificationsScreenTag1"), // Removido a interpolação desnecessária `${}`
+    tag: t("notificationsScreenTag1"),
     tagColor: GOLD,
     tagText: "#92400E",
-    title: t("notificationsScreenTitle1"), // Ajuste as chaves conforme seu JSON
+    title: t("notificationsScreenTitle1"),
     body: t("notificationsScreenBody1"),
     time: t("notificationsScreenTime1"),
     unread: true,
@@ -69,27 +68,34 @@ export default function NotificationsScreen({ navigation }) {
   const { user } = useAuth();
   const { t } = useLanguage();
 
-  // Geramos as notificações dinamicamente passando a função 't' ativa
   const notificationsList = getNotifications(t);
   const unreadCount = notificationsList.filter((n) => n.unread).length;
 
+  // Variáveis de cores dinâmicas baseadas no ThemeContext unificado
+  const screenBg     = theme.bg;
+  const cardBg       = theme.card;
+  const textColor    = theme.textPrimary;
+  const titleColor   = theme.titlePrimary;
+  const mutedColor   = theme.textMuted;
+  const dividerColor = theme.divider;
+
   return (
-    <SafeAreaView style={styles.safe}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F0F7F1" />
+    <SafeAreaView style={[styles.safe, { backgroundColor: screenBg }]}>
+      <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} backgroundColor={screenBg} />
 
       {/* ── HERO ────────────────────────────────────────────────────────── */}
-      <View style={styles.hero}>
+      <View style={[styles.hero, { backgroundColor: screenBg }]}>
         <View style={styles.heroTop}>
           <TouchableOpacity
-            style={styles.backBtn}
+            style={[styles.backBtn, { backgroundColor: theme.iconBg }]}
             onPress={() => navigation.goBack()}
             activeOpacity={0.7}
             hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
           >
-            <Ionicons name="chevron-back" size={22} color={GREEN} />
+            <Ionicons name="chevron-back" size={22} color={isDarkMode ? titleColor : GREEN} />
           </TouchableOpacity>
           <Text style={styles.heroTitle}>
-            <Text style={{ color: GREEN }}>{t("notificationsScreenTitle")}</Text>
+            <Text style={{ color: isDarkMode ? titleColor : GREEN }}>{t("notificationsScreenTitle")}</Text>
           </Text>
           {unreadCount > 0 && (
             <View style={styles.heroBadge}>
@@ -97,19 +103,19 @@ export default function NotificationsScreen({ navigation }) {
             </View>
           )}
         </View>
-        <Text style={styles.heroSub}>
+        <Text style={[styles.heroSub, { color: isDarkMode ? mutedColor : "rgba(21,98,42,0.55)" }]}>
           {unreadCount > 0
             ? `${t("notificationsScreenNotificationsUnread1")} ${unreadCount} ${t("notificationsScreenNotificationsUnread2")}`
             : t("notificationsScreenNotificationsUnread3")}
         </Text>
-        <View style={styles.heroLine} />
+        <View style={[styles.heroLine, { backgroundColor: isDarkMode ? dividerColor : GREEN, shadowColor: isDarkMode ? "transparent" : GREEN }]} />
       </View>
 
       {/* ── BARRA "AO VIVO" ─────────────────────────────────────────────── */}
-      <View style={styles.statusBar}>
+      <View style={[styles.statusBar, isDarkMode && { backgroundColor: theme.card, borderWidth: 1.5, borderColor: theme.divider }]}>
         <View style={styles.statusDot} />
         <Text style={styles.statusText}>{t("notificationsScreenCentraldeAvisos")}</Text>
-        <View style={styles.statusSep} />
+          <View style={styles.statusSep} />
         <MaterialIcons name="notifications-active" size={12} color="rgba(255,255,255,0.65)" />
         <Text style={styles.statusSub}>{t("notificationsScreenAtualizadoAgora")}</Text>
       </View>
@@ -120,8 +126,8 @@ export default function NotificationsScreen({ navigation }) {
       >
         {/* ── LABEL SEÇÃO ──────────────────────────────────────────────── */}
         <View style={styles.sectionRow}>
-          <View style={styles.sectionAccent} />
-          <Text style={styles.sectionLabel}>{t("notificationsScreenTodasNotificações")}</Text>
+          <View style={[styles.sectionAccent, { backgroundColor: isDarkMode ? theme.navActive : GREEN }]} />
+          <Text style={[styles.sectionLabel, { color: isDarkMode ? theme.navActive : GREEN }]}>{t("notificationsScreenTodasNotificações")}</Text>
         </View>
 
         {/* ── LISTA ────────────────────────────────────────────────────── */}
@@ -130,11 +136,12 @@ export default function NotificationsScreen({ navigation }) {
             key={notif.id}
             style={[
               styles.card,
-              { backgroundColor: isDarkMode ? "#1C1F2A" : "#FFFFFF" },
+              { backgroundColor: cardBg, borderColor: dividerColor },
               notif.unread && styles.cardUnread,
+              notif.unread && isDarkMode && { borderColor: theme.navActive }
             ]}
           >
-            {notif.unread && <View style={styles.unreadBar} />}
+            {notif.unread && <View style={[styles.unreadBar, { backgroundColor: isDarkMode ? theme.navActive : GREEN }]} />}
 
             <View style={[styles.iconWrap, { backgroundColor: notif.iconBg }]}>
               <MaterialIcons name={notif.icon} size={22} color={notif.iconColor} />
@@ -147,13 +154,13 @@ export default function NotificationsScreen({ navigation }) {
                     {notif.tag}
                   </Text>
                 </View>
-                <Text style={styles.time}>{notif.time}</Text>
+                <Text style={[styles.time, { color: mutedColor }]}>{notif.time}</Text>
               </View>
 
-              <Text style={[styles.cardTitle, { color: isDarkMode ? "#F3F4F6" : "#111827" }]}>
+              <Text style={[styles.cardTitle, { color: textColor }]}>
                 {notif.title}
               </Text>
-              <Text style={[styles.cardBody, { color: isDarkMode ? "#9CA3AF" : "#6B7280" }]}>
+              <Text style={[styles.cardBody, { color: mutedColor }]}>
                 {notif.body}
               </Text>
             </View>
@@ -162,8 +169,8 @@ export default function NotificationsScreen({ navigation }) {
 
         {/* ── RODAPÉ ───────────────────────────────────────────────────── */}
         <View style={styles.footer}>
-          <MaterialIcons name="notifications-none" size={18} color="rgba(21,98,42,0.35)" />
-          <Text style={styles.footerText}>{t("notificationsScreenFooter")}</Text>
+          <MaterialIcons name="notifications-none" size={18} color={isDarkMode ? mutedColor : "rgba(21,98,42,0.35)"} />
+          <Text style={[styles.footerText, { color: isDarkMode ? mutedColor : "rgba(21,98,42,0.45)" }]}>{t("notificationsScreenFooter")}</Text>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -173,10 +180,8 @@ export default function NotificationsScreen({ navigation }) {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: "#F0F7F1",
   },
   hero: {
-    backgroundColor: "#F0F7F1",
     paddingTop: 16,
     paddingBottom: 0,
     paddingHorizontal: 20,
@@ -191,7 +196,6 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 12,
-    backgroundColor: "rgba(21,98,42,0.08)",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -199,7 +203,6 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 28,
     fontWeight: "900",
-    color: GREEN,
     letterSpacing: -0.5,
   },
   heroBadge: {
@@ -216,24 +219,18 @@ const styles = StyleSheet.create({
   },
   heroSub: {
     fontSize: 13,
-    color: "rgba(21,98,42,0.55)",
     fontWeight: "600",
     marginLeft: 50,
     marginBottom: 16,
   },
-  // Linha fina verde com sombra/luz verde embaixo
   heroLine: {
     height: 2,
-    backgroundColor: GREEN,
     marginHorizontal: -20,
-    shadowColor: GREEN,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.55,
     shadowRadius: 6,
     elevation: 4,
   },
-
-  // ── Barra de status ───────────────────────────────────────────────────────
   statusBar: {
     marginHorizontal: 20,
     marginTop: 14,
@@ -269,8 +266,6 @@ const styles = StyleSheet.create({
     color: "rgba(255,255,255,0.65)",
     fontWeight: "600",
   },
-
-  // ── Conteúdo ──────────────────────────────────────────────────────────────
   scroll: {
     paddingHorizontal: 20,
     paddingBottom: 40,
@@ -285,17 +280,13 @@ const styles = StyleSheet.create({
     width: 4,
     height: 18,
     borderRadius: 2,
-    backgroundColor: GREEN,
   },
   sectionLabel: {
     fontSize: 12,
     fontWeight: "800",
-    color: GREEN,
     textTransform: "uppercase",
     letterSpacing: 1,
   },
-
-  // ── Card ──────────────────────────────────────────────────────────────────
   card: {
     borderRadius: 16,
     marginBottom: 12,
@@ -309,6 +300,8 @@ const styles = StyleSheet.create({
     elevation: 2,
     overflow: "hidden",
     gap: 12,
+    borderWidth: 1.5,
+    borderColor: "transparent",
   },
   cardUnread: {
     borderWidth: 1.5,
@@ -320,7 +313,6 @@ const styles = StyleSheet.create({
     top: 0,
     bottom: 0,
     width: 4,
-    backgroundColor: GREEN,
     borderTopLeftRadius: 16,
     borderBottomLeftRadius: 16,
   },
@@ -355,7 +347,6 @@ const styles = StyleSheet.create({
   },
   time: {
     fontSize: 10,
-    color: "#9CA3AF",
     fontWeight: "600",
   },
   cardTitle: {
@@ -368,8 +359,6 @@ const styles = StyleSheet.create({
     lineHeight: 17,
     fontWeight: "400",
   },
-
-  // ── Rodapé ────────────────────────────────────────────────────────────────
   footer: {
     flexDirection: "row",
     alignItems: "center",
@@ -379,7 +368,6 @@ const styles = StyleSheet.create({
   },
   footerText: {
     fontSize: 12,
-    color: "rgba(21,98,42,0.45)",
     fontWeight: "600",
   },
 });
