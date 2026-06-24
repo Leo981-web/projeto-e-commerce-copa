@@ -1,44 +1,30 @@
 import { createContext, useContext, useEffect, useState } from "react";
-
 import * as authService from "../services/authService";
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
+  const [user, setUser]       = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let isMounted = true;
-
     async function loadUser() {
       try {
         const currentUser = await authService.getCurrentUser();
-
-        if (isMounted) {
-          setUser(currentUser);
-        }
+        if (isMounted) setUser(currentUser);
       } catch {
-        if (isMounted) {
-          setUser(null);
-        }
+        if (isMounted) setUser(null);
       } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
+        if (isMounted) setLoading(false);
       }
     }
-
     loadUser();
-
-    return () => {
-      isMounted = false;
-    };
+    return () => { isMounted = false; };
   }, []);
 
   async function login(email, password) {
     setLoading(true);
-
     try {
       const signedUser = await authService.signIn(email, password);
       setUser(signedUser);
@@ -48,11 +34,11 @@ export function AuthProvider({ children }) {
     }
   }
 
-  async function register(name, email, password, phone) {
+  
+  async function register(name, email, password, phone, userType) {
     setLoading(true);
-
     try {
-      const registeredUser = await authService.signUp(name, email, password, phone);
+      const registeredUser = await authService.signUp(name, email, password, phone, userType);
       setUser(registeredUser);
       return registeredUser;
     } finally {
@@ -62,7 +48,6 @@ export function AuthProvider({ children }) {
 
   async function logout() {
     setLoading(true);
-
     try {
       await authService.signOut();
       setUser(null);
@@ -76,9 +61,13 @@ export function AuthProvider({ children }) {
       const currentUser = await authService.getCurrentUser();
       setUser(currentUser);
       return currentUser;
-    } catch {
-    }
+    } catch {}
   }
+
+  const typeStr = user?.type ? String(user.type).toUpperCase() : "";
+
+  const isAdmin  = user?.type === 0 || typeStr === "0" || typeStr === "ADMIN";
+  const isCommon = user?.type === 1 || typeStr === "1" || typeStr === "COMMON";
 
   const value = {
     user,
@@ -88,6 +77,8 @@ export function AuthProvider({ children }) {
     logout,
     refreshUser,
     isAuthenticated: Boolean(user),
+    isAdmin,
+    isCommon,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -95,10 +86,8 @@ export function AuthProvider({ children }) {
 
 export function useAuth() {
   const context = useContext(AuthContext);
-
   if (!context) {
     throw new Error("useAuth deve ser usado dentro de AuthProvider.");
   }
-
   return context;
 }

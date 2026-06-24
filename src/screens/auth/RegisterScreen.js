@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { StyleSheet, View, Text, SafeAreaView, Image, TouchableOpacity, ScrollView } from "react-native";
 import Ionicons from '@expo/vector-icons/Ionicons';
 
@@ -26,15 +26,20 @@ export default function RegisterScreen({ navigation }) {
   const [password, setPassword] = useState("");
   const [phone, setPhone] = useState("");
   
-  // ── AJUSTE: Estados para controlar o perfil Comprador/Vendedor e campos extras ──
-  const [accountType, setAccountType] = useState("buyer");
+  const accountTypeRef = useRef("Common");
+  const [accountType, setAccountType] = useState("Common");
   const [storeName, setStoreName] = useState("");
   const [cnpj, setCnpj] = useState("");
 
+  function handleSelectAccountType(type) {
+    setAccountType(type);
+    accountTypeRef.current = type;
+  }
+
   async function handleRegister() {
     try {
-      // Ajustado caso queira passar a role ou os dados extras para o serviço de auth futuro
-      await register(name, email, password, phone);
+      const userType = accountTypeRef.current === "Admin" ? "Admin" : "Common";
+      await register(name, email, password, phone, userType);
     } catch (error) {
       showAlert({
         title: t("registerErrorTitle"), 
@@ -72,20 +77,20 @@ export default function RegisterScreen({ navigation }) {
             <View style={styles.roleSelector}>
               <TouchableOpacity 
                 activeOpacity={0.8}
-                style={[styles.roleTab, accountType === "buyer" && styles.roleTabActiveBuyer]}
-                onPress={() => setAccountType("buyer")}
+                style={[styles.roleTab, accountType === "Common" && styles.roleTabActiveCommon]}
+                onPress={() => handleSelectAccountType("Common")}
               >
-                <Ionicons name="cart-outline" size={16} color={accountType === "buyer" ? "#FFFFFF" : NAVY} />
-                <Text style={[styles.roleText, accountType === "buyer" && styles.roleTextActive]}>{t("comprador")}</Text>
+                <Ionicons name="cart-outline" size={16} color={accountType === "Common" ? "#FFFFFF" : NAVY} />
+                <Text style={[styles.roleText, accountType === "Common" && styles.roleTextActive]}>{t("comprador")}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity 
                 activeOpacity={0.8}
-                style={[styles.roleTab, accountType === "seller" && styles.roleTabActiveSeller]}
-                onPress={() => setAccountType("seller")}
+                style={[styles.roleTab, accountType === "Admin" && styles.roleTabActiveAdmin]}
+                onPress={() => handleSelectAccountType("Admin")}
               >
-                <Ionicons name="storefront-outline" size={16} color={accountType === "seller" ? "#FFFFFF" : NAVY} />
-                <Text style={[styles.roleText, accountType === "seller" && styles.roleTextActive]}>{t("vendedor")}</Text>
+                <Ionicons name="storefront-outline" size={16} color={accountType === "Admin" ? "#FFFFFF" : NAVY} />
+                <Text style={[styles.roleText, accountType === "Admin" && styles.roleTextActive]}>{t("vendedor")}</Text>
               </TouchableOpacity>
             </View>
             {/* ──────────────────────────────────────────────────────────── */}
@@ -109,7 +114,7 @@ export default function RegisterScreen({ navigation }) {
             />
 
             {/* ── AJUSTE: Campos Extras Exclusivos de Vendedor (Renderização Condicional) ── */}
-            {accountType === "seller" && (
+            {accountType === "Admin" && (
               <View style={{ animation: "fadeIn" }}>
                 <AppInput
                   icon="store"
@@ -291,10 +296,10 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     gap: 6,
   },
-  roleTabActiveBuyer: {
+  roleTabActiveCommon: {
     backgroundColor: NAVY,
   },
-  roleTabActiveSeller: {
+  roleTabActiveAdmin: {
     backgroundColor: GREEN,
   },
   roleText: {

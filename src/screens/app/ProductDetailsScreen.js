@@ -12,6 +12,7 @@ import { useLanguage } from "../../context/LanguageContext";
 import { formatCurrency } from "../../services/formatters";
 import * as productService from "../../services/productService";
 import { useTheme } from "../../context/ThemeContext";
+import { useAuth } from "../../context/AuthContext";
 
 export default function ProductDetailsScreen({ navigation, route }) {
   const { showAlert } = useCustomAlert();
@@ -19,7 +20,7 @@ export default function ProductDetailsScreen({ navigation, route }) {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const { theme } = useTheme();
-
+  const { isAdmin } = useAuth(); 
   const styles = makeStyles(theme);
 
   async function loadProduct() {
@@ -97,6 +98,7 @@ export default function ProductDetailsScreen({ navigation, route }) {
         </View>
       </View>
 
+      {isAdmin && (
       <AppButton
         icon="edit"
         onPress={() =>
@@ -105,7 +107,9 @@ export default function ProductDetailsScreen({ navigation, route }) {
         style={styles.primaryButton}
         title={t("editProductButton")} 
       />
+      )}
     </View>
+
   );
 }
 

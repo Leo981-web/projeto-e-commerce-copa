@@ -1,5 +1,6 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useTheme } from "../context/ThemeContext";
+import { useAuth } from "../context/AuthContext";
 
 import ProductCreateScreen from "../screens/app/ProductCreateScreen";
 import ProductDetailsScreen from "../screens/app/ProductDetailsScreen";
@@ -16,47 +17,42 @@ import ReceiptScreen from "../screens/app/ReceiptScreen";
 import HistoryScreen from "../screens/app/HistoryScreen";
 import TermserviceScreen from "../screens/app/TermserviceScreen";
 import NotificationScreen from "../screens/app/NotificationScreen";
+import UnauthorizedScreen from "../screens/app/UnauthorizedScreen";
 
 const Stack = createNativeStackNavigator();
 
 export default function AppRoutes() {
   const { theme } = useTheme();
+  const { isAdmin } = useAuth();
+
+  const screenOptions = {
+    contentStyle: { backgroundColor: theme.bg },
+    headerStyle: { backgroundColor: theme.bg },
+    headerShadowVisible: false,
+    headerTitleStyle: {
+      color: theme.textPrimary,
+      fontWeight: "800",
+    },
+  };
 
   return (
-    <Stack.Navigator
-      screenOptions={{
-        contentStyle: { backgroundColor: theme.bg },
-        headerStyle: { backgroundColor: theme.bg },
-        headerShadowVisible: false,
-        headerTitleStyle: {
-          color: theme.textPrimary,
-          fontWeight: "800",
-        },
-      }}
-    >
+    <Stack.Navigator screenOptions={screenOptions}>
+      {/* ── Tela inicial ──────────────────────────────────────────────── */}
       <Stack.Screen
         name="Products"
         component={ProductListScreen}
         options={{ headerShown: false }}
       />
-      <Stack.Screen
-        name="Favorites"
-        component={FavoriteScreen}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="ProductCreate"
-        component={ProductCreateScreen}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="ProductEdit"
-        component={ProductEditScreen}
-        options={{ headerShown: false }}
-      />
+
+      {/* ── Acessíveis a todos (Common e Admin) ───────────────────────── */}
       <Stack.Screen
         name="ProductDetails"
         component={ProductDetailsScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Favorites"
+        component={FavoriteScreen}
         options={{ headerShown: false }}
       />
       <Stack.Screen
@@ -114,6 +110,29 @@ export default function AppRoutes() {
         component={NotificationScreen}
         options={{ headerShown: false }}
       />
+
+      {/* ── Tela de acesso negado (fallback para Common que tenta navegar) */}
+      <Stack.Screen
+        name="Unauthorized"
+        component={UnauthorizedScreen}
+        options={{ headerShown: false }}
+      />
+
+      {/* ── Exclusivas de Admin ───────────────────────────────────────── */}
+      {isAdmin && (
+        <>
+          <Stack.Screen
+            name="ProductCreate"
+            component={ProductCreateScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="ProductEdit"
+            component={ProductEditScreen}
+            options={{ headerShown: false }}
+          />
+        </>
+      )}
     </Stack.Navigator>
   );
 }
