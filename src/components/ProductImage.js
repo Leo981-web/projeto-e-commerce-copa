@@ -4,6 +4,8 @@ import { MaterialIcons } from "@expo/vector-icons";
 
 import AppText from "./AppText";
 
+const BASE_URL = process.env.EXPO_PUBLIC_API_URL || "";
+
 export default function ProductImage({
   name,
   sourceUrl,
@@ -16,7 +18,23 @@ export default function ProductImage({
     setHasError(false);
   }, [sourceUrl]);
 
-  if (!sourceUrl || hasError) {
+  
+  const getFullImageUrl = (url) => {
+    if (!url) return null;
+    
+    
+    if (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("data:")) {
+      return url;
+    }
+    
+    
+    const cleanUrl = url.startsWith("/") ? url : `/${url}`;
+    return `${BASE_URL}${cleanUrl}`;
+  };
+
+  const finalSourceUrl = getFullImageUrl(sourceUrl);
+
+  if (!finalSourceUrl || hasError) {
     return (
       <View style={[styles.fallback, style]}>
         <MaterialIcons
@@ -35,7 +53,7 @@ export default function ProductImage({
     <Image
       onError={() => setHasError(true)}
       resizeMode="cover"
-      source={{ uri: sourceUrl }}
+      source={{ uri: finalSourceUrl }}
       style={style}
     />
   );
