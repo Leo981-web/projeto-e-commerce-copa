@@ -12,6 +12,7 @@ import AppText from "../../components/AppText";
 import { formatCurrency } from "../../services/formatters";
 import { useHistory } from "../../context/HistoryContext";
 import { getOrders } from "../../services/orderService";
+import Loading from "../../components/Loading";
 
 const NAVY = "#1A237E";
 const GREEN = "#00A650";
@@ -125,12 +126,7 @@ export default function HistoryScreen({ navigation }) {
 
     if (loading) {
         return (
-            <SafeAreaView style={styles.safe}>
-                <AppText variant="title" style={styles.header}>Meu Histórico</AppText>
-                <View style={styles.loadingContainer}>
-                    <ActivityIndicator size="large" color={NAVY} />
-                </View>
-            </SafeAreaView>
+            <Loading/>
         );
     }
 

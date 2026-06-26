@@ -13,6 +13,7 @@ import { formatCurrency } from "../../services/formatters";
 import * as productService from "../../services/productService";
 import { useTheme } from "../../context/ThemeContext";
 import { useAuth } from "../../context/AuthContext";
+import Loading from "../../components/Loading";
 
 export default function ProductDetailsScreen({ navigation, route }) {
   const { showAlert } = useCustomAlert();
@@ -48,6 +49,7 @@ export default function ProductDetailsScreen({ navigation, route }) {
   if (loading) {
     return (
       <View style={[styles.container, styles.loadingContainer]}>
+        <Loading/>
         <AppText>{t("loading")}</AppText>
       </View>
     );

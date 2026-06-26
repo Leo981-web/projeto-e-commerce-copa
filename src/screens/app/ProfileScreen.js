@@ -27,13 +27,7 @@ const GOLD       = "#F5C518";
 const WHITE      = "#FFFFFF";
 const RED        = "#EF4444";
 
-const NAV_ITEMS = [
-  { key: "home",      icon: "home",    iconOff: "home-outline",    labelKey: "navHome"      },
-  { key: "favorites", icon: "heart",   iconOff: "heart-outline",   labelKey: "navFavorites" },
-  { key: "create",    center: true },
-  { key: "cart",      icon: "cart",    iconOff: "cart-outline",    labelKey: "navCart"      },
-  { key: "profile",   icon: "person",  iconOff: "person-outline",  labelKey: "navProfile"   },
-];
+
 
 // ─── Modal de edição de perfil ─────────────────────────────────────────────
 function EditProfileModal({ visible, onClose, user, onSave, theme, isDarkMode }) {
@@ -262,12 +256,13 @@ const menuStyles = StyleSheet.create({
 
 // ─────────────────────────────────────────────────────────────────────────────
 export default function ProfileScreen({ navigation }) {
-  const { logout, user } = useAuth();
+  const { logout, user, isAdmin } = useAuth();
   const { showAlert, showConfirm } = useCustomAlert();
   const { t } = useLanguage();
   const { isDarkMode, theme } = useTheme();
   const { totalItems } = useCart();
   const { favorites } = useFavorites();
+  
 
   const [activeNav, setActiveNav]   = useState("profile");
   const [editVisible, setEditVisible] = useState(false);
@@ -282,6 +277,14 @@ export default function ProfileScreen({ navigation }) {
   const textColor    = theme.textPrimary;
   const mutedColor   = theme.textMuted;
   const dividerColor = theme.divider;
+
+  const NAV_ITEMS = [
+  { key: "home",      icon: "home",   iconOff: "home-outline",   labelKey: "navHome"      },
+  { key: "favorites", icon: "heart",  iconOff: "heart-outline",  labelKey: "navFavorites" },
+  { key: "create",    center: true,   adminOnly: true             },
+  { key: "cart",      icon: "cart",   iconOff: "cart-outline",   labelKey: "navCart"      },
+  { key: "profile",   icon: "person", iconOff: "person-outline", labelKey: "navProfile"   },
+].filter((tab) => !tab.adminOnly || isAdmin);
 
   const initials = profileData.name
     .split(" ")

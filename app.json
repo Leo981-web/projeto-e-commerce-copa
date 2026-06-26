@@ -22,7 +22,8 @@
       "favicon": "./src/assets/favicon.png"
     },
     "plugins": [
-      "expo-localization"
+      "expo-localization",
+      "expo-video"
     ]
   }
 }

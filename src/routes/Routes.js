@@ -4,15 +4,14 @@ import { useAuth } from "../context/AuthContext";
 import { ThemeProvider } from "../context/ThemeContext";
 import AppRoutes from "./AppRoutes";
 import AuthRoutes from "./AuthRoutes";
+import Loading from "../components/Loading";
 
 export default function Routes() {
   const { isAuthenticated, loading } = useAuth();
 
   if (loading) {
     return (
-      <View style={styles.container}>
-        <ActivityIndicator color="#2d7d59" size="large" />
-      </View>
+      <Loading/>
     );
   }
 

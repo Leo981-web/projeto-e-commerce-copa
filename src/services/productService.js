@@ -77,11 +77,15 @@ async function getAuthHeader() {
 
 
 export async function getProducts() {
+  const authHeader = await getAuthHeader(); // 1. Buscamos os headers
+
   try {
-    
     const response = await fetch(`${API_URL}/products?size=100&targetCurrency=BRL`, {
       method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        ...authHeader 
+      },
     });
 
     if (!response.ok) {
@@ -90,7 +94,6 @@ export async function getProducts() {
     }
     const data = await response.json();
     
-   
     const productList = data.content ? data.content : data;
     return productList.map(mapProduct);
   } catch (error) {

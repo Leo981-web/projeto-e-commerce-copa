@@ -18,22 +18,23 @@ export default function ProductImage({
     setHasError(false);
   }, [sourceUrl]);
 
-  
   const getFullImageUrl = (url) => {
     if (!url) return null;
-    
-    
-    if (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("data:")) {
+
+    if (
+      url.startsWith("http://") ||
+      url.startsWith("https://") ||
+      url.startsWith("data:")
+    ) {
       return url;
     }
-    
-    
+
     const cleanUrl = url.startsWith("/") ? url : `/${url}`;
     return `${BASE_URL}${cleanUrl}`;
   };
 
   const finalSourceUrl = getFullImageUrl(sourceUrl);
-
+  
   if (!finalSourceUrl || hasError) {
     return (
       <View style={[styles.fallback, style]}>

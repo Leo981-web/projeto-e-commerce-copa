@@ -30,6 +30,7 @@ import { formatCurrency } from "../../services/formatters";
 import * as productService from "../../services/productService";
 import { useTheme } from "../../context/ThemeContext";
 import { useFavorites } from "../../context/FavoriteContext";
+import Loading from "../../components/Loading";
 
 const { width } = Dimensions.get("window");
 
@@ -328,7 +329,8 @@ export default function ProductListScreen({ navigation }) {
   const { showAlert, showConfirm } = useCustomAlert();
   const { t } = useLanguage();
   const { theme } = useTheme();
-  const { addToCart, cart } = useCart();
+  const { addToCart, cart, totalItems } = useCart();
+
   const { toggleFavorite, isFavorite } = useFavorites();
 
   const styles = makeStyles(theme);
@@ -435,7 +437,7 @@ export default function ProductListScreen({ navigation }) {
         style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
       >
         <View style={styles.cardImageWrap}>
-          {/* 💡 O segredo está aqui: passa o item.image limpo vindo do mapeamento corrigido */}
+         
           <ProductImage
             name={item.name}
             sourceUrl={item.image}
@@ -663,7 +665,7 @@ export default function ProductListScreen({ navigation }) {
 
       {loading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator color={GREEN} size="large" />
+          <Loading />
           <Text style={styles.loadingText}>{t("loadingProductsText")}</Text>
         </View>
       ) : (
@@ -700,6 +702,7 @@ export default function ProductListScreen({ navigation }) {
                   style={[
                     styles.navIconWrap,
                     activeNav === tab.key && styles.navIconWrapActive,
+                    { position: "relative" }, // ← garante o posicionamento
                   ]}
                 >
                   <Ionicons
@@ -707,6 +710,11 @@ export default function ProductListScreen({ navigation }) {
                     size={20}
                     color={activeNav === tab.key ? GREEN : theme.navInactive}
                   />
+                  {tab.key === "cart" && totalItems > 0 && (
+                    <View style={styles.cartBadge}>
+                      <Text style={styles.cartBadgeText}>{totalItems}</Text>
+                    </View>
+                  )}
                 </View>
                 <Text
                   style={[
@@ -938,6 +946,21 @@ const makeStyles = (theme) =>
       backgroundColor: GREEN,
       borderRadius: 8,
     },
+    cartBadge: {
+      position: "absolute",
+      top: -6,
+      right: -8,
+      backgroundColor: "#FF3B30",
+      borderRadius: 10,
+      minWidth: 16,
+      height: 16,
+      justifyContent: "center",
+      alignItems: "center",
+      paddingHorizontal: 4,
+      borderWidth: 1.5,
+      borderColor: theme.card,
+    },
+    cartBadgeText: { color: "#FFF", fontSize: 9, fontWeight: "bold" },
     secondaryActions: { flexDirection: "row", gap: 6, marginLeft: "auto" },
     iconButton: {
       width: 30,

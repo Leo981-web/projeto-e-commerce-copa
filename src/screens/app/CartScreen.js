@@ -12,27 +12,10 @@ import { useCart } from "../../context/CartContext";
 import { useTheme } from "../../context/ThemeContext";
 import { useCustomAlert } from "../../context/CustomAlertContext";
 import { useLanguage } from "../../context/LanguageContext";
+import { useAuth } from "../../context/AuthContext";
 import { formatCurrency } from "../../services/formatters";
 import AppText from "../../components/AppText";
 import ProductImage from "../../components/ProductImage";
-
-const NAV_ITEMS = [
-  { key: "home", icon: "home", iconOff: "home-outline", labelKey: "navHome" },
-  {
-    key: "favorites",
-    icon: "heart",
-    iconOff: "heart-outline",
-    labelKey: "navFavorites",
-  },
-  { key: "create", icon: "add", center: true },
-  { key: "cart", icon: "cart", iconOff: "cart-outline", labelKey: "navCart" },
-  {
-    key: "profile",
-    icon: "person",
-    iconOff: "person-outline",
-    labelKey: "navProfile",
-  },
-];
 
 export default function CartScreen({ navigation }) {
   const {
@@ -46,11 +29,19 @@ export default function CartScreen({ navigation }) {
   const { theme, isDarkMode } = useTheme();
   const { showAlert } = useCustomAlert();
   const { t } = useLanguage();
+  const { isAdmin } = useAuth();
+
+  const NAV_ITEMS = [
+    { key: "home",      icon: "home",   iconOff: "home-outline",   labelKey: "navHome"      },
+    { key: "favorites", icon: "heart",  iconOff: "heart-outline",  labelKey: "navFavorites" },
+    { key: "create",    icon: "add",    center: true,              adminOnly: true           },
+    { key: "cart",      icon: "cart",   iconOff: "cart-outline",   labelKey: "navCart"      },
+    { key: "profile",   icon: "person", iconOff: "person-outline", labelKey: "navProfile"   },
+  ].filter((tab) => !tab.center && (!tab.adminOnly || isAdmin));
 
   const styles = makeStyles(theme, isDarkMode);
 
   function handleCheckout() {
-    
     if (cart.length === 0) {
       showAlert({
         title: t("attentionTitle") || "Atenção",
@@ -60,7 +51,7 @@ export default function CartScreen({ navigation }) {
       return;
     }
     navigation.navigate("Payment", {
-      total: totalPrice
+      total: totalPrice,
     });
   }
 
@@ -78,7 +69,8 @@ export default function CartScreen({ navigation }) {
   function renderCartItem({ item }) {
     return (
       <View style={styles.cartItem}>
-        <ProductImage uri={item.imageUrl} style={styles.productImage} />
+        
+        <ProductImage name={item.name} sourceUrl={item.image} style={styles.productImage} />
 
         <View style={styles.itemDetails}>
           <AppText style={styles.productName} numberOfLines={1}>
@@ -183,22 +175,21 @@ export default function CartScreen({ navigation }) {
 
       {/* BOTTOM NAV */}
       <View style={styles.bottomNav}>
-        {NAV_ITEMS.filter((tab) => !tab.center).map((tab) => (
+        {NAV_ITEMS.map((tab) => (
           <TouchableOpacity
             key={tab.key}
             style={styles.navItem}
             onPress={() => {
-              if (tab.key === "home") navigation.navigate("Products");
-              if (tab.key === "profile") navigation.navigate("Profile");
+              if (tab.key === "home")      navigation.navigate("Products");
+              if (tab.key === "profile")   navigation.navigate("Profile");
+              if (tab.key === "favorites") navigation.navigate("Favorites");
             }}
           >
-            <View style={{ position: "relative" }}>
+            <View style={[styles.navIconWrap, tab.key === "cart" && styles.navIconWrapActive]}>
               <Ionicons
                 name={tab.key === "cart" ? tab.icon : tab.iconOff}
                 size={22}
-                color={
-                  tab.key === "cart" ? theme.titlePrimary : theme.navInactive
-                }
+                color={tab.key === "cart" ? theme.navActive : theme.navInactive}
               />
               {tab.key === "cart" && totalItems > 0 && (
                 <View style={styles.cartBadge}>
@@ -353,13 +344,24 @@ const makeStyles = (theme, isDarkMode) =>
       justifyContent: "center",
       gap: 2,
     },
+    navIconWrap: {
+      position: "relative",
+      width: 36,
+      height: 36,
+      borderRadius: 10,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    navIconWrapActive: {
+      backgroundColor: theme.iconBg,
+    },
     navLabel: { fontSize: 10, color: theme.navInactive, fontWeight: "500" },
-    navLabelActive: { color: theme.titlePrimary, fontWeight: "700" },
+    navLabelActive: { color: theme.navActive, fontWeight: "700" },
     navDot: {
       width: 4,
       height: 4,
       borderRadius: 2,
-      backgroundColor: theme.titlePrimary,
+      backgroundColor: theme.navActive,
     },
     cartBadge: {
       position: "absolute",
@@ -373,7 +375,8 @@ const makeStyles = (theme, isDarkMode) =>
       alignItems: "center",
       paddingHorizontal: 4,
       borderWidth: 1.5,
-      borderColor: isDarkMode ? "#1A1A1E" : "#FFF",
+      
+      borderColor: theme.card,
     },
     cartBadgeText: { color: "#FFF", fontSize: 9, fontWeight: "bold" },
   });
