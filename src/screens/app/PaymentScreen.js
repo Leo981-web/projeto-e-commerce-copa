@@ -6,7 +6,7 @@ import AppButton from "../../components/AppButton";
 import AppInput from "../../components/AppInput";
 import { useCart } from "../../context/CartContext";
 import { useHistory } from "../../context/HistoryContext";
-import { checkoutCart } from "../../services/productService";
+import { createOrder } from "../../services/orderService";
 
 const NAVY = '#1A237E';
 const GREEN = '#00A650';
@@ -36,14 +36,15 @@ export default function PaymentScreen({ route, navigation }) {
   async function handleFinalizePayment() {
     setLoading(true);
     try {
-      await checkoutCart(cart);
+      const orderFromApi = await createOrder(cart);
 
       const orderData = {
-        id: Date.now().toString(),
-        total: totalValue,
-        items: cart,
-        date: new Date().toISOString(),
-        paymentMethod
+        id: orderFromApi.id,
+        total: orderFromApi.total || totalValue,
+        items: orderFromApi.items || cart,
+        date: orderFromApi.date || new Date().toISOString(),
+        paymentMethod,
+        orderId: orderFromApi.orderId,
       };
 
       await addOrder(orderData);
@@ -51,7 +52,7 @@ export default function PaymentScreen({ route, navigation }) {
 
       navigation.replace("Receipt", orderData);
     } catch (error) {
-      showAlert({ title: "Erro", message: "Não foi possível processar o pedido.", type: "warning" });
+      showAlert({ title: "Erro", message: "Não foi possível processar o pedido: " + error.message, type: "warning" });
     } finally {
       setLoading(false);
     }

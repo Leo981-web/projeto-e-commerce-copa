@@ -398,7 +398,7 @@ export default function ProfileScreen({ navigation }) {
             iconBg={theme.iconBg}
             label={t("profileScreenOrderHistory")}
             sub={t("profileScreenOrderHistoryText")}
-            onPress={() => navigation.navigate("Orders")}
+            onPress={() => navigation.navigate("History")}
           />
           <MenuItem
             {...rowTheme}

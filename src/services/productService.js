@@ -24,7 +24,7 @@ export function mapProduct(product) {
     description: product.description,
     price: Number(finalPrice),
     quantity: Number(product.stock),
-    image: product.imageURL
+    image: product.imageUrl || product.imageURL || null
   };
 }
 
@@ -84,7 +84,10 @@ export async function getProducts() {
       headers: { 'Content-Type': 'application/json' },
     });
 
-    if (!response.ok) throw new Error(`Erro HTTP: ${response.status}`);
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw new Error(`Erro HTTP: ${response.status} - ${errorBody}`);
+    }
     const data = await response.json();
     
    
