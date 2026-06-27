@@ -708,7 +708,7 @@ export default function ProductListScreen({ navigation }) {
                   <Ionicons
                     name={activeNav === tab.key ? tab.icon : tab.iconOff}
                     size={20}
-                    color={activeNav === tab.key ? GREEN : theme.navInactive}
+                    color={activeNav === tab.key ? theme.navActive : theme.navInactive}
                   />
                   {tab.key === "cart" && totalItems > 0 && (
                     <View style={styles.cartBadge}>
@@ -985,7 +985,7 @@ const makeStyles = (theme) =>
       textAlign: "center",
       maxWidth: 240,
     },
-    bottomNav: {
+bottomNav: {
       position: "absolute",
       bottom: 0,
       left: 0,
@@ -1019,17 +1019,24 @@ const makeStyles = (theme) =>
       width: 52,
       height: 52,
       borderRadius: 12,
-      backgroundColor: GOLD,
+      backgroundColor: "#F5C518", 
       alignItems: "center",
       justifyContent: "center",
       borderWidth: 3,
       borderColor: theme.card,
-      shadowColor: GOLD,
+      shadowColor: "#F5C518",
       shadowOffset: { width: 0, height: 4 },
       shadowOpacity: 0.5,
       shadowRadius: 8,
       elevation: 6,
     },
-    navLabel: { fontSize: 10, color: theme.navInactive, fontWeight: "600" },
-    navLabelActive: { color: GREEN, fontWeight: "800" },
+    navLabel: { 
+      fontSize: 10, 
+      color: theme.navInactive, 
+      fontWeight: "600" 
+    },
+    navLabelActive: { 
+      color: theme.navActive, 
+      fontWeight: "800" 
+    },
   });

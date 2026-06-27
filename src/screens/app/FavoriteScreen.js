@@ -206,7 +206,7 @@ export default function FavoriteScreen({ navigation }) {
             style={[styles.navItem, tab.center && styles.navItemCenter]}
             onPress={() => {
               setActiveNav(tab.key);
-              if (tab.key === "home") navigation.navigate("Product"); 
+              if (tab.key === "home") navigation.navigate("Products"); 
               if (tab.key === "create") navigation.navigate("ProductCreate");
               if (tab.key === "profile") navigation.navigate("Profile");
               if (tab.key === "cart") navigation.navigate("Cart");
@@ -214,7 +214,7 @@ export default function FavoriteScreen({ navigation }) {
           >
             {tab.center ? (
               <View style={styles.navCreateBtn}>
-                <Ionicons name="add" size={26} color="#0D4A1A" />
+                <Ionicons name="add" size={26} color="#85ec9c" />
               </View>
             ) : (
               <>
@@ -228,7 +228,7 @@ export default function FavoriteScreen({ navigation }) {
                   <Ionicons
                     name={activeNav === tab.key ? tab.icon : tab.iconOff}
                     size={20}
-                    color={activeNav === tab.key ? "#15622A" : (theme.navInactive || "#999")}
+                    color={activeNav === tab.key ? theme.navActive : (theme.navInactive || "#999")}
                   />
                   {tab.key === "cart" && totalItems > 0 && (
                     <View style={styles.cartBadge}>
@@ -437,7 +437,9 @@ const makeStyles = (theme) =>
       alignItems: "center",
       justifyContent: "center",
     },
-    navIconWrapActive: { backgroundColor: theme.iconBg || "#E8F5E9" },
+    navIconWrapActive: { 
+      backgroundColor: theme.iconBg 
+    },
     navCreateBtn: {
       width: 52,
       height: 52,
@@ -453,8 +455,15 @@ const makeStyles = (theme) =>
       shadowRadius: 8,
       elevation: 6,
     },
-    navLabel: { fontSize: 10, color: theme.navInactive || "#999", fontWeight: "600" },
-    navLabelActive: { color: "#15622A", fontWeight: "800" },
+    navLabel: { 
+      fontSize: 10, 
+      color: theme.navInactive, 
+      fontWeight: "600" 
+    },
+    navLabelActive: { 
+      color: theme.navActive, 
+      fontWeight: "800" 
+    },
     cartBadge: {
       position: "absolute",
       top: -6,
@@ -470,4 +479,4 @@ const makeStyles = (theme) =>
       borderColor: theme.card,
     },
     cartBadgeText: { color: "#FFF", fontSize: 9, fontWeight: "bold" },
-  });
+    });

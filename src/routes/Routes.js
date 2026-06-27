@@ -15,7 +15,7 @@ export default function Routes() {
     );
   }
 
-  // 2. Envolva o retorno das rotas com o ThemeProvider
+  
   return (
     <ThemeProvider>
       {isAuthenticated ? <AppRoutes /> : <AuthRoutes />}
