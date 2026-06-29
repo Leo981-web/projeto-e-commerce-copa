@@ -5,14 +5,19 @@ import { useTheme } from "../context/ThemeContext";
 const { width } = Dimensions.get("window");
 
 export default function Loading() {
-  const { isDarkMode } = useTheme();
+  const { isDarkMode, theme } = useTheme();
 
   const videoSource = isDarkMode
     ? require("../assets/loading_dark.mp4")
     : require("../assets/loading_light.mp4");
 
   return (
-    <View style={styles.container}>
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: theme?.bg ?? (isDarkMode ? "#0A3214" : "#EAF6EE") },
+      ]}
+    >
       <Video
         source={videoSource}
         style={{
@@ -36,8 +41,8 @@ export default function Loading() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    width: "100%",
     justifyContent: "center",
     alignItems: "center",
-    
   },
 });

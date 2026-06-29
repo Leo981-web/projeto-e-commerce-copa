@@ -18,6 +18,8 @@ import HistoryScreen from "../screens/app/HistoryScreen";
 import TermserviceScreen from "../screens/app/TermserviceScreen";
 import NotificationScreen from "../screens/app/NotificationScreen";
 import UnauthorizedScreen from "../screens/app/UnauthorizedScreen";
+import ReviewsScreen from "../screens/app/ReviewsScreen";
+import AddressesScreen from "../screens/app/AddressesScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -108,6 +110,16 @@ export default function AppRoutes() {
       <Stack.Screen
         name="Notification"
         component={NotificationScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Reviews"
+        component={ReviewsScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Addresses"
+        component={AddressesScreen}
         options={{ headerShown: false }}
       />
 

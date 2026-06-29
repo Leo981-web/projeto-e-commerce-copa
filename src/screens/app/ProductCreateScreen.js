@@ -35,12 +35,21 @@ const getCategories = (t) => [
 ];
 
 const getTeams = (t) => [
-  { flag: "🇧🇷", code: "BR", name: t("teamBrasil") },
-  { flag: "🇦🇷", code: "AR", name: t("teamArgentina") },
-  { flag: "🏴 Transm", code: "EN", name: t("teamInglaterra") },
-  { flag: "🇩🇪", code: "DE", name: t("teamAlemanha") },
-  { flag: "🇫🇷", code: "FR", name: t("teamFranca") },
-  { flag: "🇵🇹", code: "PT", name: t("teamPortugal") },
+  { code: "BR", name: t("teamBrasil") },
+  { code: "AR", name: t("teamArgentina") },
+  { code: "EN", name: t("teamInglaterra") },
+  { code: "DE", name: t("teamAlemanha") },
+  { code: "FR", name: t("teamFranca") },
+  { code: "PT", name: t("teamPortugal") },
+];
+
+const getMoreTeams = (t) => [
+  { code: "ES", name: t("teamEspanha") },
+  { code: "IT", name: t("teamItalia") },
+  { code: "NL", name: t("teamHolanda") },
+  { code: "UY", name: t("teamUruguai") },
+  { code: "MX", name: t("teamMexico") },
+  { code: "JP", name: t("teamJapao") },
 ];
 
 export default function ProductCreateScreen({ navigation }) {
@@ -51,6 +60,9 @@ export default function ProductCreateScreen({ navigation }) {
 
   const categoriesList = getCategories(t);
   const teamsList = getTeams(t);
+  const moreTeamsList = getMoreTeams(t);
+  const [showMoreTeams, setShowMoreTeams] = useState(false);
+  const visibleTeams = showMoreTeams ? [...teamsList, ...moreTeamsList] : teamsList;
 
   // ── Estado (LÓGICA ORIGINAL INTACTA) ─────────────────────────────────
   const [name, setName]             = useState("");
@@ -258,7 +270,7 @@ export default function ProductCreateScreen({ navigation }) {
           <View style={styles.fieldGroup}>
             <Text style={[styles.fieldLabel, { color: textColor }]}>{t("productCreateScreenSeleção")}</Text>
             <View style={styles.teamsGrid}>
-              {teamsList.map((team) => {
+              {visibleTeams.map((team) => {
                 const active = activeTeam === team.name;
                 return (
                   <TouchableOpacity
@@ -267,9 +279,9 @@ export default function ProductCreateScreen({ navigation }) {
                     onPress={() => setActiveTeam(team.name)}
                     activeOpacity={0.8}
                   >
-                    <Text style={styles.teamFlag}>
-                      {team.flag} <Text style={[styles.teamCode, active && { color: GREEN }] ?? ""}>{team.code}</Text>
-                    </Text>
+                    <View style={[styles.teamCodeBadge, active && styles.teamCodeBadgeActive]}>
+                      <Text style={[styles.teamCode, active && styles.teamCodeActive]}>{team.code}</Text>
+                    </View>
                     <Text style={[styles.teamName, { color: textColor }, active && styles.teamNameActive]}>
                       {team.name}
                     </Text>
@@ -282,6 +294,23 @@ export default function ProductCreateScreen({ navigation }) {
                 );
               })}
             </View>
+
+            <TouchableOpacity
+              style={[styles.moreTeamsBtn, { borderColor }]}
+              onPress={() => setShowMoreTeams((prev) => !prev)}
+              activeOpacity={0.8}
+            >
+              <MaterialIcons
+                name={showMoreTeams ? "expand-less" : "expand-more"}
+                size={16}
+                color={GREEN}
+              />
+              <Text style={styles.moreTeamsText}>
+                {showMoreTeams
+                  ? t("productCreateScreenLessSelections")
+                  : t("productCreateScreenMoreSelections")}
+              </Text>
+            </TouchableOpacity>
           </View>
 
           {/* ── QUANTIDADE ─────────────────────────────────────────────── */}
@@ -521,7 +550,8 @@ const styles = StyleSheet.create({
   teamsGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 8,
+    justifyContent: "space-between",
+    rowGap: 8,
   },
   teamBtn: {
     width: "48%",
@@ -538,14 +568,25 @@ const styles = StyleSheet.create({
     borderColor: GREEN,
     backgroundColor: "rgba(21,98,42,0.06)",
   },
-  teamFlag: {
-    fontSize: 13,
+  teamCodeBadge: {
+    width: 26,
+    height: 20,
+    borderRadius: 6,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(21,98,42,0.10)",
+  },
+  teamCodeBadgeActive: {
+    backgroundColor: GREEN,
   },
   teamCode: {
     fontSize: 10,
     fontWeight: "800",
-    color: "rgba(21,98,42,0.45)",
+    color: "rgba(21,98,42,0.55)",
     letterSpacing: 0.5,
+  },
+  teamCodeActive: {
+    color: "#FFFFFF",
   },
   teamName: {
     flex: 1,
@@ -563,10 +604,27 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  moreTeamsBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    alignSelf: "center",
+    gap: 4,
+    marginTop: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 999,
+    borderWidth: 1.5,
+  },
+  moreTeamsText: {
+    fontSize: 11.5,
+    fontWeight: "800",
+    color: GREEN,
+  },
   qtyRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
+    gap: 10,
   },
   qtyBtn: {
     width: 44,
@@ -575,15 +633,19 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     alignItems: "center",
     justifyContent: "center",
+    flexShrink: 0,
+    flexGrow: 0,
   },
   qtyBtnDisabled: {
     opacity: 0.4,
   },
   qtyInput: {
     flex: 1,
+    flexShrink: 1,
+    minWidth: 0,
     borderRadius: 14,
     borderWidth: 1.5,
-    paddingHorizontal: 16,
+    paddingHorizontal: 12,
     paddingVertical: 12,
     fontSize: 18,
     fontWeight: "900",

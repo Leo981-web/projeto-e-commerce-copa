@@ -19,53 +19,41 @@ const GOLD       = "#F5C518";
 const WHITE      = "#FFFFFF";
 
 // SOLUÇÃO: Transformado em função para receber o 't' no momento correto dentro do componente
+// Ícones padronizados em uma única cor (verde da marca) para visual mais
+// profissional, em vez de uma cor diferente por seção.
 const getSections = (t) => [
   {
     icon: "sports-soccer",
-    color: GREEN,
-    bg: "#D4EDDA",
     title: t("termsSectionTitle1") || "1. Aceitação dos Termos",
     body: t("termsSectionBody1") || "Ao utilizar o GolUp, você confirma que leu, compreendeu e concorda com estes Termos de Uso. Se não concordar com qualquer disposição, pedimos que não utilize o aplicativo.",
   },
   {
     icon: "person",
-    color: "#1E40AF",
-    bg: "#DBEAFE",
     title: t("termsSectionTitle2") || "2. Cadastro e Conta",
     body: t("termsSectionBody2") || "Para acessar funcionalidades completas, é necessário criar uma conta com informações verdadeiras e atualizadas. Você é responsável pela confidencialidade da sua senha e por todas as atividades realizadas em sua conta.",
   },
   {
     icon: "shopping-bag",
-    color: "#92400E",
-    bg: "#FEF3C7",
     title: t("termsSectionTitle3") || "3. Uso da Plataforma",
     body: t("termsSectionBody3") || "O GolUp é uma plataforma de e-commerce temática da Copa do Mundo 2026. É proibido utilizar o aplicativo para fins ilícitos, fraudulentos ou que violem direitos de terceiros.",
   },
   {
     icon: "lock",
-    color: "#5B21B6",
-    bg: "#EDE9FE",
     title: t("termsSectionTitle4") || "4. Privacidade e Dados",
     body: t("termsSectionBody4") || "Coletamos apenas os dados necessários para o funcionamento do serviço: nome, e-mail e telefone. Nunca vendemos suas informações a terceiros. Os dados são armazenados com criptografia e de acordo com a Lei Geral de Proteção de Dados (LGPD).",
   },
   {
     icon: "local-offer",
-    color: "#065F46",
-    bg: "#D1FAE5",
     title: t("termsSectionTitle5") || "5. Produtos e Preços",
     body: t("termsSectionBody5") || "Os preços exibidos são em Reais (BRL) e podem ser alterados sem aviso prévio. O GolUp se reserva o direito de cancelar pedidos em caso de erros de cadastro ou esgotamento de estoque.",
   },
   {
     icon: "security",
-    color: "#991B1B",
-    bg: "#FEE2E2",
     title: t("termsSectionTitle6") || "6. Segurança",
     body: t("termsSectionBody6") || "Utilizamos protocolos de segurança para proteger suas informações. Mesmo assim, nenhum system é 100% inviolável. Recomendamos não compartilhar sua senha com ninguém.",
   },
   {
     icon: "update",
-    color: "#9D174D",
-    bg: "#FCE7F3",
     title: t("termsSectionTitle7") || "7. Alterações nos Termos",
     body: t("termsSectionBody7") || "Reservamo-nos o direito de modificar estes termos a qualquer momento. Você será notificado sobre mudanças significativas pelo e-mail cadastrado ou via notificação no app.",
   },
@@ -81,8 +69,8 @@ function TermSection({ item, index, theme }) {
         activeOpacity={0.7}
         onPress={() => setOpen((p) => !p)}
       >
-        <View style={[sec.iconWrap, { backgroundColor: item.bg }]}>
-          <MaterialIcons name={item.icon} size={18} color={item.color} />
+        <View style={[sec.iconWrap, { backgroundColor: theme.iconBg }]}>
+          <MaterialIcons name={item.icon} size={18} color={theme.navActive} />
         </View>
         <Text style={[sec.title, { color: theme.textPrimary }]}>{item.title}</Text>
         <MaterialIcons
@@ -94,7 +82,7 @@ function TermSection({ item, index, theme }) {
 
       {open && (
         <View style={sec.body}>
-          <View style={[sec.accent, { backgroundColor: item.color }]} />
+          <View style={[sec.accent, { backgroundColor: theme.navActive }]} />
           <Text style={[sec.bodyText, { color: theme.textPrimary }]}>{item.body}</Text>
         </View>
       )}

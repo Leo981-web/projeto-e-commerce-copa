@@ -15,6 +15,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import AppButton from "../../components/AppButton";
 import AppText from "../../components/AppText";
 import { formatCurrency } from "../../services/formatters";
+import { useTheme } from "../../context/ThemeContext";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
@@ -29,10 +30,10 @@ const WAVE_TRAVEL = SCREEN_HEIGHT + MAX_AMPLITUDE * 2;
 // até o fim, lembrando o movimento de uma onda quebrando.
 const FLUID_EASING = Easing.bezier(0.22, 1, 0.36, 1);
 
-const NAVY = "#1A237E";
-const GREEN = "#00A650";
-const YELLOW = "#FFD600";
-const CREAM = "#F5F1E8";
+// Paleta da marca (verde/dourado), no lugar do antigo azul/amarelo "fora do padrão".
+const GREEN_DARK = "#0E3D1B";
+const GREEN_MID = "#15622A";
+const GOLD = "#F5C518";
 
 // Gera o "d" de um path SVG: um retângulo cobrindo a tela com uma
 // borda inferior ondulada (efeito de onda).
@@ -80,6 +81,9 @@ function formatOrderDate(isoDate) {
 }
 
 export default function ReceiptScreen({ route, navigation }) {
+  const { theme, isDarkMode } = useTheme();
+  const styles = makeStyles(theme, isDarkMode);
+
   const {
     items = [],
     total = 0,
@@ -91,7 +95,7 @@ export default function ReceiptScreen({ route, navigation }) {
 
   const paymentLabel = PAYMENT_LABELS[paymentMethod] || "Pagamento";
 
-  // 3 camadas em cascata (azul ao fundo → verde → amarelo na frente),
+  // 3 camadas em cascata (verde escuro ao fundo → verde → dourado na frente),
   // cada uma um pouco mais rápida que a anterior, criando sensação de
   // profundidade — como ondas se sobrepondo.
   const waveBack = useRef(new Animated.Value(0)).current;
@@ -132,7 +136,7 @@ export default function ReceiptScreen({ route, navigation }) {
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.heroIcon}>
-          <Ionicons name="checkmark-circle" size={64} color={GREEN} />
+          <Ionicons name="checkmark-circle" size={64} color={theme.navActive} />
         </View>
 
         <AppText variant="title" style={styles.heroTitle}>
@@ -144,7 +148,7 @@ export default function ReceiptScreen({ route, navigation }) {
 
         {note ? (
           <View style={styles.noteBox}>
-            <Ionicons name="information-circle-outline" size={18} color={NAVY} />
+            <Ionicons name="information-circle-outline" size={18} color={theme.navActive} />
             <AppText style={styles.noteText}>{note}</AppText>
           </View>
         ) : null}
@@ -202,6 +206,7 @@ export default function ReceiptScreen({ route, navigation }) {
             icon="home"
             title="VOLTAR AO INÍCIO"
             onPress={() => navigation.popToTop()}
+            style={{ backgroundColor: GREEN_MID }}
           />
         </View>
       </ScrollView>
@@ -214,7 +219,7 @@ export default function ReceiptScreen({ route, navigation }) {
         style={[styles.waveLayer, { transform: buildWaveTransform(waveBack) }]}
       >
         <Svg width={SVG_WIDTH} height={SCREEN_HEIGHT + MAX_AMPLITUDE}>
-          <Path d={buildWavePath(SCREEN_HEIGHT - 10, 55)} fill={NAVY} />
+          <Path d={buildWavePath(SCREEN_HEIGHT - 10, 55)} fill={GREEN_DARK} />
         </Svg>
       </Animated.View>
 
@@ -223,7 +228,7 @@ export default function ReceiptScreen({ route, navigation }) {
         style={[styles.waveLayer, { transform: buildWaveTransform(waveMid) }]}
       >
         <Svg width={SVG_WIDTH} height={SCREEN_HEIGHT + MAX_AMPLITUDE}>
-          <Path d={buildWavePath(SCREEN_HEIGHT - 45, 75)} fill={GREEN} />
+          <Path d={buildWavePath(SCREEN_HEIGHT - 45, 75)} fill={GREEN_MID} />
         </Svg>
       </Animated.View>
 
@@ -232,17 +237,17 @@ export default function ReceiptScreen({ route, navigation }) {
         style={[styles.waveLayer, { transform: buildWaveTransform(waveFront) }]}
       >
         <Svg width={SVG_WIDTH} height={SCREEN_HEIGHT + MAX_AMPLITUDE}>
-          <Path d={buildWavePath(SCREEN_HEIGHT - 80, MAX_AMPLITUDE)} fill={YELLOW} />
+          <Path d={buildWavePath(SCREEN_HEIGHT - 80, MAX_AMPLITUDE)} fill={GOLD} />
         </Svg>
       </Animated.View>
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (theme, isDarkMode) => StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: CREAM,
+    backgroundColor: theme.bg,
   },
   waveLayer: {
     position: "absolute",
@@ -259,34 +264,39 @@ const styles = StyleSheet.create({
   },
   heroTitle: {
     textAlign: "center",
-    color: NAVY,
+    color: theme.titlePrimary,
     fontSize: 22,
     marginBottom: 4,
   },
   heroSubtitle: {
     textAlign: "center",
     marginBottom: 24,
+    color: theme.textMuted,
   },
   noteBox: {
     flexDirection: "row",
     alignItems: "flex-start",
     gap: 8,
-    backgroundColor: "#E8EAF6",
+    backgroundColor: theme.iconBg,
     borderRadius: 12,
     padding: 12,
     marginBottom: 20,
   },
   noteText: {
     flex: 1,
-    color: NAVY,
+    color: theme.titlePrimary,
     fontSize: 13,
     lineHeight: 18,
   },
   card: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: theme.card,
     borderRadius: 16,
     padding: 16,
     marginBottom: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: isDarkMode ? 0.25 : 0.06,
+    shadowRadius: 6,
     elevation: 2,
   },
   row: {
@@ -296,11 +306,11 @@ const styles = StyleSheet.create({
   },
   value: {
     fontWeight: "700",
-    color: NAVY,
+    color: theme.titlePrimary,
   },
   sectionTitle: {
     marginBottom: 10,
-    color: NAVY,
+    color: theme.titlePrimary,
   },
   itemRow: {
     flexDirection: "row",
@@ -308,7 +318,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: "#EEE",
+    borderBottomColor: theme.divider,
   },
   itemRowLast: {
     borderBottomWidth: 0,
@@ -320,36 +330,41 @@ const styles = StyleSheet.create({
   },
   itemName: {
     fontWeight: "600",
-    color: NAVY,
+    color: theme.titlePrimary,
   },
   itemQty: {
     marginTop: 2,
     fontSize: 13,
+    color: theme.textMuted,
   },
   itemSubtotal: {
     fontWeight: "700",
-    color: NAVY,
+    color: theme.titlePrimary,
   },
   totalCard: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: theme.card,
     borderRadius: 16,
     padding: 20,
     alignItems: "center",
     marginBottom: 24,
     borderLeftWidth: 5,
-    borderLeftColor: GREEN,
+    borderLeftColor: theme.navActive,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: isDarkMode ? 0.3 : 0.08,
+    shadowRadius: 8,
     elevation: 3,
   },
   totalLabel: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#666",
+    color: theme.textMuted,
     textTransform: "uppercase",
   },
   totalValue: {
     fontSize: 32,
     fontWeight: "900",
-    color: NAVY,
+    color: theme.titlePrimary,
     marginTop: 4,
   },
   buttonWrapper: {

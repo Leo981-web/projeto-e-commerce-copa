@@ -162,25 +162,25 @@ const styles = StyleSheet.create({
   logoRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 12,
     marginTop: 45,
   },
 
   logoImage: {
-    width: 45,
-    height: 45,
+    width: 64,
+    height: 64,
     resizeMode: "contain",
   },
 
   logoTitle: {
-    fontSize: 24,
+    fontSize: 30,
     fontWeight: '900',
     color: NAVY,
     letterSpacing: 1,
-    lineHeight: 28,
+    lineHeight: 34,
   },
   logoSub: {
-    fontSize: 16,
+    fontSize: 19,
     fontWeight: '700',
     color: GREEN,
     letterSpacing: 2,

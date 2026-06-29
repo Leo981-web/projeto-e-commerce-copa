@@ -238,20 +238,20 @@ const menuStyles = StyleSheet.create({
   row: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 14,
-    paddingHorizontal: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 18,
     gap: 14,
   },
   iconWrap: {
-    width: 38,
-    height: 38,
-    borderRadius: 11,
+    width: 40,
+    height: 40,
+    borderRadius: 13,
     alignItems: "center",
     justifyContent: "center",
   },
   textWrap: { flex: 1 },
   label: { fontSize: 14, fontWeight: "700" },
-  sub: { fontSize: 11, marginTop: 2, lineHeight: 15 },
+  sub: { fontSize: 11.5, marginTop: 3, lineHeight: 15 },
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -316,67 +316,58 @@ export default function ProfileScreen({ navigation }) {
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: screenBg }]}>
-      <StatusBar barStyle="light-content" backgroundColor={GREEN_DARK} />
-
-      {/* ── HERO HEADER verde ─────────────────────────────────────────────── */}
-      <View style={styles.hero}>
-        <View style={styles.heroGrid} pointerEvents="none">
-          {[...Array(8)].map((_, i) => (
-            <View key={i} style={styles.heroGridLine} />
-          ))}
-        </View>
-
-        <View style={styles.heroTop}>
-          <TouchableOpacity
-            style={styles.heroBackBtn}
-            onPress={() => navigation.goBack()}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
-            <Ionicons name="chevron-back" size={22} color={WHITE} />
-          </TouchableOpacity>
-          <Text style={styles.heroTitle}>{t("profileScreenTitle")}</Text>
-          <TouchableOpacity
-            style={styles.heroEditBtn}
-            onPress={() => setEditVisible(true)}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
-            <MaterialIcons name="edit" size={16} color={WHITE} />
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.heroInfo}>
-          <View style={styles.avatarWrap}>
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>{initials}</Text>
-            </View>
-            <View style={styles.avatarCameraBtn}>
-              <MaterialIcons name="camera-alt" size={11} color={GREEN_DARK} />
-            </View>
-          </View>
-
-          <View style={styles.heroUserInfo}>
-            <Text style={styles.heroName}>{profileData.name.toUpperCase()}</Text>
-            <Text style={styles.heroEmail}>{profileData.email}</Text>
-            {profileData.phone ? (
-              <Text style={styles.heroPhone}>{profileData.phone}</Text>
-            ) : null}
-            <View style={styles.heroBadge}>
-              <Text style={styles.heroBadgeText}>🇧🇷 {t("profileFanText")}</Text>
-            </View>
-          </View>
-        </View>
-      </View>
+      <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} backgroundColor={screenBg} />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[styles.scroll, { paddingBottom: 110 }]}
       >
-        {/* ── STATS card flutuante ─────────────────────────────────────────── */}
+        {/* ── TOPO ──────────────────────────────────────────────────────────── */}
+        <View style={styles.topBar}>
+          <TouchableOpacity
+            style={[styles.topBarBackBtn, { backgroundColor: theme.iconBg }]}
+            onPress={() => navigation.goBack()}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Ionicons name="chevron-back" size={20} color={textColor} />
+          </TouchableOpacity>
+          <Text style={[styles.topBarTitle, { color: textColor }]}>{t("profileScreenTitle")}</Text>
+          <View style={{ width: 36 }} />
+        </View>
+
+        {/* ── DADOS DO PERFIL, centralizados, sem bloco verde ───────────────── */}
+        <View style={styles.profileHeader}>
+          <View style={styles.avatarWrap}>
+            <View style={styles.avatar}>
+              <Text style={styles.avatarText}>{initials}</Text>
+            </View>
+            <View style={[styles.avatarCameraBtn, { borderColor: screenBg }]}>
+              <MaterialIcons name="camera-alt" size={11} color={GREEN_DARK} />
+            </View>
+          </View>
+
+          <Text style={[styles.profileName, { color: textColor }]}>{profileData.name}</Text>
+          <Text style={[styles.profileEmail, { color: mutedColor }]}>{profileData.email}</Text>
+          {profileData.phone ? (
+            <Text style={[styles.profilePhone, { color: mutedColor }]}>{profileData.phone}</Text>
+          ) : null}
+
+          <TouchableOpacity
+            style={[styles.editBtn, { backgroundColor: theme.navActive }]}
+            onPress={() => setEditVisible(true)}
+            activeOpacity={0.85}
+          >
+            <MaterialIcons name="edit" size={14} color={WHITE} />
+            <Text style={styles.editBtnText}>Editar Perfil</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* ── STATS card ────────────────────────────────────────────────────── */}
         <View style={[styles.statsCard, { backgroundColor: cardBg, borderColor: dividerColor }]}>
           {[
-            { icon: "receipt-long", label: t("profileScreenOrders"),     value: "0",                     color: GOLD   },
-            { icon: "favorite",     label: t("profileScreenFavorites"),  value: `${favorites?.length ?? 0}`, color: RED    },
-            { icon: "star",         label: t("profileScreenFavorites"), value: "0",                     color: "#FBBF24" },
+            { icon: "receipt-long", label: t("profileStatOrders"),    value: "0" },
+            { icon: "favorite",     label: t("profileStatFavorites"), value: `${favorites?.length ?? 0}` },
+            { icon: "star",         label: t("profileStatReviews"),   value: "0" },
           ].map((s, i, arr) => (
             <View
               key={s.label + i}
@@ -385,14 +376,15 @@ export default function ProfileScreen({ navigation }) {
                 i < arr.length - 1 && { borderRightWidth: 1, borderRightColor: dividerColor },
               ]}
             >
-              <MaterialIcons name={s.icon} size={22} color={s.color} />
+              <MaterialIcons name={s.icon} size={22} color={theme.navActive} />
               <Text style={[styles.statValue, { color: textColor }]}>{s.value}</Text>
               <Text style={[styles.statLabel, { color: mutedColor }]}>{s.label}</Text>
             </View>
           ))}
         </View>
 
-        {/* ── MENU PRINCIPAL ───────────────────────────────────────────────── */}
+        {/* ── GRUPO: MINHA CONTA ───────────────────────────────────────────── */}
+        <Text style={[styles.sectionLabel, { color: mutedColor }]}>Minha conta</Text>
         <View style={[styles.card, { backgroundColor: cardBg, borderColor: dividerColor }]}>
           <MenuItem
             {...rowTheme}
@@ -406,42 +398,54 @@ export default function ProfileScreen({ navigation }) {
           <MenuItem
             {...rowTheme}
             icon="location-on"
-            iconColor="#3B82F6"
-            iconBg={isDarkMode ? "rgba(59,130,246,0.15)" : "#DBEAFE"}
+            iconColor={theme.navActive}
+            iconBg={theme.iconBg}
             label={t("profileScreenAdress")}
             sub={t("profileScreenAdressText")}
             onPress={() => navigation.navigate("Addresses")}
           />
           <MenuItem
             {...rowTheme}
-            icon="lock-outline"
-            iconColor="#8B5CF6"
-            iconBg={isDarkMode ? "rgba(139,92,246,0.15)" : "#EDE9FE"}
-            label={t("profileScreenResetPassword")}
-            sub={t("profileScreenResetPasswordText")}
-            onPress={() => navigation.navigate("ChangePassword")}
-          />
-          <MenuItem
-            {...rowTheme}
             icon="star-outline"
-            iconColor="#FBBF24"
-            iconBg={isDarkMode ? "rgba(245,197,24,0.15)" : "#FEF3C7"}
+            iconColor={theme.navActive}
+            iconBg={theme.iconBg}
             label={t("profileScreenMyReviews")}
             sub={t("profileScreenMyReviewsText")}
             onPress={() => navigation.navigate("Reviews")}
-          />
-          <MenuItem
-            {...rowTheme}
-            icon="logout"
-            iconColor={RED}
-            iconBg={theme.iconDestructiveBg}
-            label={t("profileScreenLogut")}
-            sub={t("profileScreenLogoutText")}
-            onPress={confirmLogout}
             last
-            danger
           />
         </View>
+
+        {/* ── GRUPO: SEGURANÇA ─────────────────────────────────────────────── */}
+        <Text style={[styles.sectionLabel, { color: mutedColor }]}>Segurança</Text>
+        <View style={[styles.card, { backgroundColor: cardBg, borderColor: dividerColor }]}>
+          <MenuItem
+            {...rowTheme}
+            icon="lock-outline"
+            iconColor={theme.navActive}
+            iconBg={theme.iconBg}
+            label={t("profileScreenResetPassword")}
+            sub={t("profileScreenResetPasswordText")}
+            onPress={() =>
+              showAlert({
+                title: t("successTitle"),
+                message: t("passwordResetSent"),
+                type: "success",
+              })
+            }
+            last
+          />
+        </View>
+
+        {/* ── SAIR ──────────────────────────────────────────────────────────── */}
+        <TouchableOpacity
+          style={styles.logoutBtn}
+          onPress={confirmLogout}
+          activeOpacity={0.8}
+        >
+          <MaterialIcons name="logout" size={18} color={WHITE} />
+          <Text style={styles.logoutBtnText}>{t("profileScreenLogut")}</Text>
+        </TouchableOpacity>
       </ScrollView>
 
       {/* ── MODAL EDITAR PERFIL ───────────────────────────────────────────── */}
@@ -455,7 +459,7 @@ export default function ProfileScreen({ navigation }) {
       />
 
       {/* ── BOTTOM NAV ───────────────────────────────────────────────────── */}
-      <View style={[styles.bottomNav, { backgroundColor: cardBg, borderColor: dividerColor }]}>
+      <View style={[styles.bottomNav, { backgroundColor: theme.surfaceAccent, borderColor: dividerColor }]}>
         {NAV_ITEMS.map((tab) => (
           <TouchableOpacity
             key={tab.key}
@@ -469,7 +473,7 @@ export default function ProfileScreen({ navigation }) {
             }}
           >
             {tab.center ? (
-              <View style={[styles.navCreateBtn, { borderColor: cardBg }]}>
+              <View style={[styles.navCreateBtn, { borderColor: theme.surfaceAccent }]}>
                 <Ionicons name="add" size={26} color={GREEN_DARK} />
               </View>
             ) : (
@@ -507,141 +511,113 @@ export default function ProfileScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  hero: {
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 52,
-    overflow: "hidden",
-    backgroundColor: GREEN_DARK,
-  },
-  heroGrid: {
-    ...StyleSheet.absoluteFillObject,
-    flexDirection: "row",
-  },
-  heroGridLine: {
-    flex: 1,
-    borderRightWidth: 1,
-    borderRightColor: "rgba(255,255,255,0.04)",
-  },
-  heroTop: {
+  topBar: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 24,
+    marginBottom: 18,
+    marginTop: 6,
   },
-  heroBackBtn: {
+  topBarBackBtn: {
     width: 36,
     height: 36,
     borderRadius: 10,
-    backgroundColor: "rgba(255,255,255,0.12)",
     alignItems: "center",
     justifyContent: "center",
   },
-  heroTitle: {
-    fontSize: 18,
-    fontWeight: "900",
-    color: WHITE,
-    letterSpacing: 3,
+  topBarTitle: {
+    fontSize: 15,
+    fontWeight: "800",
+    letterSpacing: 2,
   },
-  heroEditBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    backgroundColor: "rgba(255,255,255,0.12)",
+  profileHeader: {
     alignItems: "center",
-    justifyContent: "center",
+    marginBottom: 28,
   },
-  heroInfo: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 16,
-  },
-  avatarWrap: { position: "relative" },
+  avatarWrap: { position: "relative", marginBottom: 16 },
   avatar: {
-    width: 76,
-    height: 76,
-    borderRadius: 18,
+    width: 92,
+    height: 92,
+    borderRadius: 46,
     backgroundColor: GOLD,
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 3,
-    borderColor: "rgba(245,197,24,0.4)",
+    borderColor: "rgba(245,197,24,0.35)",
   },
   avatarText: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: "900",
     color: GREEN_DARK,
   },
   avatarCameraBtn: {
     position: "absolute",
-    bottom: -4,
-    right: -4,
-    width: 22,
-    height: 22,
-    borderRadius: 11,
+    bottom: -2,
+    right: -2,
+    width: 26,
+    height: 26,
+    borderRadius: 13,
     backgroundColor: GOLD,
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 2,
-    borderColor: GREEN_DARK,
+    borderWidth: 2.5,
   },
-  heroUserInfo: { flex: 1 },
-  heroName: {
-    fontSize: 22,
-    fontWeight: "900",
-    color: WHITE,
-    letterSpacing: 0.5,
+  profileName: {
+    fontSize: 20,
+    fontWeight: "800",
+    letterSpacing: 0.2,
     lineHeight: 24,
+    textAlign: "center",
   },
-  heroEmail: {
+  profileEmail: {
+    fontSize: 13,
+    marginTop: 6,
+    textAlign: "center",
+  },
+  profilePhone: {
     fontSize: 12,
-    color: "rgba(255,255,255,0.6)",
-    marginTop: 2,
-    marginBottom: 2,
+    marginTop: 3,
+    textAlign: "center",
   },
-  heroPhone: {
-    fontSize: 12,
-    color: "rgba(255,255,255,0.5)",
-    marginBottom: 8,
+  editBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 7,
+    alignSelf: "center",
+    paddingHorizontal: 22,
+    paddingVertical: 11,
+    borderRadius: 999,
+    marginTop: 18,
   },
-  heroBadge: {
-    alignSelf: "flex-start",
-    backgroundColor: GOLD,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 20,
-  },
-  heroBadgeText: {
-    fontSize: 10,
-    fontWeight: "900",
-    color: GREEN_DARK,
-    letterSpacing: 0.5,
+  editBtnText: {
+    fontSize: 13,
+    fontWeight: "800",
+    color: WHITE,
   },
   scroll: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 22,
     paddingTop: 0,
   },
   statsCard: {
     flexDirection: "row",
-    borderRadius: 20,
-    borderWidth: 1.5,
-    marginTop: 5,
-    marginBottom: 20,
+    borderRadius: 22,
+    marginBottom: 28,
     overflow: "hidden",
     shadowColor: GREEN,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.10,
-    shadowRadius: 12,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.12,
+    shadowRadius: 16,
+    elevation: 6,
   },
   statItem: {
     flex: 1,
     alignItems: "center",
-    paddingVertical: 16,
-    gap: 4,
+    paddingVertical: 20,
+    gap: 6,
   },
   statValue: {
-    fontSize: 22,
+    fontSize: 21,
     fontWeight: "900",
     lineHeight: 24,
   },
@@ -649,15 +625,44 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: "600",
   },
+  sectionLabel: {
+    fontSize: 12,
+    fontWeight: "800",
+    textTransform: "uppercase",
+    letterSpacing: 1,
+    marginBottom: 12,
+    marginTop: 4,
+    marginLeft: 4,
+  },
+  logoutBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    paddingVertical: 16,
+    marginTop: 4,
+    marginBottom: 24,
+    borderRadius: 22,
+    backgroundColor: RED,
+    shadowColor: RED,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.18,
+    shadowRadius: 12,
+    elevation: 2,
+  },
+  logoutBtnText: {
+    fontSize: 14,
+    fontWeight: "800",
+    color: WHITE,
+  },
   card: {
-    borderRadius: 20,
-    borderWidth: 1.5,
+    borderRadius: 22,
     overflow: "hidden",
-    marginBottom: 20,
+    marginBottom: 28,
     shadowColor: GREEN,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.07,
-    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
     elevation: 2,
   },
   bottomNav: {

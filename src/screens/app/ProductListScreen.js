@@ -31,6 +31,7 @@ import * as productService from "../../services/productService";
 import { useTheme } from "../../context/ThemeContext";
 import { useFavorites } from "../../context/FavoriteContext";
 import Loading from "../../components/Loading";
+import { getCountryTheme } from "../../utils/countryTheme";
 
 const { width } = Dimensions.get("window");
 
@@ -39,15 +40,6 @@ const GREEN_DARK = "#0D4A1A";
 const GREEN_MID = "#22C55E";
 const GOLD = "#F5C518";
 const RED_LIVE = "#EF4444";
-
-const COUNTRY_THEMES = [
-  { bg: "#D4EDDA", accent: "#009C3B", flag: "🇧🇷" },
-  { bg: "#D6E8F5", accent: "#1565C0", flag: "🇦🇷" },
-  { bg: "#DDEAF7", accent: "#002395", flag: "🇫🇷" },
-  { bg: "#E8E8E8", accent: "#333333", flag: "🇩🇪" },
-  { bg: "#D4EDDA", accent: "#006600", flag: "🇵🇹" },
-  { bg: "#F7DADA", accent: "#AA151B", flag: "🇪🇸" },
-];
 
 const getHeroBanners = (t) => [
   {
@@ -81,6 +73,39 @@ const FILTER_KEYS = [
   "filterStickers",
   "filterOthers",
 ];
+
+const FILTER_ICONS = {
+  filterAll: "apps",
+  filterShirts: "checkroom",
+  filterShoes: "sports-soccer",
+  filterAccessories: "watch",
+  filterStickers: "auto-awesome",
+  filterOthers: "more-horiz",
+};
+
+// Palavras-chave usadas para classificar um produto em uma categoria de filtro
+// a partir do nome/descrição já carregados (mesma estratégia usada na busca).
+const FILTER_KEYWORDS = {
+  filterShirts: ["camisa", "camiseta", "jersey", "shirt", "blusa", "manto"],
+  filterShoes: ["chuteira", "tênis", "tenis", "calçado", "calcado", "shoe", "sneaker", "bota"],
+  filterAccessories: ["boné", "bone", "cachecol", "luva", "acessório", "acessorio", "meia", "cinto", "bolsa", "mochila", "chaveiro", "relógio", "relogio"],
+  filterStickers: ["figurinha", "sticker", "álbum", "album", "adesivo"],
+};
+
+function matchesFilter(product, filterKey) {
+  if (filterKey === "filterAll") return true;
+
+  const haystack = `${product.name ?? ""} ${product.description ?? ""}`.toLowerCase();
+
+  if (filterKey === "filterOthers") {
+    return !Object.values(FILTER_KEYWORDS).some((words) =>
+      words.some((w) => haystack.includes(w)),
+    );
+  }
+
+  const words = FILTER_KEYWORDS[filterKey] ?? [];
+  return words.some((w) => haystack.includes(w));
+}
 
 function buildNavItems(isAdmin) {
   return [
@@ -282,7 +307,7 @@ function LiveScore({ t }) {
       <View style={liveStyles.row}>
         <Text style={liveStyles.team}>🇧🇷 BRA</Text>
         <Text style={liveStyles.score}>2 — 1</Text>
-        <Text style={liveStyles.team}>ARG 🇦🇷</Text>
+        <Text style={liveStyles.team}>JPN 🇯🇵</Text>
         <Text style={liveStyles.time}> • 73'</Text>
       </View>
     </View>
@@ -341,6 +366,26 @@ export default function ProductListScreen({ navigation }) {
   const [activeFilter, setActiveFilter] = useState("filterAll");
   const [activeNav, setActiveNav] = useState("home");
 
+  // Busca começa abaixo da logo (rola junto com o conteúdo) e só passa a
+  // ficar fixa no topo depois que o usuário rolar a tela além da posição
+  // original da barra de pesquisa.
+  const [searchThreshold, setSearchThreshold] = useState(240);
+  const [showStickySearch, setShowStickySearch] = useState(false);
+  const stickyAnim = useRef(new Animated.Value(0)).current;
+
+  function handleListScroll(e) {
+    const y = e.nativeEvent.contentOffset.y;
+    const shouldShow = y > searchThreshold - 12;
+    if (shouldShow !== showStickySearch) {
+      setShowStickySearch(shouldShow);
+      Animated.timing(stickyAnim, {
+        toValue: shouldShow ? 1 : 0,
+        duration: 180,
+        useNativeDriver: true,
+      }).start();
+    }
+  }
+
   const NAV_ITEMS = buildNavItems(isAdmin);
 
   async function loadProducts() {
@@ -378,8 +423,12 @@ export default function ProductListScreen({ navigation }) {
       });
     }
 
+    if (activeFilter && activeFilter !== "filterAll") {
+      result = result.filter((p) => matchesFilter(p, activeFilter));
+    }
+
     return result;
-  }, [products, search]);
+  }, [products, search, activeFilter]);
 
   function confirmDelete(product) {
     showConfirm({
@@ -413,15 +462,14 @@ export default function ProductListScreen({ navigation }) {
     );
   }
 
-  function renderProduct({ item, index }) {
-    const countryTheme = COUNTRY_THEMES[index % COUNTRY_THEMES.length];
+  function renderProduct({ item }) {
+    const countryTheme = getCountryTheme(item);
     const cartItem = cart.find((c) => c.id === item.id);
     const quantityInCart = cartItem ? cartItem.cartQuantity : 0;
     const availableQty = item.quantity - quantityInCart;
     const isFav = isFavorite(item.id);
 
     const stockRatio = item.quantity > 0 ? availableQty / item.quantity : 0;
-    const stockPercent = Math.min(Math.max(stockRatio, 0), 1) * 100;
     const stockColor =
       stockRatio <= 0.2
         ? theme.textDestructive
@@ -443,11 +491,13 @@ export default function ProductListScreen({ navigation }) {
             sourceUrl={item.image}
             style={styles.productImage}
           />
-          <View
-            style={[styles.flagBadge, { backgroundColor: countryTheme.bg }]}
-          >
-            <Text style={styles.flagBadgeText}>{countryTheme.flag}</Text>
-          </View>
+          {countryTheme.flag ? (
+            <View
+              style={[styles.flagBadge, { backgroundColor: countryTheme.bg }]}
+            >
+              <Text style={styles.flagBadgeText}>{countryTheme.flag}</Text>
+            </View>
+          ) : null}
           <Pressable
             hitSlop={8}
             onPress={(e) => {
@@ -470,7 +520,7 @@ export default function ProductListScreen({ navigation }) {
               {item.name}
             </AppText>
             <AppText
-              style={[styles.productPrice, { color: countryTheme.accent }]}
+              style={[styles.productPrice, { color: theme.navActive }]}
             >
               {formatCurrency(item.price)}
             </AppText>
@@ -485,17 +535,12 @@ export default function ProductListScreen({ navigation }) {
           </AppText>
 
           <View style={styles.stockRow}>
-            <View style={styles.stockTrack}>
-              <View
-                style={[
-                  styles.stockFill,
-                  { width: `${stockPercent}%`, backgroundColor: stockColor },
-                ]}
-              />
+            <View style={[styles.stockPill, { backgroundColor: theme.iconBg }]}>
+              <MaterialIcons name="inventory-2" size={11} color={stockColor} />
+              <Text style={[styles.stockLabel, { color: stockColor }]}>
+                {availableQty} {t("inStock")}
+              </Text>
             </View>
-            <Text style={[styles.stockLabel, { color: stockColor }]}>
-              {availableQty} {t("inStock")}
-            </Text>
           </View>
 
           <View style={styles.cardFooter}>
@@ -564,45 +609,152 @@ export default function ProductListScreen({ navigation }) {
     );
   }
 
-  return (
-    <SafeAreaView style={styles.safe}>
-      <View style={styles.header}>
-        <View style={styles.logoContainer}>
-          <Image
-            source={require("../../assets/logo.png")}
-            style={styles.logoImage}
-          />
-          <Text style={styles.headerTitle}>
-            <Text style={{ color: GREEN }}>Gol</Text>
-            <Text style={{ color: GOLD }}>Up</Text>
+  function renderListHeader() {
+    return (
+      <>
+        <View style={styles.header}>
+          <View style={styles.logoContainer}>
+            <Image
+              source={require("../../assets/logo.png")}
+              style={styles.logoImage}
+            />
+            <Text style={styles.headerTitle}>
+              <Text style={{ color: GREEN }}>Gol</Text>
+              <Text style={{ color: GOLD }}>Up</Text>
+            </Text>
+          </View>
+          <View style={styles.headerActions}>
+            <Pressable
+              style={styles.iconBtn}
+              onPress={() => navigation.navigate("Notification")}
+            >
+              <MaterialIcons
+                name="notifications-none"
+                size={22}
+                color={theme.titlePrimary}
+              />
+              <View style={styles.notifDot} />
+            </Pressable>
+            <Pressable
+              style={styles.iconBtn}
+              onPress={() => navigation.navigate("Settings")}
+            >
+              <MaterialIcons
+                name="settings"
+                size={22}
+                color={theme.titlePrimary}
+              />
+            </Pressable>
+          </View>
+        </View>
+
+        <View
+          style={styles.searchRow}
+          onLayout={(e) =>
+            setSearchThreshold(e.nativeEvent.layout.y + e.nativeEvent.layout.height)
+          }
+        >
+          <View style={styles.searchBox}>
+            <MaterialIcons
+              name="search"
+              size={18}
+              color={theme.textMuted}
+              style={{ marginRight: 8 }}
+            />
+            <TextInput
+              style={styles.searchInput}
+              placeholder={t("searchPlaceholder")}
+              placeholderTextColor={theme.textMuted}
+              value={search}
+              onChangeText={setSearch}
+            />
+          </View>
+        </View>
+
+        <HeroCarousel t={t} />
+        <LiveScore t={t} />
+
+        <Text style={styles.customSectionTitle}>
+          {t("callout1")}{" "}
+          <Text style={{ color: GREEN_MID }}>{t("calloutCopa")}</Text>{" "}
+          {t("callout2")} <EvilIcons name="trophy" size={23} color={GOLD} />
+        </Text>
+
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.filtersRow}
+          style={styles.filtersScroll}
+        >
+          {FILTER_KEYS.map((f) => {
+            const isActive = activeFilter === f;
+            return (
+              <TouchableOpacity
+                key={f}
+                activeOpacity={0.75}
+                style={[styles.filterChip, isActive && styles.filterChipActive]}
+                onPress={() => setActiveFilter(f)}
+              >
+                <MaterialIcons
+                  name={FILTER_ICONS[f]}
+                  size={14}
+                  color={isActive ? "#FFFFFF" : theme.navActive}
+                  style={styles.filterChipIcon}
+                />
+                <Text
+                  style={[
+                    styles.filterChipText,
+                    isActive && styles.filterChipTextActive,
+                  ]}
+                >
+                  {t(f)}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+
+        <View style={styles.productsHeader}>
+          <Text style={styles.sectionTitle}>{t("productsSectionTitle")}</Text>
+          <Text style={styles.productsCount}>
+            {filteredProducts.length} {t("itemsCount")}
           </Text>
         </View>
-        <View style={styles.headerActions}>
-          <Pressable
-            style={styles.iconBtn}
-            onPress={() => navigation.navigate("Notification")}
-          >
-            <MaterialIcons
-              name="notifications-none"
-              size={22}
-              color={theme.titlePrimary}
-            />
-            <View style={styles.notifDot} />
-          </Pressable>
-          <Pressable
-            style={styles.iconBtn}
-            onPress={() => navigation.navigate("Settings")}
-          >
-            <MaterialIcons
-              name="settings"
-              size={22}
-              color={theme.titlePrimary}
-            />
-          </Pressable>
-        </View>
-      </View>
+      </>
+    );
+  }
 
-      <View style={styles.searchRow}>
+  function renderListEmpty() {
+    return renderEmptyList();
+  }
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <Loading />
+      </SafeAreaView>
+    );
+  }
+
+  return (
+    <SafeAreaView style={styles.safe}>
+      <Animated.View
+        pointerEvents={showStickySearch ? "auto" : "none"}
+        style={[
+          styles.stickySearchRow,
+          {
+            opacity: stickyAnim,
+            transform: [
+              {
+                translateY: stickyAnim.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [-12, 0],
+                }),
+              },
+            ],
+          },
+        ]}
+      >
         <View style={styles.searchBox}>
           <MaterialIcons
             name="search"
@@ -618,66 +770,19 @@ export default function ProductListScreen({ navigation }) {
             onChangeText={setSearch}
           />
         </View>
-      </View>
+      </Animated.View>
 
-      <HeroCarousel t={t} />
-      <LiveScore t={t} />
-
-      <Text style={styles.customSectionTitle}>
-        {t("callout1")}{" "}
-        <Text style={{ color: GREEN_MID }}>{t("calloutCopa")}</Text>{" "}
-        {t("callout2")} <EvilIcons name="trophy" size={23} color={GOLD} />
-      </Text>
-
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.filtersRow}
-        style={styles.filtersScroll}
-      >
-        {FILTER_KEYS.map((f) => {
-          const isActive = activeFilter === f;
-          return (
-            <TouchableOpacity
-              key={f}
-              style={[styles.filterChip, isActive && styles.filterChipActive]}
-              onPress={() => setActiveFilter(f)}
-            >
-              <Text
-                style={[
-                  styles.filterChipText,
-                  isActive && styles.filterChipTextActive,
-                ]}
-              >
-                {t(f)}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </ScrollView>
-
-      <View style={styles.productsHeader}>
-        <Text style={styles.sectionTitle}>{t("productsSectionTitle")}</Text>
-        <Text style={styles.productsCount}>
-          {filteredProducts.length} {t("itemsCount")}
-        </Text>
-      </View>
-
-      {loading ? (
-        <View style={styles.loadingContainer}>
-          <Loading />
-          <Text style={styles.loadingText}>{t("loadingProductsText")}</Text>
-        </View>
-      ) : (
-        <FlatList
-          contentContainerStyle={styles.list}
-          data={filteredProducts}
-          keyExtractor={(item) => item.id}
-          ListEmptyComponent={renderEmptyList}
-          renderItem={renderProduct}
-          showsVerticalScrollIndicator={false}
-        />
-      )}
+      <FlatList
+        contentContainerStyle={styles.list}
+        data={filteredProducts}
+        keyExtractor={(item) => item.id}
+        ListHeaderComponent={renderListHeader}
+        ListEmptyComponent={renderListEmpty}
+        renderItem={renderProduct}
+        showsVerticalScrollIndicator={false}
+        onScroll={handleListScroll}
+        scrollEventThrottle={16}
+      />
 
       <View style={styles.bottomNav}>
         {NAV_ITEMS.map((tab) => (
@@ -735,7 +840,7 @@ export default function ProductListScreen({ navigation }) {
 
 const makeStyles = (theme) =>
   StyleSheet.create({
-    safe: { flex: 1, backgroundColor: theme.card },
+    safe: { flex: 1, backgroundColor: theme.bg },
     header: {
       flexDirection: "row",
       alignItems: "center",
@@ -744,7 +849,7 @@ const makeStyles = (theme) =>
       paddingTop: 14,
       paddingBottom: 12,
     },
-    logoContainer: { flexDirection: "row", alignItems: "center", gap: 10 },
+    logoContainer: { flexDirection: "row", alignItems: "center", gap: 4 },
     logoImage: { width: 45, height: 45, resizeMode: "contain" },
     headerTitle: { fontSize: 26, fontWeight: "900", letterSpacing: -0.5 },
     headerActions: { flexDirection: "row", gap: 8 },
@@ -770,11 +875,30 @@ const makeStyles = (theme) =>
       borderWidth: 1.5,
       borderColor: theme.bg ?? "#fff",
     },
-    searchRow: { paddingHorizontal: 20, marginBottom: 14 },
+    searchRow: {
+      paddingHorizontal: 20,
+      paddingBottom: 14,
+    },
+    stickySearchRow: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      zIndex: 10,
+      paddingHorizontal: 20,
+      paddingTop: 10,
+      paddingBottom: 10,
+      backgroundColor: theme.bg,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.06,
+      shadowRadius: 6,
+      elevation: 4,
+    },
     searchBox: {
       flexDirection: "row",
       alignItems: "center",
-      backgroundColor: theme.card,
+      backgroundColor: theme.surfaceAccent,
       borderRadius: 10,
       paddingHorizontal: 14,
       height: 46,
@@ -805,34 +929,43 @@ const makeStyles = (theme) =>
       marginTop: 6,
     },
     productsCount: { fontSize: 14, color: theme.textMuted, fontWeight: "700" },
-    filtersScroll: { maxHeight: 72, marginBottom: 14 },
-    filtersRow: { paddingHorizontal: 20, gap: 8, alignItems: "center" },
+    filtersScroll: { flexGrow: 0, height: 48, marginBottom: 16 },
+    filtersRow: {
+      paddingHorizontal: 20,
+      alignItems: "center",
+      flexDirection: "row",
+      minHeight: 48,
+    },
     filterChip: {
       flexDirection: "row",
       alignItems: "center",
-      gap: 5,
+      justifyContent: "center",
+      flexShrink: 0,
+      alignSelf: "flex-start",
+      marginRight: 9,
       paddingHorizontal: 14,
       paddingVertical: 9,
       borderRadius: 999,
-      backgroundColor: "rgba(21,98,42,0.07)",
+      backgroundColor: theme.iconBg,
       borderWidth: 1.5,
-      borderColor: "rgba(21,98,42,0.18)",
+      borderColor: theme.divider,
     },
     filterChipActive: {
       backgroundColor: GREEN,
       borderColor: GREEN,
       shadowColor: GREEN,
       shadowOffset: { width: 0, height: 3 },
-      shadowOpacity: 0.35,
+      shadowOpacity: 0.3,
       shadowRadius: 6,
-      elevation: 4,
+      elevation: 3,
     },
+    filterChipIcon: { marginRight: 6 },
     filterChipText: {
       fontSize: 12,
-      color: GREEN,
+      color: theme.navActive,
       fontWeight: "800",
-      textTransform: "uppercase",
-      letterSpacing: 0.4,
+      letterSpacing: 0.2,
+      flexShrink: 0,
     },
     filterChipTextActive: { color: "#FFFFFF", fontWeight: "900" },
     list: {
@@ -919,18 +1052,20 @@ const makeStyles = (theme) =>
     stockRow: {
       flexDirection: "row",
       alignItems: "center",
-      gap: 6,
-      marginTop: 7,
+      marginTop: 9,
     },
-    stockTrack: {
-      flex: 1,
-      height: 4,
-      borderRadius: 2,
-      backgroundColor: theme.divider,
-      overflow: "hidden",
+    stockPill: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 4,
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: 999,
     },
-    stockFill: { height: "100%", borderRadius: 2 },
-    stockLabel: { fontSize: 9, fontWeight: "800" },
+    stockLabel: {
+      fontSize: 10,
+      fontWeight: "800",
+    },
     cardFooter: {
       flexDirection: "row",
       alignItems: "center",
@@ -991,7 +1126,7 @@ bottomNav: {
       left: 0,
       right: 0,
       flexDirection: "row",
-      backgroundColor: theme.card,
+      backgroundColor: theme.surfaceAccent,
       paddingTop: 12,
       paddingBottom: 26,
       paddingHorizontal: 10,
@@ -1019,11 +1154,11 @@ bottomNav: {
       width: 52,
       height: 52,
       borderRadius: 12,
-      backgroundColor: "#F5C518", 
+      backgroundColor: "#F5C518",
       alignItems: "center",
       justifyContent: "center",
       borderWidth: 3,
-      borderColor: theme.card,
+      borderColor: theme.surfaceAccent,
       shadowColor: "#F5C518",
       shadowOffset: { width: 0, height: 4 },
       shadowOpacity: 0.5,

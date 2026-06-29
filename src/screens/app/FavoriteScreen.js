@@ -24,15 +24,7 @@ import { useFavorites } from "../../context/FavoriteContext";
 import { formatCurrency } from "../../services/formatters";
 import * as productService from "../../services/productService";
 import Loading from "../../components/Loading";
-
-const COUNTRY_THEMES = [
-  { bg: "#D4EDDA", accent: "#009C3B", flag: "🇧🇷" },
-  { bg: "#D6E8F5", accent: "#74ACDF", flag: "🇦🇷" },
-  { bg: "#DDEAF7", accent: "#002395", flag: "🇫🇷" },
-  { bg: "#E8E8E8", accent: "#333333", flag: "🇩🇪" },
-  { bg: "#D4EDDA", accent: "#006600", flag: "🇵🇹" },
-  { bg: "#F7DADA", accent: "#AA151B", flag: "🇪🇸" },
-];
+import { getCountryTheme } from "../../utils/countryTheme";
 
 function buildNavItems(isAdmin) {
   return [
@@ -100,8 +92,8 @@ export default function FavoriteScreen({ navigation }) {
     );
   }
 
-  function renderProduct({ item, index }) {
-    const countryTheme = COUNTRY_THEMES[index % COUNTRY_THEMES.length];
+  function renderProduct({ item }) {
+    const countryTheme = getCountryTheme(item);
     const cartItem = cart.find((c) => c.id === item.id);
     const quantityInCart = cartItem ? cartItem.cartQuantity : 0;
     const availableQuantity = item.quantity - quantityInCart;
@@ -112,7 +104,7 @@ export default function FavoriteScreen({ navigation }) {
         style={[styles.card, { borderLeftColor: countryTheme.accent, borderLeftWidth: 4 }]}
       >
         <View style={[styles.cardImageWrap, { backgroundColor: countryTheme.bg }]}>
-          <Text style={styles.cardFlag}>{countryTheme.flag}</Text>
+          {countryTheme.flag ? <Text style={styles.cardFlag}>{countryTheme.flag}</Text> : null}
           <ProductImage name={item.name} sourceUrl={item.image} style={styles.productImage} />
         </View>
 
@@ -121,7 +113,7 @@ export default function FavoriteScreen({ navigation }) {
             <AppText numberOfLines={1} style={styles.productName}>
               {item.name}
             </AppText>
-            <AppText style={[styles.productPrice, { color: countryTheme.accent }]}>
+            <AppText style={[styles.productPrice, { color: theme.navActive }]}>
               {formatCurrency(item.price)}
             </AppText>
           </View>
@@ -134,7 +126,7 @@ export default function FavoriteScreen({ navigation }) {
             <View style={[styles.quantityBadge, { backgroundColor: countryTheme.bg }]}>
               <MaterialIcons name="inventory-2" size={13} color={countryTheme.accent} />
               <Text style={[styles.productQuantity, { color: countryTheme.accent }]}>
-                {availableQuantity} in stock
+                {availableQuantity} {t("inStock")}
               </Text>
             </View>
 
@@ -172,6 +164,14 @@ export default function FavoriteScreen({ navigation }) {
 
   const favoriteProducts = products.filter((product) => isFavorite(product.id));
 
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <Loading />
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.header}>
@@ -184,9 +184,7 @@ export default function FavoriteScreen({ navigation }) {
         </View>
       </View>
 
-      {loading ? (
-        <Loading/>
-      ) : favoriteProducts.length === 0 ? (
+      {favoriteProducts.length === 0 ? (
         renderEmptyState()
       ) : (
         <FlatList
@@ -331,7 +329,7 @@ const makeStyles = (theme) =>
       elevation: 3,
     },
     cardImageWrap: {
-      width: 90,
+      width: 76,
       alignItems: "center",
       justifyContent: "center",
       position: "relative",
@@ -341,12 +339,13 @@ const makeStyles = (theme) =>
       position: "absolute",
       top: 6,
       left: 6,
-      fontSize: 14,
+      fontSize: 15,
     },
     productImage: {
-      width: 70,
-      height: 80,
-      borderRadius: 12,
+      width: 52,
+      height: 64,
+      borderRadius: 10,
+      marginTop: 10,
     },
     cardContent: {
       flex: 1,
@@ -414,7 +413,7 @@ const makeStyles = (theme) =>
       left: 0,
       right: 0,
       flexDirection: "row",
-      backgroundColor: theme.card,
+      backgroundColor: theme.surfaceAccent,
       paddingTop: 12,
       paddingBottom: 26,
       paddingHorizontal: 10,
@@ -448,7 +447,7 @@ const makeStyles = (theme) =>
       alignItems: "center",
       justifyContent: "center",
       borderWidth: 3,
-      borderColor: theme.card,
+      borderColor: theme.surfaceAccent,
       shadowColor: "#F5C518",
       shadowOffset: { width: 0, height: 4 },
       shadowOpacity: 0.5,

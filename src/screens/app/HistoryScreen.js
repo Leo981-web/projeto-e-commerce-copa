@@ -13,10 +13,7 @@ import { formatCurrency } from "../../services/formatters";
 import { useHistory } from "../../context/HistoryContext";
 import { getOrders } from "../../services/orderService";
 import Loading from "../../components/Loading";
-
-const NAVY = "#1A237E";
-const GREEN = "#00A650";
-const CREAM = "#F5F1E8";
+import { useTheme } from "../../context/ThemeContext";
 
 const PAYMENT_LABELS = {
     pix: "Pix",
@@ -29,6 +26,8 @@ function getPaymentLabel(method) {
 }
 
 export default function HistoryScreen({ navigation }) {
+    const { theme, isDarkMode } = useTheme();
+    const styles = makeStyles(theme, isDarkMode);
 
     const { history: localHistory } = useHistory();
     const [apiOrders, setApiOrders] = useState([]);
@@ -81,14 +80,14 @@ export default function HistoryScreen({ navigation }) {
                     <View style={styles.orderRight}>
                         <AppText style={styles.total}>{formatCurrency(item.total)}</AppText>
                         <View style={styles.statusBadge}>
-                            <Ionicons name="checkmark-circle" size={12} color={GREEN} />
+                            <Ionicons name="checkmark-circle" size={12} color={theme.navActive} />
                             <AppText style={styles.statusText}>Pago</AppText>
                         </View>
                     </View>
                 </View>
 
                 <View style={styles.paymentRow}>
-                    <Ionicons name="wallet-outline" size={14} color="#666" />
+                    <Ionicons name="wallet-outline" size={14} color={theme.textMuted} />
                     <AppText style={styles.paymentText}>
                         {getPaymentLabel(item.paymentMethod)}
                     </AppText>
@@ -139,7 +138,7 @@ export default function HistoryScreen({ navigation }) {
                 renderItem={renderItem}
                 contentContainerStyle={styles.listContainer}
                 refreshControl={
-                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[NAVY]} />
+                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[theme.navActive]} tintColor={theme.navActive} />
                 }
                 ListEmptyComponent={
                     <AppText style={styles.empty}>Nenhuma compra encontrada no histórico.</AppText>
@@ -149,55 +148,55 @@ export default function HistoryScreen({ navigation }) {
     );
 }
 
-const styles = StyleSheet.create({
-    safe: { flex: 1, backgroundColor: CREAM },
-    header: { color: NAVY, padding: 16, marginTop: 10 },
+const makeStyles = (theme, isDarkMode) => StyleSheet.create({
+    safe: { flex: 1, backgroundColor: theme.bg },
+    header: { color: theme.titlePrimary, padding: 16, marginTop: 10 },
     loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
     listContainer: { padding: 16 },
     orderCard: {
-        backgroundColor: "#FFFFFF",
+        backgroundColor: theme.card,
         borderRadius: 12,
         marginBottom: 12,
         flexDirection: "row",
         overflow: "hidden",
-        elevation: 2,
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.1,
+        shadowOpacity: isDarkMode ? 0.25 : 0.1,
         shadowRadius: 2,
+        elevation: 2,
     },
-    cardIndicator: { width: 6, backgroundColor: NAVY },
+    cardIndicator: { width: 6, backgroundColor: theme.navActive },
     orderBody: { flex: 1, padding: 16 },
     orderHeader: {
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
     },
-    orderId: { fontWeight: "700", color: NAVY },
-    date: { fontSize: 12, marginTop: 4 },
+    orderId: { fontWeight: "700", color: theme.titlePrimary },
+    date: { fontSize: 12, marginTop: 4, color: theme.textMuted },
     orderRight: { alignItems: "flex-end" },
-    total: { fontWeight: "800", color: NAVY, fontSize: 16 },
+    total: { fontWeight: "800", color: theme.titlePrimary, fontSize: 16 },
     statusBadge: {
         flexDirection: "row",
         alignItems: "center",
-        backgroundColor: "#E8F5E9",
+        backgroundColor: theme.iconBg,
         paddingHorizontal: 8,
         paddingVertical: 2,
         borderRadius: 8,
         marginTop: 4,
     },
-    statusText: { fontSize: 10, color: GREEN, marginLeft: 4, fontWeight: "600" },
+    statusText: { fontSize: 10, color: theme.navActive, marginLeft: 4, fontWeight: "600" },
     paymentRow: {
         flexDirection: "row",
         alignItems: "center",
         gap: 6,
         marginTop: 10,
     },
-    paymentText: { fontSize: 13, color: "#666" },
+    paymentText: { fontSize: 13, color: theme.textMuted },
     itemsSection: { marginTop: 4 },
     itemsDivider: {
         height: 1,
-        backgroundColor: "#EEE",
+        backgroundColor: theme.divider,
         marginVertical: 10,
     },
     itemRow: {
@@ -206,12 +205,12 @@ const styles = StyleSheet.create({
         alignItems: "center",
         paddingVertical: 8,
         borderBottomWidth: 1,
-        borderBottomColor: "#F0F0F0",
+        borderBottomColor: theme.divider,
     },
     itemRowLast: { borderBottomWidth: 0, paddingBottom: 0 },
     itemInfo: { flex: 1, marginRight: 12 },
-    itemName: { fontWeight: "600", color: NAVY, fontSize: 13 },
-    itemQty: { fontSize: 12, marginTop: 2 },
-    itemSubtotal: { fontWeight: "700", color: NAVY, fontSize: 13 },
-    empty: { textAlign: "center", marginTop: 50, color: "#666" }
+    itemName: { fontWeight: "600", color: theme.titlePrimary, fontSize: 13 },
+    itemQty: { fontSize: 12, marginTop: 2, color: theme.textMuted },
+    itemSubtotal: { fontWeight: "700", color: theme.titlePrimary, fontSize: 13 },
+    empty: { textAlign: "center", marginTop: 50, color: theme.textMuted }
 });

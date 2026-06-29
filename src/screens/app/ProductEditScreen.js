@@ -6,6 +6,7 @@ import AppInput from "../../components/AppInput";
 import AppText from "../../components/AppText";
 import QuantityInput from "../../components/QuantityInput";
 import ScreenHeader from "../../components/ScreenHeader";
+import Loading from "../../components/Loading";
 import {
   formatDecimalInput,
   parseCurrencyInput,
@@ -109,13 +110,7 @@ export default function ProductEditScreen({ navigation, route }) {
   if (loading) {
     return (
       <View style={styles.container}>
-        <ScreenHeader
-          title={t("editProductTitle")}
-          onBack={() => navigation.goBack()}
-        />
-        <AppText variant="muted" style={styles.emptyText}>
-          {t("loadingProduct")}
-        </AppText>
+        <Loading />
       </View>
     );
   }
