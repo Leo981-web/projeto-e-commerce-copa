@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -50,6 +50,14 @@ function Stars({ value, onChange, size = 22, color, mutedColor }) {
 function ReviewCard({ item, theme, t, savedReview, onSubmit }) {
   const [rating, setRating] = useState(savedReview?.rating ?? 0);
   const [comment, setComment] = useState(savedReview?.comment ?? "");
+
+  // ✅ CORREÇÃO: sincroniza o estado quando savedReview chega após o carregamento assíncrono
+  useEffect(() => {
+    if (savedReview) {
+      setRating(savedReview.rating ?? 0);
+      setComment(savedReview.comment ?? "");
+    }
+  }, [savedReview]);
 
   const isUpdate = Boolean(savedReview);
 
@@ -193,6 +201,8 @@ export default function ReviewsScreen({ navigation }) {
           showsVerticalScrollIndicator={false}
           renderItem={({ item }) => (
             <ReviewCard
+              // ✅ CORREÇÃO: key inclui se há review salvo, forçando remontagem limpa
+              key={`${item.id}-${reviews[item.id] ? "reviewed" : "new"}`}
               item={item}
               theme={theme}
               t={t}

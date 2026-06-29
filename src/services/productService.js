@@ -34,7 +34,11 @@ function mapToDTO(productData) {
   const finalStock = rawStock ? Number(rawStock) : 0;
 
   
-  const finalImage = productData.imageURL || productData.imageUrl || productData.image || null;
+  const finalImage =
+    productData.imageURL ||
+    productData.imageUrl ||
+    productData.image ||    
+    null;
 
   return {
     brand: "Geral", 
@@ -77,7 +81,7 @@ async function getAuthHeader() {
 
 
 export async function getProducts() {
-  const authHeader = await getAuthHeader(); // 1. Buscamos os headers
+  const authHeader = await getAuthHeader(); 
 
   try {
     const response = await fetch(`${API_URL}/products?size=100&targetCurrency=BRL`, {

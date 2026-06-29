@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import {
   FlatList,
   Pressable,
@@ -36,7 +37,7 @@ export default function CartScreen({ navigation }) {
   const NAV_ITEMS = [
     { key: "home",      icon: "home",   iconOff: "home-outline",   labelKey: "navHome"      },
     { key: "favorites", icon: "heart",  iconOff: "heart-outline",  labelKey: "navFavorites" },
-    { key: "create",    center: true,              adminOnly: true           },
+    { key: "create",    center: true,                              adminOnly: true          },
     { key: "cart",      icon: "cart",   iconOff: "cart-outline",   labelKey: "navCart"      },
     { key: "profile",   icon: "person", iconOff: "person-outline", labelKey: "navProfile"   },
   ].filter((tab) => !tab.adminOnly || isAdmin);
@@ -57,7 +58,8 @@ export default function CartScreen({ navigation }) {
     });
   }
 
-  function handleQuantityChange(id, amount) {
+  // Utilizando useCallback na mudança de quantidade
+  const handleQuantityChange = useCallback((id, amount) => {
     const result = updateQuantity(id, amount);
     if (result === "max_reached") {
       showAlert({
@@ -66,9 +68,10 @@ export default function CartScreen({ navigation }) {
         type: "neutral",
       });
     }
-  }
+  }, [updateQuantity, showAlert, t]);
 
-  function renderCartItem({ item }) {
+  // Utilizando useCallback na renderização do item
+  const renderCartItem = useCallback(({ item }) => {
     return (
       <View style={styles.cartItem}>
         <ProductImage name={item.name} sourceUrl={item.image} style={styles.productImage} />
@@ -120,7 +123,7 @@ export default function CartScreen({ navigation }) {
         </View>
       </View>
     );
-  }
+  }, [styles, theme, t, handleQuantityChange, removeFromCart, showAlert]);
 
   return (
     <SafeAreaView style={styles.container}>

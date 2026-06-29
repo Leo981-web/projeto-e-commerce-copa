@@ -1,61 +1,98 @@
-import React, { createContext, useState, useEffect, useContext, useCallback } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getOrders } from '../services/orderService';
+import React, {
+  createContext,
+  useState,
+  useEffect,
+  useContext,
+  useCallback,
+} from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getOrders } from "../services/orderService";
 
 const HistoryContext = createContext();
 
+const mergeWithLocal = (apiOrders, localOrders) =>
+  apiOrders.map((apiOrder) => {
+    const localOrder = localOrders.find((o) => o.id === apiOrder.id);
+    if (!localOrder) return apiOrder;
+
+    return {
+      ...apiOrder,
+      items: (apiOrder.items || []).map((apiItem) => {
+        const localItem = (localOrder.items || []).find(
+          (i) => i.id === apiItem.id,
+        );
+        return {
+          ...apiItem,
+          image: apiItem.image || localItem?.image || null,
+        };
+      }),
+    };
+  });
+
 export const HistoryProvider = ({ children }) => {
-    const [history, setHistory] = useState([]);
-    const [apiOrders, setApiOrders] = useState([]);
-    const [loading, setLoading] = useState(true);
+  const [history, setHistory] = useState([]);
+  const [apiOrders, setApiOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-    const loadFromApi = useCallback(async () => {
-        try {
-            const orders = await getOrders('BRL');
-            setApiOrders(orders);
-            return orders;
-        } catch {
-            return null;
-        }
-    }, []);
+  const loadFromApi = useCallback(async () => {
+    try {
+      const orders = await getOrders("BRL");
+      setApiOrders(orders);
+      return orders;
+    } catch {
+      return null;
+    }
+  }, []);
 
-    useEffect(() => {
-        loadHistory();
-    }, []);
+  useEffect(() => {
+    loadHistory();
+  }, []);
 
-    const loadHistory = async () => {
-        setLoading(true);
-        const stored = await AsyncStorage.getItem('@my_orders_history');
-        const localOrders = stored ? JSON.parse(stored) : [];
-        setHistory(localOrders);
+  const loadHistory = async () => {
+    setLoading(true);
 
-        const api = await loadFromApi();
-        if (api && api.length > 0) {
-            setHistory(api);
-            await AsyncStorage.setItem('@my_orders_history', JSON.stringify(api));
-        }
-        setLoading(false);
-    };
+    const stored = await AsyncStorage.getItem("@my_orders_history");
+    const localOrders = stored ? JSON.parse(stored) : [];
+    setHistory(localOrders);
 
-    const addOrder = async (order) => {
-        const newHistory = [order, ...history.filter(h => h.id !== order.id)];
-        setHistory(newHistory);
-        await AsyncStorage.setItem('@my_orders_history', JSON.stringify(newHistory));
-    };
+    const api = await loadFromApi();
+    if (api && api.length > 0) {
+      const merged = mergeWithLocal(api, localOrders);
+      setHistory(merged);
+      await AsyncStorage.setItem("@my_orders_history", JSON.stringify(merged));
+    }
 
-    const refreshOrders = useCallback(async () => {
-        const api = await loadFromApi();
-        if (api && api.length > 0) {
-            setHistory(api);
-            await AsyncStorage.setItem('@my_orders_history', JSON.stringify(api));
-        }
-    }, [loadFromApi]);
+    setLoading(false);
+  };
 
-    return (
-        <HistoryContext.Provider value={{ history, addOrder, refreshOrders, loading }}>
-            {children}
-        </HistoryContext.Provider>
+  const addOrder = async (order) => {
+    const newHistory = [order, ...history.filter((h) => h.id !== order.id)];
+    setHistory(newHistory);
+    await AsyncStorage.setItem(
+      "@my_orders_history",
+      JSON.stringify(newHistory),
     );
+  };
+
+  const refreshOrders = useCallback(async () => {
+    const stored = await AsyncStorage.getItem("@my_orders_history");
+    const localOrders = stored ? JSON.parse(stored) : [];
+
+    const api = await loadFromApi();
+    if (api && api.length > 0) {
+      const merged = mergeWithLocal(api, localOrders);
+      setHistory(merged);
+      await AsyncStorage.setItem("@my_orders_history", JSON.stringify(merged));
+    }
+  }, [loadFromApi]);
+
+  return (
+    <HistoryContext.Provider
+      value={{ history, addOrder, refreshOrders, loading }}
+    >
+      {children}
+    </HistoryContext.Provider>
+  );
 };
 
 export const useHistory = () => useContext(HistoryContext);

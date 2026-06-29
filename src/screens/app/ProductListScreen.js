@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState, useRef } from "react";
+import { useCallback, useMemo, useState, useRef, memo } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -83,8 +83,6 @@ const FILTER_ICONS = {
   filterOthers: "more-horiz",
 };
 
-// Palavras-chave usadas para classificar um produto em uma categoria de filtro
-// a partir do nome/descrição já carregados (mesma estratégia usada na busca).
 const FILTER_KEYWORDS = {
   filterShirts: ["camisa", "camiseta", "jersey", "shirt", "blusa", "manto"],
   filterShoes: ["chuteira", "tênis", "tenis", "calçado", "calcado", "shoe", "sneaker", "bota"],
@@ -130,7 +128,7 @@ function buildNavItems(isAdmin) {
 function HeroCarousel({ t }) {
   const [active, setActive] = useState(0);
   const scrollRef = useRef(null);
-  const banners = getHeroBanners(t);
+  const banners = useMemo(() => getHeroBanners(t), [t]);
 
   useFocusEffect(
     useCallback(() => {
@@ -148,10 +146,10 @@ function HeroCarousel({ t }) {
     }, [banners.length]),
   );
 
-  function onScroll(e) {
+  const onScroll = useCallback((e) => {
     const idx = Math.round(e.nativeEvent.contentOffset.x / (width - 40));
     setActive(idx);
-  }
+  }, []);
 
   return (
     <View style={carouselStyles.wrap}>
@@ -349,16 +347,258 @@ const liveStyles = StyleSheet.create({
   },
 });
 
+// ── COMPONENTE DE CABEÇALHO OTIMIZADO (Evita piscar imagens ao pesquisar) ──
+const ListHeader = memo(({
+  styles,
+  theme,
+  navigation,
+  t,
+  search,
+  setSearch,
+  activeFilter,
+  setActiveFilter,
+  filteredProductsLength,
+  setSearchThreshold
+}) => {
+  return (
+    <>
+      <View style={styles.header}>
+        <View style={styles.logoContainer}>
+          <Image source={require("../../assets/logo.png")} style={styles.logoImage} />
+          <Text style={styles.headerTitle}>
+            <Text style={{ color: GREEN }}>Gol</Text>
+            <Text style={{ color: GOLD }}>Up</Text>
+          </Text>
+        </View>
+        <View style={styles.headerActions}>
+          <Pressable style={styles.iconBtn} onPress={() => navigation.navigate("Notification")}>
+            <MaterialIcons name="notifications-none" size={22} color={theme.titlePrimary} />
+            <View style={styles.notifDot} />
+          </Pressable>
+          <Pressable style={styles.iconBtn} onPress={() => navigation.navigate("Settings")}>
+            <MaterialIcons name="settings" size={22} color={theme.titlePrimary} />
+          </Pressable>
+        </View>
+      </View>
+
+      <View
+        style={styles.searchRow}
+        onLayout={(e) =>
+          setSearchThreshold(e.nativeEvent.layout.y + e.nativeEvent.layout.height)
+        }
+      >
+        <View style={styles.searchBox}>
+          <MaterialIcons
+            name="search"
+            size={18}
+            color={theme.textMuted}
+            style={{ marginRight: 8 }}
+          />
+          <TextInput
+            style={styles.searchInput}
+            placeholder={t("searchPlaceholder")}
+            placeholderTextColor={theme.textMuted}
+            value={search}
+            onChangeText={setSearch}
+          />
+        </View>
+      </View>
+
+      <HeroCarousel t={t} />
+      <LiveScore t={t} />
+
+      <Text style={styles.customSectionTitle}>
+        {t("callout1")}{" "}
+        <Text style={{ color: GREEN_MID }}>{t("calloutCopa")}</Text>{" "}
+        {t("callout2")} <EvilIcons name="trophy" size={23} color={GOLD} />
+      </Text>
+
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.filtersRow}
+        style={styles.filtersScroll}
+      >
+        {FILTER_KEYS.map((f) => {
+          const isActive = activeFilter === f;
+          return (
+            <TouchableOpacity
+              key={f}
+              activeOpacity={0.75}
+              style={[styles.filterChip, isActive && styles.filterChipActive]}
+              onPress={() => setActiveFilter(f)}
+            >
+              <MaterialIcons
+                name={FILTER_ICONS[f]}
+                size={14}
+                color={isActive ? "#FFFFFF" : theme.navActive}
+                style={styles.filterChipIcon}
+              />
+              <Text style={[styles.filterChipText, isActive && styles.filterChipTextActive]}>
+                {t(f)}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
+
+      <View style={styles.productsHeader}>
+        <Text style={styles.sectionTitle}>{t("productsSectionTitle")}</Text>
+        <Text style={styles.productsCount}>
+          {filteredProductsLength} {t("itemsCount")}
+        </Text>
+      </View>
+    </>
+  );
+});
+
+// ── COMPONENTE CARD DE PRODUTO OTIMIZADO (Evita piscar imagens/preços na FlatList) ──
+const ProductCard = memo(({
+  item,
+  theme,
+  styles,
+  isAdmin,
+  navigation,
+  toggleFavorite,
+  isFav,
+  addToCart,
+  showAlert,
+  t,
+  confirmDelete,
+  cartItemQuantity
+}) => {
+  const countryTheme = getCountryTheme(item);
+  const availableQty = item.quantity - cartItemQuantity;
+
+  const stockRatio = item.quantity > 0 ? availableQty / item.quantity : 0;
+  const stockColor =
+    stockRatio <= 0.2
+      ? theme.textDestructive
+      : stockRatio <= 0.5
+        ? GOLD
+        : GREEN_MID;
+
+  return (
+    <Pressable
+      onPress={() =>
+        navigation.navigate("ProductDetails", { productId: item.id })
+      }
+      style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
+    >
+      <View style={styles.cardImageWrap}>
+        <ProductImage
+          name={item.name}
+          sourceUrl={item.image}
+          style={styles.productImage}
+        />
+        {countryTheme.flag ? (
+          <View style={[styles.flagBadge, { backgroundColor: countryTheme.bg }]}>
+            <Text style={styles.flagBadgeText}>{countryTheme.flag}</Text>
+          </View>
+        ) : null}
+        <Pressable
+          hitSlop={8}
+          onPress={(e) => {
+            e.stopPropagation();
+            toggleFavorite(item);
+          }}
+          style={styles.favoriteOverlay}
+        >
+          <MaterialIcons
+            name={isFav ? "favorite" : "favorite-border"}
+            size={15}
+            color={isFav ? "#FF3B6F" : "#FFFFFF"}
+          />
+        </Pressable>
+      </View>
+
+      <View style={styles.cardContent}>
+        <View style={styles.cardHeader}>
+          <AppText numberOfLines={1} style={styles.productName}>
+            {item.name}
+          </AppText>
+          <AppText style={[styles.productPrice, { color: theme.navActive }]}>
+            {formatCurrency(item.price)}
+          </AppText>
+        </View>
+
+        <AppText numberOfLines={2} variant="muted" style={styles.productDescription}>
+          {item.description}
+        </AppText>
+
+        <View style={styles.stockRow}>
+          <View style={[styles.stockPill, { backgroundColor: theme.iconBg }]}>
+            <MaterialIcons name="inventory-2" size={11} color={stockColor} />
+            <Text style={[styles.stockLabel, { color: stockColor }]}>
+              {availableQty} {t("inStock")}
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.cardFooter}>
+          {!isAdmin && (
+            <Pressable
+              hitSlop={8}
+              onPress={(e) => {
+                e.stopPropagation();
+                const added = addToCart({ ...item, stock: item.quantity });
+                if (!added) {
+                  showAlert({
+                    title: t("opsTitle"),
+                    message: t("stockLimitMessage"),
+                    type: "danger",
+                  });
+                }
+              }}
+              style={({ pressed }) => [
+                styles.addToCartBtn,
+                pressed && { opacity: 0.8 },
+              ]}
+            >
+              <MaterialIcons name="add-shopping-cart" size={14} color="#FFFFFF" />
+            </Pressable>
+          )}
+
+          {isAdmin && (
+            <View style={styles.secondaryActions}>
+              <Pressable
+                hitSlop={8}
+                onPress={(e) => {
+                  e.stopPropagation();
+                  navigation.navigate("ProductEdit", { productId: item.id });
+                }}
+                style={styles.iconButton}
+              >
+                <MaterialIcons name="edit" size={15} color={theme.titlePrimary} />
+              </Pressable>
+              <Pressable
+                hitSlop={8}
+                onPress={(e) => {
+                  e.stopPropagation();
+                  confirmDelete(item);
+                }}
+                style={[styles.iconButton, styles.deleteIconButton]}
+              >
+                <MaterialIcons name="delete-outline" size={16} color={theme.textDestructive} />
+              </Pressable>
+            </View>
+          )}
+        </View>
+      </View>
+    </Pressable>
+  );
+});
+
 export default function ProductListScreen({ navigation }) {
-  const { user, isAdmin } = useAuth();
   const { showAlert, showConfirm } = useCustomAlert();
   const { t } = useLanguage();
   const { theme } = useTheme();
+  const { isAdmin } = useAuth();
   const { addToCart, cart, totalItems } = useCart();
-
   const { toggleFavorite, isFavorite } = useFavorites();
 
-  const styles = makeStyles(theme);
+  // CORREÇÃO 1: useMemo impede que o styles seja recriado e quebre o useCallback
+  const styles = useMemo(() => makeStyles(theme), [theme]);
 
   const [loading, setLoading] = useState(true);
   const [products, setProducts] = useState([]);
@@ -366,14 +606,11 @@ export default function ProductListScreen({ navigation }) {
   const [activeFilter, setActiveFilter] = useState("filterAll");
   const [activeNav, setActiveNav] = useState("home");
 
-  // Busca começa abaixo da logo (rola junto com o conteúdo) e só passa a
-  // ficar fixa no topo depois que o usuário rolar a tela além da posição
-  // original da barra de pesquisa.
   const [searchThreshold, setSearchThreshold] = useState(240);
   const [showStickySearch, setShowStickySearch] = useState(false);
   const stickyAnim = useRef(new Animated.Value(0)).current;
 
-  function handleListScroll(e) {
+  const handleListScroll = useCallback((e) => {
     const y = e.nativeEvent.contentOffset.y;
     const shouldShow = y > searchThreshold - 12;
     if (shouldShow !== showStickySearch) {
@@ -384,11 +621,11 @@ export default function ProductListScreen({ navigation }) {
         useNativeDriver: true,
       }).start();
     }
-  }
+  }, [searchThreshold, showStickySearch, stickyAnim]);
 
-  const NAV_ITEMS = buildNavItems(isAdmin);
+  const NAV_ITEMS = useMemo(() => buildNavItems(isAdmin), [isAdmin]);
 
-  async function loadProducts() {
+  const loadProducts = useCallback(async () => {
     try {
       setLoading(true);
       const data = await productService.getProducts();
@@ -402,13 +639,13 @@ export default function ProductListScreen({ navigation }) {
     } finally {
       setLoading(false);
     }
-  }
+  }, [showAlert, t]);
 
   useFocusEffect(
     useCallback(() => {
       loadProducts();
       setActiveNav("home");
-    }, []),
+    }, [loadProducts]),
   );
 
   const filteredProducts = useMemo(() => {
@@ -430,7 +667,7 @@ export default function ProductListScreen({ navigation }) {
     return result;
   }, [products, search, activeFilter]);
 
-  function confirmDelete(product) {
+  const confirmDelete = useCallback((product) => {
     showConfirm({
       title: t("deleteProductTitle"),
       message: `${t("deleteProductConfirm1")} ${product.name}? ${t("deleteProductConfirm2")}`,
@@ -450,283 +687,55 @@ export default function ProductListScreen({ navigation }) {
         }
       },
     });
-  }
+  }, [showConfirm, loadProducts, showAlert, t]);
 
-  function renderEmptyList() {
-    return (
-      <View style={styles.emptyState}>
-        <EmptyStateImage width={200} height={150} />
-        <Text style={styles.emptyTitle}>{t("emptyProductsTitle")}</Text>
-        <Text style={styles.emptyDesc}>{t("emptyProductsDesc")}</Text>
-      </View>
-    );
-  }
+  const renderEmptyList = useCallback(() => (
+    <View style={styles.emptyState}>
+      <EmptyStateImage width={200} height={150} />
+      <Text style={styles.emptyTitle}>{t("emptyProductsTitle")}</Text>
+      <Text style={styles.emptyDesc}>{t("emptyProductsDesc")}</Text>
+    </View>
+  ), [styles, t]);
 
-  function renderProduct({ item }) {
-    const countryTheme = getCountryTheme(item);
+  // CORREÇÃO 2: useCallback agora tem as dependências 100% corretas e estáveis
+  const renderProduct = useCallback(({ item }) => {
     const cartItem = cart.find((c) => c.id === item.id);
     const quantityInCart = cartItem ? cartItem.cartQuantity : 0;
-    const availableQty = item.quantity - quantityInCart;
     const isFav = isFavorite(item.id);
 
-    const stockRatio = item.quantity > 0 ? availableQty / item.quantity : 0;
-    const stockColor =
-      stockRatio <= 0.2
-        ? theme.textDestructive
-        : stockRatio <= 0.5
-          ? GOLD
-          : GREEN_MID;
-
     return (
-      <Pressable
-        onPress={() =>
-          navigation.navigate("ProductDetails", { productId: item.id })
-        }
-        style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
-      >
-        <View style={styles.cardImageWrap}>
-         
-          <ProductImage
-            name={item.name}
-            sourceUrl={item.image}
-            style={styles.productImage}
-          />
-          {countryTheme.flag ? (
-            <View
-              style={[styles.flagBadge, { backgroundColor: countryTheme.bg }]}
-            >
-              <Text style={styles.flagBadgeText}>{countryTheme.flag}</Text>
-            </View>
-          ) : null}
-          <Pressable
-            hitSlop={8}
-            onPress={(e) => {
-              e.stopPropagation();
-              toggleFavorite(item);
-            }}
-            style={styles.favoriteOverlay}
-          >
-            <MaterialIcons
-              name={isFav ? "favorite" : "favorite-border"}
-              size={15}
-              color={isFav ? "#FF3B6F" : "#FFFFFF"}
-            />
-          </Pressable>
-        </View>
-
-        <View style={styles.cardContent}>
-          <View style={styles.cardHeader}>
-            <AppText numberOfLines={1} style={styles.productName}>
-              {item.name}
-            </AppText>
-            <AppText
-              style={[styles.productPrice, { color: theme.navActive }]}
-            >
-              {formatCurrency(item.price)}
-            </AppText>
-          </View>
-
-          <AppText
-            numberOfLines={2}
-            variant="muted"
-            style={styles.productDescription}
-          >
-            {item.description}
-          </AppText>
-
-          <View style={styles.stockRow}>
-            <View style={[styles.stockPill, { backgroundColor: theme.iconBg }]}>
-              <MaterialIcons name="inventory-2" size={11} color={stockColor} />
-              <Text style={[styles.stockLabel, { color: stockColor }]}>
-                {availableQty} {t("inStock")}
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.cardFooter}>
-            {!isAdmin && (
-              <Pressable
-                hitSlop={8}
-                onPress={(e) => {
-                  e.stopPropagation();
-                  const added = addToCart({ ...item, stock: item.quantity });
-                  if (!added) {
-                    showAlert({
-                      title: t("opsTitle"),
-                      message: t("stockLimitMessage"),
-                      type: "danger",
-                    });
-                  }
-                }}
-                style={({ pressed }) => [
-                  styles.addToCartBtn,
-                  pressed && { opacity: 0.8 },
-                ]}
-              >
-                <MaterialIcons
-                  name="add-shopping-cart"
-                  size={14}
-                  color="#FFFFFF"
-                />
-              </Pressable>
-            )}
-
-            {isAdmin && (
-              <View style={styles.secondaryActions}>
-                <Pressable
-                  hitSlop={8}
-                  onPress={(e) => {
-                    e.stopPropagation();
-                    navigation.navigate("ProductEdit", { productId: item.id });
-                  }}
-                  style={styles.iconButton}
-                >
-                  <MaterialIcons
-                    name="edit"
-                    size={15}
-                    color={theme.titlePrimary}
-                  />
-                </Pressable>
-                <Pressable
-                  hitSlop={8}
-                  onPress={(e) => {
-                    e.stopPropagation();
-                    confirmDelete(item);
-                  }}
-                  style={[styles.iconButton, styles.deleteIconButton]}
-                >
-                  <MaterialIcons
-                    name="delete-outline"
-                    size={16}
-                    color={theme.textDestructive}
-                  />
-                </Pressable>
-              </View>
-            )}
-          </View>
-        </View>
-      </Pressable>
+      <ProductCard
+        item={item}
+        theme={theme}
+        styles={styles}
+        isAdmin={isAdmin}
+        navigation={navigation}
+        toggleFavorite={toggleFavorite}
+        isFav={isFav}
+        addToCart={addToCart}
+        showAlert={showAlert}
+        t={t}
+        confirmDelete={confirmDelete}
+        cartItemQuantity={quantityInCart}
+      />
     );
-  }
+  }, [cart, isFavorite, theme, styles, isAdmin, navigation, toggleFavorite, addToCart, showAlert, t, confirmDelete]);
 
-  function renderListHeader() {
-    return (
-      <>
-        <View style={styles.header}>
-          <View style={styles.logoContainer}>
-            <Image
-              source={require("../../assets/logo.png")}
-              style={styles.logoImage}
-            />
-            <Text style={styles.headerTitle}>
-              <Text style={{ color: GREEN }}>Gol</Text>
-              <Text style={{ color: GOLD }}>Up</Text>
-            </Text>
-          </View>
-          <View style={styles.headerActions}>
-            <Pressable
-              style={styles.iconBtn}
-              onPress={() => navigation.navigate("Notification")}
-            >
-              <MaterialIcons
-                name="notifications-none"
-                size={22}
-                color={theme.titlePrimary}
-              />
-              <View style={styles.notifDot} />
-            </Pressable>
-            <Pressable
-              style={styles.iconBtn}
-              onPress={() => navigation.navigate("Settings")}
-            >
-              <MaterialIcons
-                name="settings"
-                size={22}
-                color={theme.titlePrimary}
-              />
-            </Pressable>
-          </View>
-        </View>
-
-        <View
-          style={styles.searchRow}
-          onLayout={(e) =>
-            setSearchThreshold(e.nativeEvent.layout.y + e.nativeEvent.layout.height)
-          }
-        >
-          <View style={styles.searchBox}>
-            <MaterialIcons
-              name="search"
-              size={18}
-              color={theme.textMuted}
-              style={{ marginRight: 8 }}
-            />
-            <TextInput
-              style={styles.searchInput}
-              placeholder={t("searchPlaceholder")}
-              placeholderTextColor={theme.textMuted}
-              value={search}
-              onChangeText={setSearch}
-            />
-          </View>
-        </View>
-
-        <HeroCarousel t={t} />
-        <LiveScore t={t} />
-
-        <Text style={styles.customSectionTitle}>
-          {t("callout1")}{" "}
-          <Text style={{ color: GREEN_MID }}>{t("calloutCopa")}</Text>{" "}
-          {t("callout2")} <EvilIcons name="trophy" size={23} color={GOLD} />
-        </Text>
-
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.filtersRow}
-          style={styles.filtersScroll}
-        >
-          {FILTER_KEYS.map((f) => {
-            const isActive = activeFilter === f;
-            return (
-              <TouchableOpacity
-                key={f}
-                activeOpacity={0.75}
-                style={[styles.filterChip, isActive && styles.filterChipActive]}
-                onPress={() => setActiveFilter(f)}
-              >
-                <MaterialIcons
-                  name={FILTER_ICONS[f]}
-                  size={14}
-                  color={isActive ? "#FFFFFF" : theme.navActive}
-                  style={styles.filterChipIcon}
-                />
-                <Text
-                  style={[
-                    styles.filterChipText,
-                    isActive && styles.filterChipTextActive,
-                  ]}
-                >
-                  {t(f)}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
-
-        <View style={styles.productsHeader}>
-          <Text style={styles.sectionTitle}>{t("productsSectionTitle")}</Text>
-          <Text style={styles.productsCount}>
-            {filteredProducts.length} {t("itemsCount")}
-          </Text>
-        </View>
-      </>
-    );
-  }
-
-  function renderListEmpty() {
-    return renderEmptyList();
-  }
+  // CORREÇÃO 3: Memoriza o elemento JSX do cabeçalho
+  const listHeader = useMemo(() => (
+    <ListHeader
+      styles={styles}
+      theme={theme}
+      navigation={navigation}
+      t={t}
+      search={search}
+      setSearch={setSearch}
+      activeFilter={activeFilter}
+      setActiveFilter={setActiveFilter}
+      filteredProductsLength={filteredProducts.length}
+      setSearchThreshold={setSearchThreshold}
+    />
+  ), [styles, theme, navigation, t, search, activeFilter, filteredProducts.length]);
 
   if (loading) {
     return (
@@ -775,9 +784,9 @@ export default function ProductListScreen({ navigation }) {
       <FlatList
         contentContainerStyle={styles.list}
         data={filteredProducts}
-        keyExtractor={(item) => item.id}
-        ListHeaderComponent={renderListHeader}
-        ListEmptyComponent={renderListEmpty}
+        keyExtractor={(item) => String(item.id)}
+        ListHeaderComponent={listHeader}
+        ListEmptyComponent={renderEmptyList}
         renderItem={renderProduct}
         showsVerticalScrollIndicator={false}
         onScroll={handleListScroll}
@@ -807,7 +816,7 @@ export default function ProductListScreen({ navigation }) {
                   style={[
                     styles.navIconWrap,
                     activeNav === tab.key && styles.navIconWrapActive,
-                    { position: "relative" }, // ← garante o posicionamento
+                    { position: "relative" },
                   ]}
                 >
                   <Ionicons
@@ -821,12 +830,7 @@ export default function ProductListScreen({ navigation }) {
                     </View>
                   )}
                 </View>
-                <Text
-                  style={[
-                    styles.navLabel,
-                    activeNav === tab.key && styles.navLabelActive,
-                  ]}
-                >
+                <Text style={[styles.navLabel, activeNav === tab.key && styles.navLabelActive]}>
                   {t(tab.labelKey)}
                 </Text>
               </>
@@ -1120,7 +1124,7 @@ const makeStyles = (theme) =>
       textAlign: "center",
       maxWidth: 240,
     },
-bottomNav: {
+    bottomNav: {
       position: "absolute",
       bottom: 0,
       left: 0,
@@ -1139,39 +1143,40 @@ bottomNav: {
       flex: 1,
       alignItems: "center",
       justifyContent: "center",
-      gap: 3,
     },
-    navItemCenter: { marginTop: -16 },
-    navIconWrap: {
-      width: 36,
-      height: 36,
-      borderRadius: 10,
-      alignItems: "center",
+    navItemCenter: {
       justifyContent: "center",
+      alignItems: "center",
+      position: "relative",
+      top: -10,
     },
-    navIconWrapActive: { backgroundColor: theme.iconBg },
     navCreateBtn: {
-      width: 52,
-      height: 52,
-      borderRadius: 12,
-      backgroundColor: "#F5C518",
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      backgroundColor: GOLD,
       alignItems: "center",
       justifyContent: "center",
-      borderWidth: 3,
-      borderColor: theme.surfaceAccent,
-      shadowColor: "#F5C518",
+      shadowColor: "#000",
       shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.5,
-      shadowRadius: 8,
-      elevation: 6,
+      shadowOpacity: 0.2,
+      shadowRadius: 4,
+      elevation: 5,
     },
-    navLabel: { 
-      fontSize: 10, 
-      color: theme.navInactive, 
-      fontWeight: "600" 
+    navIconWrap: {
+      alignItems: "center",
+      justifyContent: "center",
+      minHeight: 24,
     },
-    navLabelActive: { 
-      color: theme.navActive, 
-      fontWeight: "800" 
+    navIconWrapActive: {},
+    navLabel: {
+      fontSize: 10,
+      fontWeight: "600",
+      color: theme.navInactive,
+      marginTop: 4,
+    },
+    navLabelActive: {
+      color: theme.navActive,
+      fontWeight: "800",
     },
   });
