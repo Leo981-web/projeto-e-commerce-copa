@@ -62,13 +62,25 @@ function ReviewCard({ item, theme, t, savedReview, onSubmit }) {
   const isUpdate = Boolean(savedReview);
 
   return (
-    <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.divider }]}>
+    <View
+      style={[
+        styles.card,
+        { backgroundColor: theme.card, borderColor: theme.divider },
+      ]}
+    >
       <View style={styles.cardTop}>
         <View style={[styles.imageWrap, { backgroundColor: theme.iconBg }]}>
-          <ProductImage name={item.name} sourceUrl={item.image} style={styles.image} />
+          <ProductImage
+            name={item.name}
+            sourceUrl={item.image}
+            style={styles.image}
+          />
         </View>
         <View style={{ flex: 1 }}>
-          <AppText numberOfLines={2} style={[styles.productName, { color: theme.textPrimary }]}>
+          <AppText
+            numberOfLines={2}
+            style={[styles.productName, { color: theme.textPrimary }]}
+          >
             {item.name}
           </AppText>
           <Text style={[styles.productPrice, { color: theme.navActive }]}>
@@ -77,13 +89,24 @@ function ReviewCard({ item, theme, t, savedReview, onSubmit }) {
         </View>
       </View>
 
-      <Text style={[styles.ratingLabel, { color: theme.textMuted }]}>{t("reviewsYourRating")}</Text>
-      <Stars value={rating} onChange={setRating} color={theme.navActive} mutedColor={theme.divider} />
+      <Text style={[styles.ratingLabel, { color: theme.textMuted }]}>
+        {t("reviewsYourRating")}
+      </Text>
+      <Stars
+        value={rating}
+        onChange={setRating}
+        color={theme.navActive}
+        mutedColor={theme.divider}
+      />
 
       <TextInput
         style={[
           styles.commentInput,
-          { backgroundColor: theme.iconBg, color: theme.textPrimary, borderColor: theme.divider },
+          {
+            backgroundColor: theme.iconBg,
+            color: theme.textPrimary,
+            borderColor: theme.divider,
+          },
         ]}
         placeholder={t("reviewsCommentPlaceholder")}
         placeholderTextColor={theme.textMuted}
@@ -133,10 +156,17 @@ export default function ReviewsScreen({ navigation }) {
   );
 
   async function handleSubmitReview(productId, data) {
-    const updated = { ...reviews, [productId]: { ...data, date: new Date().toISOString() } };
+    const updated = {
+      ...reviews,
+      [productId]: { ...data, date: new Date().toISOString() },
+    };
     setReviews(updated);
     await AsyncStorage.setItem(REVIEWS_STORAGE_KEY, JSON.stringify(updated));
-    showAlert({ title: t("reviewsSavedTitle"), message: t("reviewsSavedMessage"), type: "success" });
+    showAlert({
+      title: t("reviewsSavedTitle"),
+      message: t("reviewsSavedMessage"),
+      type: "success",
+    });
   }
 
   const purchasedProducts = [];
@@ -155,7 +185,10 @@ export default function ReviewsScreen({ navigation }) {
   if (loading) {
     return (
       <SafeAreaView style={[styles.safe, { backgroundColor: theme.bg }]}>
-        <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} backgroundColor={theme.bg} />
+        <StatusBar
+          barStyle={isDarkMode ? "light-content" : "dark-content"}
+          backgroundColor={theme.bg}
+        />
         <Loading />
       </SafeAreaView>
     );
@@ -163,7 +196,10 @@ export default function ReviewsScreen({ navigation }) {
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.bg }]}>
-      <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} backgroundColor={theme.bg} />
+      <StatusBar
+        barStyle={isDarkMode ? "light-content" : "dark-content"}
+        backgroundColor={theme.bg}
+      />
 
       <View style={styles.header}>
         <TouchableOpacity
@@ -201,7 +237,6 @@ export default function ReviewsScreen({ navigation }) {
           showsVerticalScrollIndicator={false}
           renderItem={({ item }) => (
             <ReviewCard
-              // ✅ CORREÇÃO: key inclui se há review salvo, forçando remontagem limpa
               key={`${item.id}-${reviews[item.id] ? "reviewed" : "new"}`}
               item={item}
               theme={theme}

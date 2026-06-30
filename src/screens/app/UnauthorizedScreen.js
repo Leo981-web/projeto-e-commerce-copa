@@ -2,11 +2,6 @@ import { View, Text, StyleSheet, Pressable } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useTheme } from "../../context/ThemeContext";
 
-/**
- * Tela exibida quando um usuário Common tenta acessar uma funcionalidade
- * exclusiva de Admin. Na prática raramente aparece porque as rotas Admin
- * já são removidas do Stack em AppRoutes.js — serve como fallback de segurança.
- */
 export default function UnauthorizedScreen({ navigation }) {
   const { theme } = useTheme();
   const styles = makeStyles(theme);
@@ -16,8 +11,8 @@ export default function UnauthorizedScreen({ navigation }) {
       <MaterialIcons name="lock" size={64} color="#EF4444" />
       <Text style={styles.title}>Acesso Restrito</Text>
       <Text style={styles.subtitle}>
-        Você não tem permissão para acessar esta área.
-        Esta funcionalidade é exclusiva de administradores.
+        Você não tem permissão para acessar esta área. Esta funcionalidade é
+        exclusiva de administradores.
       </Text>
       <Pressable
         style={styles.button}

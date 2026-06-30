@@ -1,7 +1,6 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
-import { useColorScheme, StatusBar } from 'react-native';
+import React, { createContext, useState, useContext, useEffect } from "react";
+import { useColorScheme, StatusBar } from "react-native";
 
-// ThemeContext.js
 export const PALETTES = {
   dark: {
     bg: "#0A3214",
@@ -15,12 +14,12 @@ export const PALETTES = {
     textDestructive: "#EF4444",
     navActive: "#22C55E",
     navInactive: "#374151",
-    // Em dark mode a barra de pesquisa/rodapé seguem o mesmo tom dos cards
+
     surfaceAccent: "#122617",
     statusBar: "light-content",
   },
   light: {
-    bg: "#EAF6EE",        // fundo verde claro (apenas no modo light)
+    bg: "#EAF6EE",
     card: "#FFFFFF",
     textPrimary: "#1E293B",
     titlePrimary: "#0F172A",
@@ -31,24 +30,20 @@ export const PALETTES = {
     textDestructive: "#DC2626",
     navActive: "#15622A",
     navInactive: "#94A3B8",
-    // Verde mais escuro que o fundo, usado para dar destaque à busca e ao rodapé
     surfaceAccent: "#BFE6CB",
     statusBar: "dark-content",
-  }
+  },
 };
 
 const ThemeContext = createContext();
 
 export function ThemeProvider({ children }) {
-  // 1. Detecta o tema padrão do sistema do celular (pode retornar 'light' ou 'dark')
   const systemColorScheme = useColorScheme();
-  
-  
-  const [isDarkMode, setIsDarkMode] = useState(systemColorScheme === 'dark');
 
- 
+  const [isDarkMode, setIsDarkMode] = useState(systemColorScheme === "dark");
+
   useEffect(() => {
-    setIsDarkMode(systemColorScheme === 'dark');
+    setIsDarkMode(systemColorScheme === "dark");
   }, [systemColorScheme]);
 
   const toggleTheme = () => setIsDarkMode(!isDarkMode);
@@ -56,13 +51,11 @@ export function ThemeProvider({ children }) {
 
   return (
     <ThemeContext.Provider value={{ isDarkMode, theme, toggleTheme }}>
-      
       <StatusBar barStyle={theme.statusBar} backgroundColor={theme.bg} />
       {children}
     </ThemeContext.Provider>
   );
 }
-
 
 export function useTheme() {
   const context = useContext(ThemeContext);

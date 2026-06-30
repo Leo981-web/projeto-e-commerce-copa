@@ -80,8 +80,6 @@ export async function signOut() {
   return true;
 }
 
-// ── Funções de perfil (ainda usam Supabase) ───────────────────────────────────
-
 export async function updateProfileName(name) {
   if (!name?.trim()) throw new Error("Informe um nome válido.");
   const { error, data } = await supabase.auth.updateUser({ data: { name: name.trim() } });

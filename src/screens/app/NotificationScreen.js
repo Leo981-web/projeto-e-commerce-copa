@@ -12,11 +12,11 @@ import { useTheme } from "../../context/ThemeContext";
 import { useAuth } from "../../context/AuthContext";
 import { useLanguage } from "../../context/LanguageContext";
 
-const GREEN      = "#15622A";
+const GREEN = "#15622A";
 const GREEN_DARK = "#0D4A1A";
-const GREEN_MID  = "#22C55E";
-const GOLD       = "#F5C518";
-const RED_LIVE   = "#EF4444";
+const GREEN_MID = "#22C55E";
+const GOLD = "#F5C518";
+const RED_LIVE = "#EF4444";
 
 const getNotifications = (t) => [
   {
@@ -71,17 +71,19 @@ export default function NotificationsScreen({ navigation }) {
   const notificationsList = getNotifications(t);
   const unreadCount = notificationsList.filter((n) => n.unread).length;
 
-  // Variáveis de cores dinâmicas baseadas no ThemeContext unificado
-  const screenBg     = theme.bg;
-  const cardBg       = theme.card;
-  const textColor    = theme.textPrimary;
-  const titleColor   = theme.titlePrimary;
-  const mutedColor   = theme.textMuted;
+  const screenBg = theme.bg;
+  const cardBg = theme.card;
+  const textColor = theme.textPrimary;
+  const titleColor = theme.titlePrimary;
+  const mutedColor = theme.textMuted;
   const dividerColor = theme.divider;
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: screenBg }]}>
-      <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} backgroundColor={screenBg} />
+      <StatusBar
+        barStyle={isDarkMode ? "light-content" : "dark-content"}
+        backgroundColor={screenBg}
+      />
 
       {/* ── HERO ────────────────────────────────────────────────────────── */}
       <View style={[styles.hero, { backgroundColor: screenBg }]}>
@@ -92,32 +94,70 @@ export default function NotificationsScreen({ navigation }) {
             activeOpacity={0.7}
             hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
           >
-            <Ionicons name="chevron-back" size={22} color={isDarkMode ? titleColor : GREEN} />
+            <Ionicons
+              name="chevron-back"
+              size={22}
+              color={isDarkMode ? titleColor : GREEN}
+            />
           </TouchableOpacity>
           <Text style={styles.heroTitle}>
-            <Text style={{ color: isDarkMode ? titleColor : GREEN }}>{t("notificationsScreenTitle")}</Text>
+            <Text style={{ color: isDarkMode ? titleColor : GREEN }}>
+              {t("notificationsScreenTitle")}
+            </Text>
           </Text>
           {unreadCount > 0 && (
             <View style={styles.heroBadge}>
-              <Text style={styles.heroBadgeText}>{unreadCount} {t("notificationsScreenNew")}</Text>
+              <Text style={styles.heroBadgeText}>
+                {unreadCount} {t("notificationsScreenNew")}
+              </Text>
             </View>
           )}
         </View>
-        <Text style={[styles.heroSub, { color: isDarkMode ? mutedColor : "rgba(21,98,42,0.55)" }]}>
+        <Text
+          style={[
+            styles.heroSub,
+            { color: isDarkMode ? mutedColor : "rgba(21,98,42,0.55)" },
+          ]}
+        >
           {unreadCount > 0
             ? `${t("notificationsScreenNotificationsUnread1")} ${unreadCount} ${t("notificationsScreenNotificationsUnread2")}`
             : t("notificationsScreenNotificationsUnread3")}
         </Text>
-        <View style={[styles.heroLine, { backgroundColor: isDarkMode ? dividerColor : GREEN, shadowColor: isDarkMode ? "transparent" : GREEN }]} />
+        <View
+          style={[
+            styles.heroLine,
+            {
+              backgroundColor: isDarkMode ? dividerColor : GREEN,
+              shadowColor: isDarkMode ? "transparent" : GREEN,
+            },
+          ]}
+        />
       </View>
 
       {/* ── BARRA "AO VIVO" ─────────────────────────────────────────────── */}
-      <View style={[styles.statusBar, isDarkMode && { backgroundColor: theme.card, borderWidth: 1.5, borderColor: theme.divider }]}>
+      <View
+        style={[
+          styles.statusBar,
+          isDarkMode && {
+            backgroundColor: theme.card,
+            borderWidth: 1.5,
+            borderColor: theme.divider,
+          },
+        ]}
+      >
         <View style={styles.statusDot} />
-        <Text style={styles.statusText}>{t("notificationsScreenCentraldeAvisos")}</Text>
-          <View style={styles.statusSep} />
-        <MaterialIcons name="notifications-active" size={12} color="rgba(255,255,255,0.65)" />
-        <Text style={styles.statusSub}>{t("notificationsScreenAtualizadoAgora")}</Text>
+        <Text style={styles.statusText}>
+          {t("notificationsScreenCentraldeAvisos")}
+        </Text>
+        <View style={styles.statusSep} />
+        <MaterialIcons
+          name="notifications-active"
+          size={12}
+          color="rgba(255,255,255,0.65)"
+        />
+        <Text style={styles.statusSub}>
+          {t("notificationsScreenAtualizadoAgora")}
+        </Text>
       </View>
 
       <ScrollView
@@ -126,8 +166,20 @@ export default function NotificationsScreen({ navigation }) {
       >
         {/* ── LABEL SEÇÃO ──────────────────────────────────────────────── */}
         <View style={styles.sectionRow}>
-          <View style={[styles.sectionAccent, { backgroundColor: isDarkMode ? theme.navActive : GREEN }]} />
-          <Text style={[styles.sectionLabel, { color: isDarkMode ? theme.navActive : GREEN }]}>{t("notificationsScreenTodasNotificações")}</Text>
+          <View
+            style={[
+              styles.sectionAccent,
+              { backgroundColor: isDarkMode ? theme.navActive : GREEN },
+            ]}
+          />
+          <Text
+            style={[
+              styles.sectionLabel,
+              { color: isDarkMode ? theme.navActive : GREEN },
+            ]}
+          >
+            {t("notificationsScreenTodasNotificações")}
+          </Text>
         </View>
 
         {/* ── LISTA ────────────────────────────────────────────────────── */}
@@ -138,13 +190,24 @@ export default function NotificationsScreen({ navigation }) {
               styles.card,
               { backgroundColor: cardBg, borderColor: dividerColor },
               notif.unread && styles.cardUnread,
-              notif.unread && isDarkMode && { borderColor: theme.navActive }
+              notif.unread && isDarkMode && { borderColor: theme.navActive },
             ]}
           >
-            {notif.unread && <View style={[styles.unreadBar, { backgroundColor: isDarkMode ? theme.navActive : GREEN }]} />}
+            {notif.unread && (
+              <View
+                style={[
+                  styles.unreadBar,
+                  { backgroundColor: isDarkMode ? theme.navActive : GREEN },
+                ]}
+              />
+            )}
 
             <View style={[styles.iconWrap, { backgroundColor: notif.iconBg }]}>
-              <MaterialIcons name={notif.icon} size={22} color={notif.iconColor} />
+              <MaterialIcons
+                name={notif.icon}
+                size={22}
+                color={notif.iconColor}
+              />
             </View>
 
             <View style={styles.cardContent}>
@@ -154,7 +217,9 @@ export default function NotificationsScreen({ navigation }) {
                     {notif.tag}
                   </Text>
                 </View>
-                <Text style={[styles.time, { color: mutedColor }]}>{notif.time}</Text>
+                <Text style={[styles.time, { color: mutedColor }]}>
+                  {notif.time}
+                </Text>
               </View>
 
               <Text style={[styles.cardTitle, { color: textColor }]}>
@@ -169,8 +234,19 @@ export default function NotificationsScreen({ navigation }) {
 
         {/* ── RODAPÉ ───────────────────────────────────────────────────── */}
         <View style={styles.footer}>
-          <MaterialIcons name="notifications-none" size={18} color={isDarkMode ? mutedColor : "rgba(21,98,42,0.35)"} />
-          <Text style={[styles.footerText, { color: isDarkMode ? mutedColor : "rgba(21,98,42,0.45)" }]}>{t("notificationsScreenFooter")}</Text>
+          <MaterialIcons
+            name="notifications-none"
+            size={18}
+            color={isDarkMode ? mutedColor : "rgba(21,98,42,0.35)"}
+          />
+          <Text
+            style={[
+              styles.footerText,
+              { color: isDarkMode ? mutedColor : "rgba(21,98,42,0.45)" },
+            ]}
+          >
+            {t("notificationsScreenFooter")}
+          </Text>
         </View>
       </ScrollView>
     </SafeAreaView>

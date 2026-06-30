@@ -68,7 +68,11 @@ export default function FavoriteScreen({ navigation }) {
       const data = await productService.getProducts();
       setProducts(data);
     } catch (error) {
-      showAlert({ title: t("loadProductsErrorTitle"), message: error.message, type: "danger" });
+      showAlert({
+        title: t("loadProductsErrorTitle"),
+        message: error.message,
+        type: "danger",
+      });
     } finally {
       setLoading(false);
     }
@@ -85,9 +89,7 @@ export default function FavoriteScreen({ navigation }) {
       <View style={styles.emptyState}>
         <EmptyStateImage width={200} height={150} />
         <Text style={styles.emptyTitle}>{t("noFavorites")}</Text>
-        <Text style={styles.emptyDesc}>
-          {t("heartSaveIt")}
-        </Text>
+        <Text style={styles.emptyDesc}>{t("heartSaveIt")}</Text>
       </View>
     );
   }
@@ -100,12 +102,25 @@ export default function FavoriteScreen({ navigation }) {
 
     return (
       <Pressable
-        onPress={() => navigation.navigate("ProductDetails", { productId: item.id })}
-        style={[styles.card, { borderLeftColor: countryTheme.accent, borderLeftWidth: 4 }]}
+        onPress={() =>
+          navigation.navigate("ProductDetails", { productId: item.id })
+        }
+        style={[
+          styles.card,
+          { borderLeftColor: countryTheme.accent, borderLeftWidth: 4 },
+        ]}
       >
-        <View style={[styles.cardImageWrap, { backgroundColor: countryTheme.bg }]}>
-          {countryTheme.flag ? <Text style={styles.cardFlag}>{countryTheme.flag}</Text> : null}
-          <ProductImage name={item.name} sourceUrl={item.image} style={styles.productImage} />
+        <View
+          style={[styles.cardImageWrap, { backgroundColor: countryTheme.bg }]}
+        >
+          {countryTheme.flag ? (
+            <Text style={styles.cardFlag}>{countryTheme.flag}</Text>
+          ) : null}
+          <ProductImage
+            name={item.name}
+            sourceUrl={item.image}
+            style={styles.productImage}
+          />
         </View>
 
         <View style={styles.cardContent}>
@@ -118,14 +133,29 @@ export default function FavoriteScreen({ navigation }) {
             </AppText>
           </View>
 
-          <AppText numberOfLines={2} variant="muted" style={styles.productDescription}>
+          <AppText
+            numberOfLines={2}
+            variant="muted"
+            style={styles.productDescription}
+          >
             {item.description}
           </AppText>
 
           <View style={styles.cardFooter}>
-            <View style={[styles.quantityBadge, { backgroundColor: countryTheme.bg }]}>
-              <MaterialIcons name="inventory-2" size={13} color={countryTheme.accent} />
-              <Text style={[styles.productQuantity, { color: countryTheme.accent }]}>
+            <View
+              style={[
+                styles.quantityBadge,
+                { backgroundColor: countryTheme.bg },
+              ]}
+            >
+              <MaterialIcons
+                name="inventory-2"
+                size={13}
+                color={countryTheme.accent}
+              />
+              <Text
+                style={[styles.productQuantity, { color: countryTheme.accent }]}
+              >
                 {availableQuantity} {t("inStock")}
               </Text>
             </View>
@@ -148,12 +178,20 @@ export default function FavoriteScreen({ navigation }) {
                   e.stopPropagation();
                   const wasAdded = addToCart({ ...item, stock: item.quantity });
                   if (!wasAdded) {
-                    showAlert({ title: t("opsTitle"), message: t("stockLimitMessage"), type: "danger" });
+                    showAlert({
+                      title: t("opsTitle"),
+                      message: t("stockLimitMessage"),
+                      type: "danger",
+                    });
                   }
                 }}
                 style={styles.iconButton}
               >
-                <MaterialIcons name="add-shopping-cart" size={18} color={theme.titlePrimary} />
+                <MaterialIcons
+                  name="add-shopping-cart"
+                  size={18}
+                  color={theme.titlePrimary}
+                />
               </Pressable>
             </View>
           </View>
@@ -175,12 +213,21 @@ export default function FavoriteScreen({ navigation }) {
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <MaterialIcons name="arrow-back" size={20} color={theme.titlePrimary} />
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backButton}
+        >
+          <MaterialIcons
+            name="arrow-back"
+            size={20}
+            color={theme.titlePrimary}
+          />
         </TouchableOpacity>
         <View style={styles.headerContent}>
           <Text style={styles.headerTitle}>{t("navFavorites")}</Text>
-          <Text style={styles.headerSubtitle}>{t("favoritesScreenSubTitle")}</Text>
+          <Text style={styles.headerSubtitle}>
+            {t("favoritesScreenSubTitle")}
+          </Text>
         </View>
       </View>
 
@@ -196,7 +243,7 @@ export default function FavoriteScreen({ navigation }) {
         />
       )}
 
-      {/* --- INÍCIO DA BARRA DE NAVEGAÇÃO --- */}
+      {/* --- BARRA DE NAVEGAÇÃO --- */}
       <View style={styles.bottomNav}>
         {NAV_ITEMS.map((tab) => (
           <TouchableOpacity
@@ -204,7 +251,7 @@ export default function FavoriteScreen({ navigation }) {
             style={[styles.navItem, tab.center && styles.navItemCenter]}
             onPress={() => {
               setActiveNav(tab.key);
-              if (tab.key === "home") navigation.navigate("Products"); 
+              if (tab.key === "home") navigation.navigate("Products");
               if (tab.key === "create") navigation.navigate("ProductCreate");
               if (tab.key === "profile") navigation.navigate("Profile");
               if (tab.key === "cart") navigation.navigate("Cart");
@@ -226,7 +273,11 @@ export default function FavoriteScreen({ navigation }) {
                   <Ionicons
                     name={activeNav === tab.key ? tab.icon : tab.iconOff}
                     size={20}
-                    color={activeNav === tab.key ? theme.navActive : (theme.navInactive || "#999")}
+                    color={
+                      activeNav === tab.key
+                        ? theme.navActive
+                        : theme.navInactive || "#999"
+                    }
                   />
                   {tab.key === "cart" && totalItems > 0 && (
                     <View style={styles.cartBadge}>
@@ -247,7 +298,6 @@ export default function FavoriteScreen({ navigation }) {
           </TouchableOpacity>
         ))}
       </View>
-      {/* --- FIM DA BARRA DE NAVEGAÇÃO --- */}
     </SafeAreaView>
   );
 }
@@ -291,7 +341,7 @@ const makeStyles = (theme) =>
       flexGrow: 1,
       paddingHorizontal: 16,
       paddingTop: 6,
-      paddingBottom: 110, 
+      paddingBottom: 110,
     },
     loadingContainer: {
       flex: 1,
@@ -436,8 +486,8 @@ const makeStyles = (theme) =>
       alignItems: "center",
       justifyContent: "center",
     },
-    navIconWrapActive: { 
-      backgroundColor: theme.iconBg 
+    navIconWrapActive: {
+      backgroundColor: theme.iconBg,
     },
     navCreateBtn: {
       width: 52,
@@ -454,14 +504,14 @@ const makeStyles = (theme) =>
       shadowRadius: 8,
       elevation: 6,
     },
-    navLabel: { 
-      fontSize: 10, 
-      color: theme.navInactive, 
-      fontWeight: "600" 
+    navLabel: {
+      fontSize: 10,
+      color: theme.navInactive,
+      fontWeight: "600",
     },
-    navLabelActive: { 
-      color: theme.navActive, 
-      fontWeight: "800" 
+    navLabelActive: {
+      color: theme.navActive,
+      fontWeight: "800",
     },
     cartBadge: {
       position: "absolute",
@@ -478,4 +528,4 @@ const makeStyles = (theme) =>
       borderColor: theme.card,
     },
     cartBadgeText: { color: "#FFF", fontSize: 9, fontWeight: "bold" },
-    });
+  });

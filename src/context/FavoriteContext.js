@@ -12,7 +12,9 @@ export function FavoriteProvider({ children }) {
   useEffect(() => {
     async function loadFavorites() {
       try {
-        const storageKey = user?.id ? `favorites:${user.id}` : "favorites:guest";
+        const storageKey = user?.id
+          ? `favorites:${user.id}`
+          : "favorites:guest";
         const rawFavorites = await AsyncStorage.getItem(storageKey);
 
         if (rawFavorites) {
@@ -32,10 +34,11 @@ export function FavoriteProvider({ children }) {
   useEffect(() => {
     async function saveFavorites() {
       try {
-        const storageKey = user?.id ? `favorites:${user.id}` : "favorites:guest";
+        const storageKey = user?.id
+          ? `favorites:${user.id}`
+          : "favorites:guest";
         await AsyncStorage.setItem(storageKey, JSON.stringify(favorites));
-      } catch {
-      }
+      } catch {}
     }
 
     saveFavorites();
@@ -43,7 +46,9 @@ export function FavoriteProvider({ children }) {
 
   function toggleFavorite(product) {
     setFavorites((prevFavorites) => {
-      const isAlreadyFavorite = prevFavorites.some((favorite) => favorite.id === product.id);
+      const isAlreadyFavorite = prevFavorites.some(
+        (favorite) => favorite.id === product.id,
+      );
 
       if (isAlreadyFavorite) {
         return prevFavorites.filter((favorite) => favorite.id !== product.id);
@@ -66,7 +71,11 @@ export function FavoriteProvider({ children }) {
     [favorites],
   );
 
-  return <FavoriteContext.Provider value={value}>{children}</FavoriteContext.Provider>;
+  return (
+    <FavoriteContext.Provider value={value}>
+      {children}
+    </FavoriteContext.Provider>
+  );
 }
 
 export function useFavorites() {

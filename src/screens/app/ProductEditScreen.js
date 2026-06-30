@@ -12,17 +12,17 @@ import {
   parseCurrencyInput,
 } from "../../services/formatters";
 import { useCustomAlert } from "../../context/CustomAlertContext";
-import { useLanguage } from "../../context/LanguageContext"; 
+import { useLanguage } from "../../context/LanguageContext";
 import * as productService from "../../services/productService";
 import { useTheme } from "../../context/ThemeContext";
 
 export default function ProductEditScreen({ navigation, route }) {
   const { showAlert } = useCustomAlert();
-  const { t } = useLanguage(); 
+  const { t } = useLanguage();
   const { theme } = useTheme();
 
   const styles = makeStyles(theme);
-  
+
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState("");
@@ -131,7 +131,10 @@ export default function ProductEditScreen({ navigation, route }) {
 
   return (
     <View style={styles.container}>
-      <ScreenHeader title={t("editProductTitle")} onBack={() => navigation.goBack()} />
+      <ScreenHeader
+        title={t("editProductTitle")}
+        onBack={() => navigation.goBack()}
+      />
 
       <AppInput
         icon="inventory-2"

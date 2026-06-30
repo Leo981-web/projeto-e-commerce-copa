@@ -24,7 +24,14 @@ import { useCustomAlert } from "../../context/CustomAlertContext";
 const ADDRESSES_STORAGE_KEY = "@user_addresses";
 
 function emptyForm() {
-  return { id: null, label: "", street: "", cityState: "", zip: "", complement: "" };
+  return {
+    id: null,
+    label: "",
+    street: "",
+    cityState: "",
+    zip: "",
+    complement: "",
+  };
 }
 
 export default function AddressesScreen({ navigation }) {
@@ -70,7 +77,12 @@ export default function AddressesScreen({ navigation }) {
   }
 
   async function handleSave() {
-    if (!form.label.trim() || !form.street.trim() || !form.cityState.trim() || !form.zip.trim()) {
+    if (
+      !form.label.trim() ||
+      !form.street.trim() ||
+      !form.cityState.trim() ||
+      !form.zip.trim()
+    ) {
       showAlert({
         title: t("requiredFieldsTitle"),
         message: t("addressesRequiredFieldsMessage"),
@@ -83,13 +95,21 @@ export default function AddressesScreen({ navigation }) {
     if (form.id) {
       updated = addresses.map((a) => (a.id === form.id ? { ...form } : a));
     } else {
-      const newAddress = { ...form, id: Date.now().toString(), isDefault: addresses.length === 0 };
+      const newAddress = {
+        ...form,
+        id: Date.now().toString(),
+        isDefault: addresses.length === 0,
+      };
       updated = [...addresses, newAddress];
     }
 
     await persist(updated);
     setModalVisible(false);
-    showAlert({ title: t("addressesSavedTitle"), message: t("addressesSavedMessage"), type: "success" });
+    showAlert({
+      title: t("addressesSavedTitle"),
+      message: t("addressesSavedMessage"),
+      type: "success",
+    });
   }
 
   function handleDelete(address) {
@@ -107,7 +127,10 @@ export default function AddressesScreen({ navigation }) {
   }
 
   async function handleSetDefault(address) {
-    const updated = addresses.map((a) => ({ ...a, isDefault: a.id === address.id }));
+    const updated = addresses.map((a) => ({
+      ...a,
+      isDefault: a.id === address.id,
+    }));
     await persist(updated);
   }
 
@@ -121,7 +144,10 @@ export default function AddressesScreen({ navigation }) {
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.bg }]}>
-      <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} backgroundColor={theme.bg} />
+      <StatusBar
+        barStyle={isDarkMode ? "light-content" : "dark-content"}
+        backgroundColor={theme.bg}
+      />
 
       <View style={styles.header}>
         <TouchableOpacity
@@ -157,7 +183,16 @@ export default function AddressesScreen({ navigation }) {
           <Text style={[styles.emptyDesc, { color: theme.textMuted }]}>
             {t("addressesEmptyDesc")}
           </Text>
-          <AppButton title={t("addressesAddButton")} icon="add" onPress={openAddModal} style={{ marginTop: 8, paddingHorizontal: 24, backgroundColor: theme.navActive }} />
+          <AppButton
+            title={t("addressesAddButton")}
+            icon="add"
+            onPress={openAddModal}
+            style={{
+              marginTop: 8,
+              paddingHorizontal: 24,
+              backgroundColor: theme.navActive,
+            }}
+          />
         </View>
       ) : (
         <FlatList
@@ -166,50 +201,109 @@ export default function AddressesScreen({ navigation }) {
           contentContainerStyle={styles.list}
           showsVerticalScrollIndicator={false}
           renderItem={({ item }) => (
-            <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.divider }]}>
+            <View
+              style={[
+                styles.card,
+                { backgroundColor: theme.card, borderColor: theme.divider },
+              ]}
+            >
               <View style={styles.cardTop}>
-                <View style={[styles.iconWrap, { backgroundColor: theme.iconBg }]}>
-                  <MaterialIcons name="place" size={18} color={theme.navActive} />
+                <View
+                  style={[styles.iconWrap, { backgroundColor: theme.iconBg }]}
+                >
+                  <MaterialIcons
+                    name="place"
+                    size={18}
+                    color={theme.navActive}
+                  />
                 </View>
                 <View style={{ flex: 1 }}>
                   <View style={styles.labelRow}>
-                    <Text style={[styles.cardLabel, { color: theme.textPrimary }]}>{item.label}</Text>
+                    <Text
+                      style={[styles.cardLabel, { color: theme.textPrimary }]}
+                    >
+                      {item.label}
+                    </Text>
                     {item.isDefault ? (
-                      <View style={[styles.defaultBadge, { backgroundColor: theme.iconBg }]}>
-                        <Text style={[styles.defaultBadgeText, { color: theme.navActive }]}>
+                      <View
+                        style={[
+                          styles.defaultBadge,
+                          { backgroundColor: theme.iconBg },
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.defaultBadgeText,
+                            { color: theme.navActive },
+                          ]}
+                        >
                           {t("addressesDefaultBadge")}
                         </Text>
                       </View>
                     ) : null}
                   </View>
-                  <Text style={[styles.cardLine, { color: theme.textMuted }]}>{item.street}</Text>
+                  <Text style={[styles.cardLine, { color: theme.textMuted }]}>
+                    {item.street}
+                  </Text>
                   <Text style={[styles.cardLine, { color: theme.textMuted }]}>
                     {item.cityState} · {item.zip}
                   </Text>
                   {item.complement ? (
-                    <Text style={[styles.cardLine, { color: theme.textMuted }]}>{item.complement}</Text>
+                    <Text style={[styles.cardLine, { color: theme.textMuted }]}>
+                      {item.complement}
+                    </Text>
                   ) : null}
                 </View>
               </View>
 
               <View style={styles.cardActions}>
                 {!item.isDefault ? (
-                  <TouchableOpacity onPress={() => handleSetDefault(item)} style={styles.actionBtn}>
-                    <MaterialIcons name="star-outline" size={15} color={theme.navActive} />
-                    <Text style={[styles.actionBtnText, { color: theme.navActive }]}>
+                  <TouchableOpacity
+                    onPress={() => handleSetDefault(item)}
+                    style={styles.actionBtn}
+                  >
+                    <MaterialIcons
+                      name="star-outline"
+                      size={15}
+                      color={theme.navActive}
+                    />
+                    <Text
+                      style={[styles.actionBtnText, { color: theme.navActive }]}
+                    >
                       {t("addressesSetDefault")}
                     </Text>
                   </TouchableOpacity>
                 ) : null}
-                <TouchableOpacity onPress={() => openEditModal(item)} style={styles.actionBtn}>
-                  <MaterialIcons name="edit" size={15} color={theme.textMuted} />
-                  <Text style={[styles.actionBtnText, { color: theme.textMuted }]}>
+                <TouchableOpacity
+                  onPress={() => openEditModal(item)}
+                  style={styles.actionBtn}
+                >
+                  <MaterialIcons
+                    name="edit"
+                    size={15}
+                    color={theme.textMuted}
+                  />
+                  <Text
+                    style={[styles.actionBtnText, { color: theme.textMuted }]}
+                  >
                     {t("addressesEditButton")}
                   </Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => handleDelete(item)} style={styles.actionBtn}>
-                  <MaterialIcons name="delete-outline" size={15} color={theme.textDestructive} />
-                  <Text style={[styles.actionBtnText, { color: theme.textDestructive }]}>
+                <TouchableOpacity
+                  onPress={() => handleDelete(item)}
+                  style={styles.actionBtn}
+                >
+                  <MaterialIcons
+                    name="delete-outline"
+                    size={15}
+                    color={theme.textDestructive}
+                  />
+                  <Text
+                    style={[
+                      styles.actionBtnText,
+                      { color: theme.textDestructive },
+                    ]}
+                  >
                     {t("addressesDeleteButton")}
                   </Text>
                 </TouchableOpacity>
@@ -219,11 +313,18 @@ export default function AddressesScreen({ navigation }) {
         />
       )}
 
-      <Modal visible={modalVisible} animationType="slide" transparent onRequestClose={() => setModalVisible(false)}>
+      <Modal
+        visible={modalVisible}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setModalVisible(false)}
+      >
         <View style={styles.modalOverlay}>
           <View style={[styles.modalCard, { backgroundColor: theme.card }]}>
             <Text style={[styles.modalTitle, { color: theme.titlePrimary }]}>
-              {form.id ? t("addressesFormTitleEdit") : t("addressesFormTitleAdd")}
+              {form.id
+                ? t("addressesFormTitleEdit")
+                : t("addressesFormTitleAdd")}
             </Text>
 
             <AppInput

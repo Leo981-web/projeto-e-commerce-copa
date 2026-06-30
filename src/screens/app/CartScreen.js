@@ -35,11 +35,21 @@ export default function CartScreen({ navigation }) {
   const { isAdmin } = useAuth();
 
   const NAV_ITEMS = [
-    { key: "home",      icon: "home",   iconOff: "home-outline",   labelKey: "navHome"      },
-    { key: "favorites", icon: "heart",  iconOff: "heart-outline",  labelKey: "navFavorites" },
-    { key: "create",    center: true,                              adminOnly: true          },
-    { key: "cart",      icon: "cart",   iconOff: "cart-outline",   labelKey: "navCart"      },
-    { key: "profile",   icon: "person", iconOff: "person-outline", labelKey: "navProfile"   },
+    { key: "home", icon: "home", iconOff: "home-outline", labelKey: "navHome" },
+    {
+      key: "favorites",
+      icon: "heart",
+      iconOff: "heart-outline",
+      labelKey: "navFavorites",
+    },
+    { key: "create", center: true, adminOnly: true },
+    { key: "cart", icon: "cart", iconOff: "cart-outline", labelKey: "navCart" },
+    {
+      key: "profile",
+      icon: "person",
+      iconOff: "person-outline",
+      labelKey: "navProfile",
+    },
   ].filter((tab) => !tab.adminOnly || isAdmin);
 
   const styles = makeStyles(theme, isDarkMode);
@@ -58,72 +68,84 @@ export default function CartScreen({ navigation }) {
     });
   }
 
-  // Utilizando useCallback na mudança de quantidade
-  const handleQuantityChange = useCallback((id, amount) => {
-    const result = updateQuantity(id, amount);
-    if (result === "max_reached") {
-      showAlert({
-        title: t("limitReachedTitle"),
-        message: t("limitReachedMessage"),
-        type: "neutral",
-      });
-    }
-  }, [updateQuantity, showAlert, t]);
+  const handleQuantityChange = useCallback(
+    (id, amount) => {
+      const result = updateQuantity(id, amount);
+      if (result === "max_reached") {
+        showAlert({
+          title: t("limitReachedTitle"),
+          message: t("limitReachedMessage"),
+          type: "neutral",
+        });
+      }
+    },
+    [updateQuantity, showAlert, t],
+  );
 
-  // Utilizando useCallback na renderização do item
-  const renderCartItem = useCallback(({ item }) => {
-    return (
-      <View style={styles.cartItem}>
-        <ProductImage name={item.name} sourceUrl={item.image} style={styles.productImage} />
+  const renderCartItem = useCallback(
+    ({ item }) => {
+      return (
+        <View style={styles.cartItem}>
+          <ProductImage
+            name={item.name}
+            sourceUrl={item.image}
+            style={styles.productImage}
+          />
 
-        <View style={styles.itemDetails}>
-          <AppText style={styles.productName} numberOfLines={1}>
-            {item.name}
-          </AppText>
-          <AppText style={styles.productPrice}>
-            {formatCurrency(item.price)}
-          </AppText>
+          <View style={styles.itemDetails}>
+            <AppText style={styles.productName} numberOfLines={1}>
+              {item.name}
+            </AppText>
+            <AppText style={styles.productPrice}>
+              {formatCurrency(item.price)}
+            </AppText>
 
-          <View style={styles.itemBottomRow}>
-            <View style={styles.quantityContainer}>
+            <View style={styles.itemBottomRow}>
+              <View style={styles.quantityContainer}>
+                <Pressable
+                  onPress={() => handleQuantityChange(item.id, -1)}
+                  style={styles.quantityButtonMinus}
+                >
+                  <MaterialIcons
+                    name="remove"
+                    size={14}
+                    color={theme.titlePrimary}
+                  />
+                </Pressable>
+                <Text style={styles.quantityText}>{item.cartQuantity}</Text>
+                <Pressable
+                  onPress={() => handleQuantityChange(item.id, 1)}
+                  style={styles.quantityButtonPlus}
+                >
+                  <MaterialIcons name="add" size={14} color="#FFFFFF" />
+                </Pressable>
+              </View>
+
               <Pressable
-                onPress={() => handleQuantityChange(item.id, -1)}
-                style={styles.quantityButtonMinus}
+                onPress={() => {
+                  removeFromCart(item.id);
+                  showAlert({
+                    title: t("itemRemovedTitle"),
+                    message: t("itemRemovedMessage"),
+                    type: "neutral",
+                  });
+                }}
+                style={styles.removeButton}
+                hitSlop={8}
               >
-                <MaterialIcons name="remove" size={14} color={theme.titlePrimary} />
-              </Pressable>
-              <Text style={styles.quantityText}>{item.cartQuantity}</Text>
-              <Pressable
-                onPress={() => handleQuantityChange(item.id, 1)}
-                style={styles.quantityButtonPlus}
-              >
-                <MaterialIcons name="add" size={14} color="#FFFFFF" />
+                <MaterialIcons
+                  name="delete-outline"
+                  size={18}
+                  color={theme.textDestructive || "#FF3B30"}
+                />
               </Pressable>
             </View>
-
-            <Pressable
-              onPress={() => {
-                removeFromCart(item.id);
-                showAlert({
-                  title: t("itemRemovedTitle"),
-                  message: t("itemRemovedMessage"),
-                  type: "neutral",
-                });
-              }}
-              style={styles.removeButton}
-              hitSlop={8}
-            >
-              <MaterialIcons
-                name="delete-outline"
-                size={18}
-                color={theme.textDestructive || "#FF3B30"}
-              />
-            </Pressable>
           </View>
         </View>
-      </View>
-    );
-  }, [styles, theme, t, handleQuantityChange, removeFromCart, showAlert]);
+      );
+    },
+    [styles, theme, t, handleQuantityChange, removeFromCart, showAlert],
+  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -152,7 +174,11 @@ export default function CartScreen({ navigation }) {
       {/* BANNER DE FRETE GRÁTIS */}
       {cart.length > 0 && (
         <View style={styles.shippingBanner}>
-          <MaterialIcons name="local-shipping" size={16} color={theme.navActive} />
+          <MaterialIcons
+            name="local-shipping"
+            size={16}
+            color={theme.navActive}
+          />
           <AppText style={styles.shippingBannerText}>
             {t("freeShippingBanner")}
           </AppText>
@@ -185,11 +211,15 @@ export default function CartScreen({ navigation }) {
       {/* FOOTER - RESUMO DO PEDIDO */}
       {cart.length > 0 && (
         <View style={styles.footer}>
-          <AppText style={styles.summaryTitle}>{t("orderSummaryTitle")}</AppText>
+          <AppText style={styles.summaryTitle}>
+            {t("orderSummaryTitle")}
+          </AppText>
 
           <View style={styles.summaryRow}>
             <AppText style={styles.summaryLabel}>{t("subtotalLabel")}</AppText>
-            <AppText style={styles.summaryValue}>{formatCurrency(totalPrice)}</AppText>
+            <AppText style={styles.summaryValue}>
+              {formatCurrency(totalPrice)}
+            </AppText>
           </View>
           <View style={styles.summaryRow}>
             <AppText style={styles.summaryLabel}>{t("shippingLabel")}</AppText>
@@ -219,10 +249,10 @@ export default function CartScreen({ navigation }) {
             key={tab.key}
             style={[styles.navItem, tab.center && styles.navItemCenter]}
             onPress={() => {
-              if (tab.key === "home")      navigation.navigate("Products");
-              if (tab.key === "profile")   navigation.navigate("Profile");
+              if (tab.key === "home") navigation.navigate("Products");
+              if (tab.key === "profile") navigation.navigate("Profile");
               if (tab.key === "favorites") navigation.navigate("Favorites");
-              if (tab.key === "create")    navigation.navigate("ProductCreate");
+              if (tab.key === "create") navigation.navigate("ProductCreate");
             }}
           >
             {tab.center ? (
@@ -231,11 +261,18 @@ export default function CartScreen({ navigation }) {
               </View>
             ) : (
               <>
-                <View style={[styles.navIconWrap, tab.key === "cart" && styles.navIconWrapActive]}>
+                <View
+                  style={[
+                    styles.navIconWrap,
+                    tab.key === "cart" && styles.navIconWrapActive,
+                  ]}
+                >
                   <Ionicons
                     name={tab.key === "cart" ? tab.icon : tab.iconOff}
                     size={22}
-                    color={tab.key === "cart" ? theme.navActive : theme.navInactive}
+                    color={
+                      tab.key === "cart" ? theme.navActive : theme.navInactive
+                    }
                   />
                   {tab.key === "cart" && totalItems > 0 && (
                     <View style={styles.cartBadge}>
@@ -324,7 +361,12 @@ const makeStyles = (theme, isDarkMode) =>
     productImage: { width: 64, height: 64, borderRadius: 12 },
     itemDetails: { flex: 1, marginLeft: 12 },
     productName: { fontSize: 14, fontWeight: "700", color: theme.titlePrimary },
-    productPrice: { fontSize: 14, fontWeight: "800", color: theme.navActive, marginTop: 3 },
+    productPrice: {
+      fontSize: 14,
+      fontWeight: "800",
+      color: theme.navActive,
+      marginTop: 3,
+    },
     itemBottomRow: {
       flexDirection: "row",
       alignItems: "center",
@@ -396,8 +438,16 @@ const makeStyles = (theme, isDarkMode) =>
       marginBottom: 6,
     },
     summaryLabel: { fontSize: 13, color: theme.textMuted },
-    summaryValue: { fontSize: 13, fontWeight: "700", color: theme.titlePrimary },
-    summaryValueFree: { fontSize: 13, fontWeight: "800", color: theme.navActive },
+    summaryValue: {
+      fontSize: 13,
+      fontWeight: "700",
+      color: theme.titlePrimary,
+    },
+    summaryValueFree: {
+      fontSize: 13,
+      fontWeight: "800",
+      color: theme.navActive,
+    },
     summaryDivider: {
       height: 1,
       backgroundColor: theme.divider,

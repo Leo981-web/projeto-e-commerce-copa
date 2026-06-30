@@ -69,7 +69,7 @@ export default function ProductDetailsScreen({ navigation, route }) {
   }
 
   if (!product) {
-    return null; // O ecrã vai ficar em branco momentaneamente se o produto não for encontrado
+    return null;
   }
 
   const fav = isFavorite(product.id);
@@ -111,7 +111,11 @@ export default function ProductDetailsScreen({ navigation, route }) {
             onPress={() => navigation.goBack()}
             hitSlop={10}
           >
-            <MaterialIcons name="arrow-back" size={20} color={theme.titlePrimary} />
+            <MaterialIcons
+              name="arrow-back"
+              size={20}
+              color={theme.titlePrimary}
+            />
           </Pressable>
 
           <Pressable
@@ -141,11 +145,18 @@ export default function ProductDetailsScreen({ navigation, route }) {
           <AppText style={styles.name}>{product.name}</AppText>
 
           <View style={styles.priceRow}>
-            <AppText style={styles.price}>{formatCurrency(product.price)}</AppText>
+            <AppText style={styles.price}>
+              {formatCurrency(product.price)}
+            </AppText>
             <View
               style={[
                 styles.stockBadge,
-                { backgroundColor: product.quantity > 0 ? theme.iconBg : theme.iconDestructiveBg },
+                {
+                  backgroundColor:
+                    product.quantity > 0
+                      ? theme.iconBg
+                      : theme.iconDestructiveBg,
+                },
               ]}
             >
               <MaterialIcons
@@ -156,7 +167,9 @@ export default function ProductDetailsScreen({ navigation, route }) {
               <AppText
                 style={[
                   styles.stockBadgeText,
-                  { color: product.quantity > 0 ? GREEN : theme.textDestructive },
+                  {
+                    color: product.quantity > 0 ? GREEN : theme.textDestructive,
+                  },
                 ]}
               >
                 {product.quantity > 0
@@ -166,7 +179,12 @@ export default function ProductDetailsScreen({ navigation, route }) {
             </View>
           </View>
 
-          <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.divider }]}>
+          <View
+            style={[
+              styles.card,
+              { backgroundColor: theme.card, borderColor: theme.divider },
+            ]}
+          >
             <AppText style={[styles.cardLabel, { color: theme.textMuted }]}>
               {t("aboutProductLabel")}
             </AppText>
@@ -186,12 +204,22 @@ export default function ProductDetailsScreen({ navigation, route }) {
                   onPress={() => setQty((q) => Math.max(1, q - 1))}
                   hitSlop={8}
                 >
-                  <MaterialIcons name="remove" size={16} color={theme.titlePrimary} />
+                  <MaterialIcons
+                    name="remove"
+                    size={16}
+                    color={theme.titlePrimary}
+                  />
                 </TouchableOpacity>
-                <AppText style={[styles.qtyValue, { color: theme.titlePrimary }]}>{qty}</AppText>
+                <AppText
+                  style={[styles.qtyValue, { color: theme.titlePrimary }]}
+                >
+                  {qty}
+                </AppText>
                 <TouchableOpacity
                   style={[styles.qtyBtn, styles.qtyBtnAdd]}
-                  onPress={() => setQty((q) => Math.min(product.quantity || 99, q + 1))}
+                  onPress={() =>
+                    setQty((q) => Math.min(product.quantity || 99, q + 1))
+                  }
                   hitSlop={8}
                 >
                   <MaterialIcons name="add" size={16} color="#FFFFFF" />

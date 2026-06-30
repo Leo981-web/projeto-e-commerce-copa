@@ -1,31 +1,39 @@
 import { useState, useRef } from "react";
-import { StyleSheet, View, Text, SafeAreaView, Image, TouchableOpacity, ScrollView } from "react-native";
-import Ionicons from '@expo/vector-icons/Ionicons';
+import {
+  StyleSheet,
+  View,
+  Text,
+  SafeAreaView,
+  Image,
+  TouchableOpacity,
+  ScrollView,
+} from "react-native";
+import Ionicons from "@expo/vector-icons/Ionicons";
 
 import AppButton from "../../components/AppButton";
 import AppInput from "../../components/AppInput";
 import AppText from "../../components/AppText";
 import { useAuth } from "../../context/AuthContext";
 import { useCustomAlert } from "../../context/CustomAlertContext";
-import { useLanguage } from "../../context/LanguageContext"; 
+import { useLanguage } from "../../context/LanguageContext";
 
-import logo from "../../assets/logo.png"
+import logo from "../../assets/logo.png";
 
-const NAVY   = '#1A237E';
-const GREEN  = '#00A650';
-const YELLOW = '#FFD600';
-const CREAM  = '#F5F1E8';
+const NAVY = "#1A237E";
+const GREEN = "#00A650";
+const YELLOW = "#FFD600";
+const CREAM = "#F5F1E8";
 
 export default function RegisterScreen({ navigation }) {
   const { loading, register } = useAuth();
   const { showAlert } = useCustomAlert();
   const { t } = useLanguage();
-  
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [phone, setPhone] = useState("");
-  
+
   const accountTypeRef = useRef("Common");
   const [accountType, setAccountType] = useState("Common");
   const [storeName, setStoreName] = useState("");
@@ -42,7 +50,7 @@ export default function RegisterScreen({ navigation }) {
       await register(name, email, password, phone, userType);
     } catch (error) {
       showAlert({
-        title: t("registerErrorTitle"), 
+        title: t("registerErrorTitle"),
         message: error.message,
         type: "warning",
       });
@@ -51,15 +59,16 @@ export default function RegisterScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.safe}>
-
       <View style={styles.squareTopRight} />
       <View style={styles.circleTopLeft} />
       <View style={styles.diamondBottomLeft} />
       <View style={styles.circleBottomRight} />
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ flexGrow: 1, justifyContent: "center" }}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ flexGrow: 1, justifyContent: "center" }}
+      >
         <View style={styles.container}>
-
           <View style={styles.logoRow}>
             <Image source={logo} style={styles.logoImage} />
             <View>
@@ -72,25 +81,51 @@ export default function RegisterScreen({ navigation }) {
           <Text style={styles.subheadline}>{t("registerSubheadline")}</Text>
 
           <View style={styles.card}>
-
-            {/* ── AJUSTE: Seletor Visual de Tipo de Conta ────────────────── */}
             <View style={styles.roleSelector}>
-              <TouchableOpacity 
+              <TouchableOpacity
                 activeOpacity={0.8}
-                style={[styles.roleTab, accountType === "Common" && styles.roleTabActiveCommon]}
+                style={[
+                  styles.roleTab,
+                  accountType === "Common" && styles.roleTabActiveCommon,
+                ]}
                 onPress={() => handleSelectAccountType("Common")}
               >
-                <Ionicons name="cart-outline" size={16} color={accountType === "Common" ? "#FFFFFF" : NAVY} />
-                <Text style={[styles.roleText, accountType === "Common" && styles.roleTextActive]}>{t("comprador")}</Text>
+                <Ionicons
+                  name="cart-outline"
+                  size={16}
+                  color={accountType === "Common" ? "#FFFFFF" : NAVY}
+                />
+                <Text
+                  style={[
+                    styles.roleText,
+                    accountType === "Common" && styles.roleTextActive,
+                  ]}
+                >
+                  {t("comprador")}
+                </Text>
               </TouchableOpacity>
 
-              <TouchableOpacity 
+              <TouchableOpacity
                 activeOpacity={0.8}
-                style={[styles.roleTab, accountType === "Admin" && styles.roleTabActiveAdmin]}
+                style={[
+                  styles.roleTab,
+                  accountType === "Admin" && styles.roleTabActiveAdmin,
+                ]}
                 onPress={() => handleSelectAccountType("Admin")}
               >
-                <Ionicons name="storefront-outline" size={16} color={accountType === "Admin" ? "#FFFFFF" : NAVY} />
-                <Text style={[styles.roleText, accountType === "Admin" && styles.roleTextActive]}>{t("vendedor")}</Text>
+                <Ionicons
+                  name="storefront-outline"
+                  size={16}
+                  color={accountType === "Admin" ? "#FFFFFF" : NAVY}
+                />
+                <Text
+                  style={[
+                    styles.roleText,
+                    accountType === "Admin" && styles.roleTextActive,
+                  ]}
+                >
+                  {t("vendedor")}
+                </Text>
               </TouchableOpacity>
             </View>
             {/* ──────────────────────────────────────────────────────────── */}
@@ -113,7 +148,6 @@ export default function RegisterScreen({ navigation }) {
               style={styles.inputGreen}
             />
 
-            {/* ── AJUSTE: Campos Extras Exclusivos de Vendedor (Renderização Condicional) ── */}
             {accountType === "Admin" && (
               <View style={{ animation: "fadeIn" }}>
                 <AppInput
@@ -160,17 +194,16 @@ export default function RegisterScreen({ navigation }) {
               title={loading ? t("registering") : t("registerButton")}
             />
 
-          <AppButton
-            icon="arrow-back"
-            onPress={() => navigation.replace("Login")}
-            style={styles.linkButton}
-            title={t("backToLogin")}
-            variant="ghost"
-          />
+            <AppButton
+              icon="arrow-back"
+              onPress={() => navigation.replace("Login")}
+              style={styles.linkButton}
+              title={t("backToLogin")}
+              variant="ghost"
+            />
+          </View>
         </View>
-
-      </View>
-     </ScrollView>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -181,7 +214,7 @@ const styles = StyleSheet.create({
     backgroundColor: CREAM,
   },
   squareTopRight: {
-    position: 'absolute',
+    position: "absolute",
     top: -30,
     right: -30,
     width: 170,
@@ -191,7 +224,7 @@ const styles = StyleSheet.create({
     opacity: 0.85,
   },
   circleTopLeft: {
-    position: 'absolute',
+    position: "absolute",
     top: -25,
     left: -100,
     width: 180,
@@ -201,7 +234,7 @@ const styles = StyleSheet.create({
     opacity: 0.35,
   },
   diamondBottomLeft: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 40,
     left: -40,
     width: 130,
@@ -209,12 +242,12 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     borderWidth: 14,
     borderColor: GREEN,
-    backgroundColor: 'transparent',
-    transform: [{ rotate: '45deg' }],
+    backgroundColor: "transparent",
+    transform: [{ rotate: "45deg" }],
     opacity: 0.35,
   },
   circleBottomRight: {
-    position: 'absolute',
+    position: "absolute",
     bottom: -60,
     right: -60,
     width: 180,
@@ -230,27 +263,27 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   logoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 12,
     marginTop: 45,
   },
   logoTitle: {
     fontSize: 30,
-    fontWeight: '900',
+    fontWeight: "900",
     color: NAVY,
     letterSpacing: 1,
     lineHeight: 34,
   },
   logoSub: {
     fontSize: 19,
-    fontWeight: '700',
+    fontWeight: "700",
     color: GREEN,
     letterSpacing: 2,
   },
   headline: {
     fontSize: 32,
-    fontWeight: '900',
+    fontWeight: "900",
     color: NAVY,
     lineHeight: 38,
     marginTop: 35,
@@ -258,16 +291,16 @@ const styles = StyleSheet.create({
   },
   subheadline: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     color: GREEN,
     marginBottom: 0,
   },
   card: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
     borderRadius: 24,
     padding: 24,
     marginTop: 25,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.08,
     shadowRadius: 20,
@@ -278,7 +311,7 @@ const styles = StyleSheet.create({
     height: 64,
     resizeMode: "contain",
   },
-  // ── AJUSTE: Estilos das novas abas integradas ao tema da tela ──
+
   roleSelector: {
     flexDirection: "row",
     backgroundColor: "rgba(26,35,126,0.06)",
@@ -315,19 +348,19 @@ const styles = StyleSheet.create({
     borderLeftWidth: 4,
     borderLeftColor: YELLOW,
     borderRadius: 14,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   inputGreen: {
     borderLeftWidth: 4,
     borderLeftColor: GREEN,
     borderRadius: 14,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   inputNavy: {
     borderLeftWidth: 4,
     borderLeftColor: NAVY,
     borderRadius: 14,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   linkButton: {
     marginTop: 10,

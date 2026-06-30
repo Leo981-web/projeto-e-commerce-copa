@@ -1,6 +1,13 @@
 import { useState } from "react";
-import { StyleSheet, View, Text, TouchableOpacity, SafeAreaView, Image } from "react-native";
-import Ionicons from '@expo/vector-icons/Ionicons';
+import {
+  StyleSheet,
+  View,
+  Text,
+  TouchableOpacity,
+  SafeAreaView,
+  Image,
+} from "react-native";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { useLanguage } from "../../context/LanguageContext";
 
 import AppButton from "../../components/AppButton";
@@ -9,12 +16,12 @@ import AppText from "../../components/AppText";
 import { useAuth } from "../../context/AuthContext";
 import { useCustomAlert } from "../../context/CustomAlertContext";
 
-import logo from "../../assets/logo.png"
+import logo from "../../assets/logo.png";
 
-const NAVY   = '#1A237E';
-const GREEN  = '#00A650';
-const YELLOW = '#FFD600';
-const CREAM  = '#F5F1E8';
+const NAVY = "#1A237E";
+const GREEN = "#00A650";
+const YELLOW = "#FFD600";
+const CREAM = "#F5F1E8";
 
 export default function LoginScreen({ navigation }) {
   const { login, loading } = useAuth();
@@ -22,7 +29,6 @@ export default function LoginScreen({ navigation }) {
   const { t } = useLanguage();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  
 
   async function handleLogin() {
     try {
@@ -38,14 +44,12 @@ export default function LoginScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.safe}>
-
       <View style={styles.squareTopRight} />
       <View style={styles.circleTopLeft} />
       <View style={styles.diamondBottomLeft} />
       <View style={styles.circleBottomRight} />
 
       <View style={styles.container}>
-
         <View style={styles.logoRow}>
           <Image source={logo} style={styles.logoImage} />
           <View>
@@ -55,11 +59,14 @@ export default function LoginScreen({ navigation }) {
         </View>
 
         {/* Adicionado o {'\n'} direto no código junto com a tradução */}
-        <Text style={styles.headline}>{t("loginHeadline1")}{'\n'}{t("loginHeadline2")}</Text>
+        <Text style={styles.headline}>
+          {t("loginHeadline1")}
+          {"\n"}
+          {t("loginHeadline2")}
+        </Text>
         <Text style={styles.subheadline}>{t("loginSubheadline")}</Text>
 
         <View style={styles.card}>
-
           <AppInput
             autoCapitalize="none"
             icon="person"
@@ -79,7 +86,8 @@ export default function LoginScreen({ navigation }) {
             style={styles.inputGreen}
           />
 
-          <TouchableOpacity style={styles.forgotWrap}
+          <TouchableOpacity
+            style={styles.forgotWrap}
             onPress={() => navigation.navigate("ForgotPassword")}
           >
             <Text style={styles.forgotText}>{t("forgotPassword")}</Text>
@@ -100,7 +108,6 @@ export default function LoginScreen({ navigation }) {
             variant="ghost"
           />
         </View>
-
       </View>
     </SafeAreaView>
   );
@@ -112,7 +119,7 @@ const styles = StyleSheet.create({
     backgroundColor: CREAM,
   },
   squareTopRight: {
-    position: 'absolute',
+    position: "absolute",
     top: -30,
     right: -30,
     width: 170,
@@ -122,7 +129,7 @@ const styles = StyleSheet.create({
     opacity: 0.85,
   },
   circleTopLeft: {
-    position: 'absolute',
+    position: "absolute",
     top: -25,
     left: -100,
     width: 180,
@@ -132,7 +139,7 @@ const styles = StyleSheet.create({
     opacity: 0.35,
   },
   diamondBottomLeft: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 40,
     left: -40,
     width: 130,
@@ -140,12 +147,12 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     borderWidth: 14,
     borderColor: GREEN,
-    backgroundColor: 'transparent',
-    transform: [{ rotate: '45deg' }],
+    backgroundColor: "transparent",
+    transform: [{ rotate: "45deg" }],
     opacity: 0.35,
   },
   circleBottomRight: {
-    position: 'absolute',
+    position: "absolute",
     bottom: -60,
     right: -60,
     width: 180,
@@ -160,8 +167,8 @@ const styles = StyleSheet.create({
     paddingTop: 0,
   },
   logoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 12,
     marginTop: 45,
   },
@@ -174,20 +181,20 @@ const styles = StyleSheet.create({
 
   logoTitle: {
     fontSize: 30,
-    fontWeight: '900',
+    fontWeight: "900",
     color: NAVY,
     letterSpacing: 1,
     lineHeight: 34,
   },
   logoSub: {
     fontSize: 19,
-    fontWeight: '700',
+    fontWeight: "700",
     color: GREEN,
     letterSpacing: 2,
   },
   headline: {
     fontSize: 32,
-    fontWeight: '900',
+    fontWeight: "900",
     color: NAVY,
     lineHeight: 38,
     marginTop: 48,
@@ -195,16 +202,16 @@ const styles = StyleSheet.create({
   },
   subheadline: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     color: GREEN,
     marginBottom: 0,
   },
   card: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
     borderRadius: 24,
     padding: 24,
     marginTop: 32,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.08,
     shadowRadius: 20,
@@ -214,24 +221,24 @@ const styles = StyleSheet.create({
     borderLeftWidth: 4,
     borderLeftColor: YELLOW,
     borderRadius: 14,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   inputGreen: {
     borderLeftWidth: 4,
     borderLeftColor: GREEN,
     borderRadius: 14,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   forgotWrap: {
-    alignSelf: 'flex-start',
+    alignSelf: "flex-start",
     marginTop: -6,
     marginBottom: 20,
   },
   forgotText: {
     fontSize: 11,
-    fontWeight: '800',
+    fontWeight: "800",
     color: NAVY,
-    textDecorationLine: 'underline',
+    textDecorationLine: "underline",
     letterSpacing: 0.5,
   },
   linkButton: {

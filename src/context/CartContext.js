@@ -41,11 +41,11 @@ export function CartProvider({ children }) {
     const stockAvailable = product.stock !== undefined ? product.stock : 5;
 
     if (amount > 0 && newQuantity > stockAvailable) {
-      return "max_reached"; 
+      return "max_reached";
     }
 
     if (newQuantity < 1) {
-      return "min_reached"; 
+      return "min_reached";
     }
 
     setCart((prevCart) =>

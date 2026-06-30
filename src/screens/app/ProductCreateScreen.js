@@ -21,17 +21,17 @@ import * as productService from "../../services/productService";
 import { useTheme } from "../../context/ThemeContext";
 
 // ── Paleta Copa ───────────────────────────────────────────────────────────
-const GREEN      = "#15622A";
+const GREEN = "#15622A";
 const GREEN_DARK = "#0D4A1A";
-const GREEN_MID  = "#22C55E";
-const GOLD       = "#F5C518";
+const GREEN_MID = "#22C55E";
+const GOLD = "#F5C518";
 
 const getCategories = (t) => [
-  t("Category1"), 
-  t("Category2"), 
-  t("Category3"), 
-  t("Category4"), 
-  t("Category5")
+  t("Category1"),
+  t("Category2"),
+  t("Category3"),
+  t("Category4"),
+  t("Category5"),
 ];
 
 const getTeams = (t) => [
@@ -62,17 +62,20 @@ export default function ProductCreateScreen({ navigation }) {
   const teamsList = getTeams(t);
   const moreTeamsList = getMoreTeams(t);
   const [showMoreTeams, setShowMoreTeams] = useState(false);
-  const visibleTeams = showMoreTeams ? [...teamsList, ...moreTeamsList] : teamsList;
+  const visibleTeams = showMoreTeams
+    ? [...teamsList, ...moreTeamsList]
+    : teamsList;
 
-  // ── Estado (LÓGICA ORIGINAL INTACTA) ─────────────────────────────────
-  const [name, setName]             = useState("");
+  const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [price, setPrice]           = useState("");
-  const [quantity, setQuantity]     = useState("");
-  const [image, setImage]           = useState("");
+  const [price, setPrice] = useState("");
+  const [quantity, setQuantity] = useState("");
+  const [image, setImage] = useState("");
 
-  const [activeCategory, setActiveCategory] = useState(categoriesList[0] || "Camisas");
-  const [activeTeam, setActiveTeam]         = useState(teamsList[0]?.name || "Brasil");
+  const [activeCategory, setActiveCategory] = useState(
+    categoriesList[0] || "Camisas",
+  );
+  const [activeTeam, setActiveTeam] = useState(teamsList[0]?.name || "Brasil");
 
   function getQuantityValue(value) {
     const numericValue = Number(value);
@@ -102,7 +105,7 @@ export default function ProductCreateScreen({ navigation }) {
       return;
     }
 
-    const parsedPrice    = parseCurrencyInput(price);
+    const parsedPrice = parseCurrencyInput(price);
     const parsedQuantity = Number(quantity);
 
     if (
@@ -127,13 +130,20 @@ export default function ProductCreateScreen({ navigation }) {
           : user.id;
 
       await productService.createProduct(
-        { name, description, price: parsedPrice, quantity: parsedQuantity, image },
-        targetUserId
+        {
+          name,
+          description,
+          price: parsedPrice,
+          quantity: parsedQuantity,
+          image,
+        },
+        targetUserId,
       );
 
       showAlert({
         title: t("productCreatedTitle") || "Produto cadastrado",
-        message: t("productCreatedMessage") || "O produto foi salvo com sucesso.",
+        message:
+          t("productCreatedMessage") || "O produto foi salvo com sucesso.",
         type: "success",
         buttonText: t("backToListButton") || "Voltar para a lista",
         onClose: () => navigation.goBack(),
@@ -147,7 +157,6 @@ export default function ProductCreateScreen({ navigation }) {
     }
   }
 
-  // Cores dinâmicas injetadas diretamente do ThemeContext unificado
   const screenBg = theme.bg;
   const cardBg = theme.card;
   const textColor = theme.textPrimary;
@@ -156,7 +165,6 @@ export default function ProductCreateScreen({ navigation }) {
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: screenBg }]}>
-
       {/* ── HEADER ─────────────────────────────────────────────────────── */}
       <View style={[styles.header, { backgroundColor: screenBg }]}>
         <Pressable
@@ -166,7 +174,9 @@ export default function ProductCreateScreen({ navigation }) {
         >
           <Ionicons name="chevron-back" size={22} color={GREEN} />
         </Pressable>
-        <Text style={[styles.headerTitle, { color: textColor }]}>{t("productCreateScreenTitle")}</Text>
+        <Text style={[styles.headerTitle, { color: textColor }]}>
+          {t("productCreateScreenTitle")}
+        </Text>
       </View>
 
       <ScrollView
@@ -175,13 +185,21 @@ export default function ProductCreateScreen({ navigation }) {
         keyboardShouldPersistTaps="handled"
       >
         {/* ── ZONA DE UPLOAD DE IMAGEM ─────────────────────────────────── */}
-        <TouchableOpacity style={[styles.imageUpload, isDarkMode && { backgroundColor: "rgba(255,255,255,0.02)" }]} activeOpacity={0.7}>
+        <TouchableOpacity
+          style={[
+            styles.imageUpload,
+            isDarkMode && { backgroundColor: "rgba(255,255,255,0.02)" },
+          ]}
+          activeOpacity={0.7}
+        >
           {image ? (
             <View style={styles.imagePreviewWrap}>
               <View style={styles.imagePreviewIcon}>
                 <MaterialIcons name="image" size={32} color={GREEN} />
               </View>
-              <Text style={styles.imagePreviewText} numberOfLines={1}>{image}</Text>
+              <Text style={styles.imagePreviewText} numberOfLines={1}>
+                {image}
+              </Text>
               <TouchableOpacity
                 onPress={() => setImage("")}
                 hitSlop={8}
@@ -195,13 +213,24 @@ export default function ProductCreateScreen({ navigation }) {
               <View style={styles.imageIcon}>
                 <MaterialIcons name="camera-alt" size={28} color={GREEN} />
               </View>
-              <Text style={[styles.imageUploadTitle, { color: textColor }]}>{t("productCreateScreenAddImageProduct")}</Text>
-              <Text style={[styles.imageUploadSub, { color: placeholderColor }]}>{t("productCreateScreenAddImageFormat")}</Text>
+              <Text style={[styles.imageUploadTitle, { color: textColor }]}>
+                {t("productCreateScreenAddImageProduct")}
+              </Text>
+              <Text
+                style={[styles.imageUploadSub, { color: placeholderColor }]}
+              >
+                {t("productCreateScreenAddImageFormat")}
+              </Text>
             </>
           )}
         </TouchableOpacity>
 
-        <View style={[styles.urlFieldWrap, isDarkMode && { backgroundColor: "rgba(255,255,255,0.04)" }]}>
+        <View
+          style={[
+            styles.urlFieldWrap,
+            isDarkMode && { backgroundColor: "rgba(255,255,255,0.04)" },
+          ]}
+        >
           <MaterialIcons name="link" size={16} color={placeholderColor} />
           <TextInput
             autoCapitalize="none"
@@ -215,14 +244,18 @@ export default function ProductCreateScreen({ navigation }) {
         </View>
 
         <View style={styles.fields}>
-
           {/* ── NOME ───────────────────────────────────────────────────── */}
           <View style={styles.fieldGroup}>
-            <Text style={[styles.fieldLabel, { color: textColor }]}>{t("nameLabel")}</Text>
+            <Text style={[styles.fieldLabel, { color: textColor }]}>
+              {t("nameLabel")}
+            </Text>
             <TextInput
               placeholder={t("productNamePlaceholder")}
               placeholderTextColor={placeholderColor}
-              style={[styles.input, { backgroundColor: cardBg, borderColor, color: textColor }]}
+              style={[
+                styles.input,
+                { backgroundColor: cardBg, borderColor, color: textColor },
+              ]}
               value={name}
               onChangeText={setName}
             />
@@ -230,14 +263,25 @@ export default function ProductCreateScreen({ navigation }) {
 
           {/* ── PREÇO ──────────────────────────────────────────────────── */}
           <View style={styles.fieldGroup}>
-            <Text style={[styles.fieldLabel, { color: textColor }]}>{t("priceLabel")}</Text>
-            <View style={[styles.priceWrap, { backgroundColor: cardBg, borderColor }]}>
+            <Text style={[styles.fieldLabel, { color: textColor }]}>
+              {t("priceLabel")}
+            </Text>
+            <View
+              style={[
+                styles.priceWrap,
+                { backgroundColor: cardBg, borderColor },
+              ]}
+            >
               <Text style={styles.pricePrefix}>R$</Text>
               <TextInput
                 keyboardType="numeric"
                 placeholder="0,00"
                 placeholderTextColor={placeholderColor}
-                style={[styles.input, styles.priceInput, { backgroundColor: cardBg, color: textColor }]}
+                style={[
+                  styles.input,
+                  styles.priceInput,
+                  { backgroundColor: cardBg, color: textColor },
+                ]}
                 value={price}
                 onChangeText={setPrice}
               />
@@ -246,18 +290,30 @@ export default function ProductCreateScreen({ navigation }) {
 
           {/* ── CATEGORIA ──────────────────────────────────────────────── */}
           <View style={styles.fieldGroup}>
-            <Text style={[styles.fieldLabel, { color: textColor }]}>{t("productCreateScreenCategory")}</Text>
+            <Text style={[styles.fieldLabel, { color: textColor }]}>
+              {t("productCreateScreenCategory")}
+            </Text>
             <View style={styles.chipsRow}>
               {categoriesList.map((cat) => {
                 const active = activeCategory === cat;
                 return (
                   <TouchableOpacity
                     key={cat}
-                    style={[styles.chip, { borderColor }, active && styles.chipActive]}
+                    style={[
+                      styles.chip,
+                      { borderColor },
+                      active && styles.chipActive,
+                    ]}
                     onPress={() => setActiveCategory(cat)}
                     activeOpacity={0.8}
                   >
-                    <Text style={[styles.chipText, { color: textColor }, active && styles.chipTextActive]}>
+                    <Text
+                      style={[
+                        styles.chipText,
+                        { color: textColor },
+                        active && styles.chipTextActive,
+                      ]}
+                    >
                       {cat.toUpperCase()}
                     </Text>
                   </TouchableOpacity>
@@ -268,21 +324,45 @@ export default function ProductCreateScreen({ navigation }) {
 
           {/* ── SELEÇÃO ────────────────────────────────────────────────── */}
           <View style={styles.fieldGroup}>
-            <Text style={[styles.fieldLabel, { color: textColor }]}>{t("productCreateScreenSeleção")}</Text>
+            <Text style={[styles.fieldLabel, { color: textColor }]}>
+              {t("productCreateScreenSeleção")}
+            </Text>
             <View style={styles.teamsGrid}>
               {visibleTeams.map((team) => {
                 const active = activeTeam === team.name;
                 return (
                   <TouchableOpacity
                     key={team.name}
-                    style={[styles.teamBtn, { backgroundColor: cardBg, borderColor }, active && styles.teamBtnActive]}
+                    style={[
+                      styles.teamBtn,
+                      { backgroundColor: cardBg, borderColor },
+                      active && styles.teamBtnActive,
+                    ]}
                     onPress={() => setActiveTeam(team.name)}
                     activeOpacity={0.8}
                   >
-                    <View style={[styles.teamCodeBadge, active && styles.teamCodeBadgeActive]}>
-                      <Text style={[styles.teamCode, active && styles.teamCodeActive]}>{team.code}</Text>
+                    <View
+                      style={[
+                        styles.teamCodeBadge,
+                        active && styles.teamCodeBadgeActive,
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.teamCode,
+                          active && styles.teamCodeActive,
+                        ]}
+                      >
+                        {team.code}
+                      </Text>
                     </View>
-                    <Text style={[styles.teamName, { color: textColor }, active && styles.teamNameActive]}>
+                    <Text
+                      style={[
+                        styles.teamName,
+                        { color: textColor },
+                        active && styles.teamNameActive,
+                      ]}
+                    >
                       {team.name}
                     </Text>
                     {active && (
@@ -315,28 +395,48 @@ export default function ProductCreateScreen({ navigation }) {
 
           {/* ── QUANTIDADE ─────────────────────────────────────────────── */}
           <View style={styles.fieldGroup}>
-            <Text style={[styles.fieldLabel, { color: textColor }]}>{t("productCreateScreenQuantidade")}</Text>
+            <Text style={[styles.fieldLabel, { color: textColor }]}>
+              {t("productCreateScreenQuantidade")}
+            </Text>
             <View style={styles.qtyRow}>
               <Pressable
                 disabled={getQuantityValue(quantity) === 0}
                 hitSlop={8}
                 onPress={decrementQuantity}
-                style={[styles.qtyBtn, { backgroundColor: cardBg, borderColor }, getQuantityValue(quantity) === 0 && styles.qtyBtnDisabled]}
+                style={[
+                  styles.qtyBtn,
+                  { backgroundColor: cardBg, borderColor },
+                  getQuantityValue(quantity) === 0 && styles.qtyBtnDisabled,
+                ]}
               >
-                <MaterialIcons name="remove" size={20} color={getQuantityValue(quantity) === 0 ? "rgba(21,98,42,0.3)" : GREEN} />
+                <MaterialIcons
+                  name="remove"
+                  size={20}
+                  color={
+                    getQuantityValue(quantity) === 0
+                      ? "rgba(21,98,42,0.3)"
+                      : GREEN
+                  }
+                />
               </Pressable>
               <TextInput
                 keyboardType="numeric"
                 placeholder="0"
                 placeholderTextColor={placeholderColor}
-                style={[styles.qtyInput, { backgroundColor: cardBg, borderColor, color: textColor }]}
+                style={[
+                  styles.qtyInput,
+                  { backgroundColor: cardBg, borderColor, color: textColor },
+                ]}
                 value={quantity}
                 onChangeText={handleQuantityChange}
               />
               <Pressable
                 hitSlop={8}
                 onPress={incrementQuantity}
-                style={[styles.qtyBtn, { backgroundColor: cardBg, borderColor }]}
+                style={[
+                  styles.qtyBtn,
+                  { backgroundColor: cardBg, borderColor },
+                ]}
               >
                 <MaterialIcons name="add" size={20} color={GREEN} />
               </Pressable>
@@ -345,28 +445,46 @@ export default function ProductCreateScreen({ navigation }) {
 
           {/* ── DESCRIÇÃO ──────────────────────────────────────────────── */}
           <View style={styles.fieldGroup}>
-            <Text style={[styles.fieldLabel, { color: textColor }]}>{t("descriptionLabel")} <Text style={styles.optional}>{t("productCreateScreenOpcional")}</Text></Text>
+            <Text style={[styles.fieldLabel, { color: textColor }]}>
+              {t("descriptionLabel")}{" "}
+              <Text style={styles.optional}>
+                {t("productCreateScreenOpcional")}
+              </Text>
+            </Text>
             <TextInput
               multiline
               placeholder={t("descriptionPlaceholder")}
               placeholderTextColor={placeholderColor}
-              style={[styles.input, styles.textarea, { backgroundColor: cardBg, borderColor, color: textColor }]}
+              style={[
+                styles.input,
+                styles.textarea,
+                { backgroundColor: cardBg, borderColor, color: textColor },
+              ]}
               value={description}
               onChangeText={setDescription}
               textAlignVertical="top"
             />
           </View>
-
         </View>
       </ScrollView>
 
       {/* ── BOTÃO PUBLICAR FIXO ─────────────────────────────────────────── */}
-      <View style={[styles.footer, { backgroundColor: screenBg, borderTopColor: borderColor }]}>
-        <TouchableOpacity style={styles.publishBtn} onPress={handleSubmit} activeOpacity={0.85}>
-          <Text style={styles.publishText}>{t("productCreateScreenPublicProduct")}</Text>
+      <View
+        style={[
+          styles.footer,
+          { backgroundColor: screenBg, borderTopColor: borderColor },
+        ]}
+      >
+        <TouchableOpacity
+          style={styles.publishBtn}
+          onPress={handleSubmit}
+          activeOpacity={0.85}
+        >
+          <Text style={styles.publishText}>
+            {t("productCreateScreenPublicProduct")}
+          </Text>
         </TouchableOpacity>
       </View>
-
     </SafeAreaView>
   );
 }

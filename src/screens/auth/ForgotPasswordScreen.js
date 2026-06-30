@@ -1,19 +1,26 @@
 import { useState } from "react";
-import { StyleSheet, View, Text, SafeAreaView, Dimensions, Image } from "react-native";
-import Ionicons from '@expo/vector-icons/Ionicons';
+import {
+  StyleSheet,
+  View,
+  Text,
+  SafeAreaView,
+  Dimensions,
+  Image,
+} from "react-native";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { useLanguage } from "../../context/LanguageContext";
 
 import AppButton from "../../components/AppButton";
 import AppInput from "../../components/AppInput";
-import { sendPasswordResetEmail } from '../../services/authService';
+import { sendPasswordResetEmail } from "../../services/authService";
 import { useCustomAlert } from "../../context/CustomAlertContext";
 
-import logo from "../../assets/logo.png"
+import logo from "../../assets/logo.png";
 
-const NAVY = '#1A237E';
-const GREEN = '#00A650';
-const YELLOW = '#FFD600';
-const CREAM = '#F5F1E8';
+const NAVY = "#1A237E";
+const GREEN = "#00A650";
+const YELLOW = "#FFD600";
+const CREAM = "#F5F1E8";
 
 export default function ForgotPasswordScreen({ navigation }) {
   const { showAlert } = useCustomAlert();
@@ -40,7 +47,7 @@ export default function ForgotPasswordScreen({ navigation }) {
         message: "Um código de recuperação foi enviado!",
         type: "success",
       });
-      navigation.navigate("ResetPassword");
+      navigation.navigate("Login");
     } catch (error) {
       showAlert({
         title: "Erro na Recuperação",
@@ -54,29 +61,21 @@ export default function ForgotPasswordScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.safe}>
-
-
       <View style={styles.squareTopLeft} />
       <View style={styles.circleTopRight} />
       <View style={styles.diamondBottomRight} />
       <View style={styles.circleBottomLeft} />
 
       <View style={styles.container}>
-
-
         <View style={styles.mainCard}>
-
-
           <View style={styles.iconBadge}>
             <Image source={logo} style={styles.logoImage} />
           </View>
-
 
           <View style={styles.textContainer}>
             <Text style={styles.headline}>{t("forgotPassword?")}</Text>
             <Text style={styles.subheadline}>{t("forgotPassword?2")}</Text>
           </View>
-
 
           <View style={styles.formContainer}>
             <View style={styles.inputWrapper}>
@@ -106,9 +105,7 @@ export default function ForgotPasswordScreen({ navigation }) {
               variant="ghost"
             />
           </View>
-
         </View>
-
       </View>
     </SafeAreaView>
   );
@@ -121,7 +118,7 @@ const styles = StyleSheet.create({
   },
 
   squareTopLeft: {
-    position: 'absolute',
+    position: "absolute",
     top: -40,
     left: -40,
     width: 160,
@@ -131,7 +128,7 @@ const styles = StyleSheet.create({
     opacity: 0.85,
   },
   circleTopRight: {
-    position: 'absolute',
+    position: "absolute",
     top: -50,
     right: -50,
     width: 160,
@@ -141,7 +138,7 @@ const styles = StyleSheet.create({
     opacity: 0.25,
   },
   diamondBottomRight: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 40,
     right: -40,
     width: 130,
@@ -149,12 +146,12 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     borderWidth: 14,
     borderColor: GREEN,
-    backgroundColor: 'transparent',
-    transform: [{ rotate: '45deg' }],
+    backgroundColor: "transparent",
+    transform: [{ rotate: "45deg" }],
     opacity: 0.35,
   },
   circleBottomLeft: {
-    position: 'absolute',
+    position: "absolute",
     bottom: -60,
     left: -60,
     width: 180,
@@ -166,7 +163,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 16,
-    justifyContent: 'center',
+    justifyContent: "center",
   },
 
   logoImage: {
@@ -176,13 +173,13 @@ const styles = StyleSheet.create({
   },
 
   mainCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
     borderRadius: 24,
     paddingHorizontal: 16,
     paddingVertical: 32,
-    alignItems: 'center',
-    width: '100%',
-    shadowColor: '#1A237E',
+    alignItems: "center",
+    width: "100%",
+    shadowColor: "#1A237E",
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.06,
     shadowRadius: 24,
@@ -193,36 +190,36 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#E8EAF6',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#E8EAF6",
+    justifyContent: "center",
+    alignItems: "center",
     marginBottom: 20,
   },
 
   textContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 24,
   },
   headline: {
     fontSize: 28,
-    fontWeight: '900',
+    fontWeight: "900",
     color: NAVY,
     lineHeight: 34,
     marginBottom: 10,
-    textAlign: 'center',
+    textAlign: "center",
     letterSpacing: 0.5,
   },
   subheadline: {
     fontSize: 14,
-    fontWeight: '500',
-    color: '#00A650',
-    textAlign: 'center',
+    fontWeight: "500",
+    color: "#00A650",
+    textAlign: "center",
     lineHeight: 20,
     paddingHorizontal: 12,
   },
 
   formContainer: {
-    width: '100%',
+    width: "100%",
   },
   inputWrapper: {
     marginBottom: 12,
@@ -231,7 +228,7 @@ const styles = StyleSheet.create({
     borderLeftWidth: 4,
     borderLeftColor: NAVY,
     borderRadius: 14,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   linkButton: {
     marginTop: 12,

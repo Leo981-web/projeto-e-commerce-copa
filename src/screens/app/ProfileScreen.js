@@ -21,32 +21,49 @@ import { useLanguage } from "../../context/LanguageContext";
 import { useCart } from "../../context/CartContext";
 import { useFavorites } from "../../context/FavoriteContext";
 
-const GREEN      = "#15622A";
+const GREEN = "#15622A";
 const GREEN_DARK = "#0A3214";
-const GOLD       = "#F5C518";
-const WHITE      = "#FFFFFF";
-const RED        = "#EF4444";
-
-
+const GOLD = "#F5C518";
+const WHITE = "#FFFFFF";
+const RED = "#EF4444";
 
 // ─── Modal de edição de perfil ─────────────────────────────────────────────
-function EditProfileModal({ visible, onClose, user, onSave, theme, isDarkMode }) {
-  const [name,  setName]  = useState(user?.name  ?? "");
+function EditProfileModal({
+  visible,
+  onClose,
+  user,
+  onSave,
+  theme,
+  isDarkMode,
+}) {
+  const [name, setName] = useState(user?.name ?? "");
   const [email, setEmail] = useState(user?.email ?? "");
   const [phone, setPhone] = useState(user?.phone ?? "");
 
-  const cardBg       = theme.card;
-  const textColor    = theme.textPrimary;
-  const mutedColor   = theme.textMuted;
-  const inputBg      = isDarkMode ? "#0A3214" : "#F7F8FA";
-  const inputBorder  = theme.divider;
+  const cardBg = theme.card;
+  const textColor = theme.textPrimary;
+  const mutedColor = theme.textMuted;
+  const inputBg = isDarkMode ? "#0A3214" : "#F7F8FA";
+  const inputBorder = theme.divider;
 
   function Field({ label, icon, value, onChange, keyboard, placeholder }) {
     return (
       <View style={modalStyles.field}>
-        <Text style={[modalStyles.fieldLabel, { color: mutedColor }]}>{label}</Text>
-        <View style={[modalStyles.fieldInput, { backgroundColor: inputBg, borderColor: inputBorder }]}>
-          <MaterialIcons name={icon} size={18} color={GREEN} style={{ marginRight: 10 }} />
+        <Text style={[modalStyles.fieldLabel, { color: mutedColor }]}>
+          {label}
+        </Text>
+        <View
+          style={[
+            modalStyles.fieldInput,
+            { backgroundColor: inputBg, borderColor: inputBorder },
+          ]}
+        >
+          <MaterialIcons
+            name={icon}
+            size={18}
+            color={GREEN}
+            style={{ marginRight: 10 }}
+          />
           <TextInput
             style={[modalStyles.fieldText, { color: textColor }]}
             value={value}
@@ -62,18 +79,42 @@ function EditProfileModal({ visible, onClose, user, onSave, theme, isDarkMode })
   }
 
   return (
-    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
+    <Modal
+      visible={visible}
+      animationType="slide"
+      transparent
+      onRequestClose={onClose}
+    >
       <KeyboardAvoidingView
         style={modalStyles.overlay}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
-        <TouchableOpacity style={modalStyles.backdrop} activeOpacity={1} onPress={onClose} />
+        <TouchableOpacity
+          style={modalStyles.backdrop}
+          activeOpacity={1}
+          onPress={onClose}
+        />
 
-        <View style={[modalStyles.sheet, { backgroundColor: cardBg, borderColor: theme.divider, borderTopWidth: 1.5 }]}>
-          <View style={[modalStyles.handle, { backgroundColor: theme.divider }]} />
+        <View
+          style={[
+            modalStyles.sheet,
+            {
+              backgroundColor: cardBg,
+              borderColor: theme.divider,
+              borderTopWidth: 1.5,
+            },
+          ]}
+        >
+          <View
+            style={[modalStyles.handle, { backgroundColor: theme.divider }]}
+          />
 
-          <Text style={[modalStyles.sheetTitle, { color: theme.navActive }]}>Editar Perfil</Text>
-          <Text style={[modalStyles.sheetSub, { color: mutedColor }]}>Atualize suas informações pessoais</Text>
+          <Text style={[modalStyles.sheetTitle, { color: theme.navActive }]}>
+            Editar Perfil
+          </Text>
+          <Text style={[modalStyles.sheetSub, { color: mutedColor }]}>
+            Atualize suas informações pessoais
+          </Text>
 
           <Field
             label="Nome completo"
@@ -105,11 +146,19 @@ function EditProfileModal({ visible, onClose, user, onSave, theme, isDarkMode })
               onPress={onClose}
               activeOpacity={0.7}
             >
-              <Text style={[modalStyles.btnCancelText, { color: mutedColor }]}>Cancelar</Text>
+              <Text style={[modalStyles.btnCancelText, { color: mutedColor }]}>
+                Cancelar
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[modalStyles.btnSave, { backgroundColor: theme.navActive }]}
-              onPress={() => { onSave({ name, email, phone }); onClose(); }}
+              style={[
+                modalStyles.btnSave,
+                { backgroundColor: theme.navActive },
+              ]}
+              onPress={() => {
+                onSave({ name, email, phone });
+                onClose();
+              }}
               activeOpacity={0.8}
             >
               <MaterialIcons name="check" size={16} color={WHITE} />
@@ -212,7 +261,19 @@ const modalStyles = StyleSheet.create({
 });
 
 // ─── Linha de menu ─────────────────────────────────────────────────────────
-function MenuItem({ icon, iconColor, iconBg, label, sub, textColor, mutedColor, dividerColor, last, onPress, danger }) {
+function MenuItem({
+  icon,
+  iconColor,
+  iconBg,
+  label,
+  sub,
+  textColor,
+  mutedColor,
+  dividerColor,
+  last,
+  onPress,
+  danger,
+}) {
   return (
     <TouchableOpacity
       activeOpacity={0.7}
@@ -226,10 +287,19 @@ function MenuItem({ icon, iconColor, iconBg, label, sub, textColor, mutedColor, 
         <MaterialIcons name={icon} size={20} color={iconColor} />
       </View>
       <View style={menuStyles.textWrap}>
-        <Text style={[menuStyles.label, { color: danger ? RED : textColor }]}>{label}</Text>
-        {sub ? <Text style={[menuStyles.sub, { color: mutedColor }]}>{sub}</Text> : null}
+        <Text style={[menuStyles.label, { color: danger ? RED : textColor }]}>
+          {label}
+        </Text>
+        {sub ? (
+          <Text style={[menuStyles.sub, { color: mutedColor }]}>{sub}</Text>
+        ) : null}
       </View>
-      <MaterialIcons name="chevron-right" size={20} color={danger ? RED : mutedColor} style={{ opacity: 0.7 }} />
+      <MaterialIcons
+        name="chevron-right"
+        size={20}
+        color={danger ? RED : mutedColor}
+        style={{ opacity: 0.7 }}
+      />
     </TouchableOpacity>
   );
 }
@@ -262,29 +332,38 @@ export default function ProfileScreen({ navigation }) {
   const { isDarkMode, theme } = useTheme();
   const { totalItems } = useCart();
   const { favorites } = useFavorites();
-  
 
-  const [activeNav, setActiveNav]   = useState("profile");
+  const [activeNav, setActiveNav] = useState("profile");
   const [editVisible, setEditVisible] = useState(false);
   const [profileData, setProfileData] = useState({
-    name:  user?.name  ?? "Usuário",
+    name: user?.name ?? "Usuário",
     email: user?.email ?? "",
     phone: user?.phone ?? "",
   });
 
-  const screenBg     = theme.bg; 
-  const cardBg       = theme.card;
-  const textColor    = theme.textPrimary;
-  const mutedColor   = theme.textMuted;
+  const screenBg = theme.bg;
+  const cardBg = theme.card;
+  const textColor = theme.textPrimary;
+  const mutedColor = theme.textMuted;
   const dividerColor = theme.divider;
 
   const NAV_ITEMS = [
-  { key: "home",      icon: "home",   iconOff: "home-outline",   labelKey: "navHome"      },
-  { key: "favorites", icon: "heart",  iconOff: "heart-outline",  labelKey: "navFavorites" },
-  { key: "create",    center: true,   adminOnly: true             },
-  { key: "cart",      icon: "cart",   iconOff: "cart-outline",   labelKey: "navCart"      },
-  { key: "profile",   icon: "person", iconOff: "person-outline", labelKey: "navProfile"   },
-].filter((tab) => !tab.adminOnly || isAdmin);
+    { key: "home", icon: "home", iconOff: "home-outline", labelKey: "navHome" },
+    {
+      key: "favorites",
+      icon: "heart",
+      iconOff: "heart-outline",
+      labelKey: "navFavorites",
+    },
+    { key: "create", center: true, adminOnly: true },
+    { key: "cart", icon: "cart", iconOff: "cart-outline", labelKey: "navCart" },
+    {
+      key: "profile",
+      icon: "person",
+      iconOff: "person-outline",
+      labelKey: "navProfile",
+    },
+  ].filter((tab) => !tab.adminOnly || isAdmin);
 
   const initials = profileData.name
     .split(" ")
@@ -297,7 +376,11 @@ export default function ProfileScreen({ navigation }) {
     try {
       await logout();
     } catch (error) {
-      showAlert({ title: t("logoutErrorTitle"), message: error.message, type: "danger" });
+      showAlert({
+        title: t("logoutErrorTitle"),
+        message: error.message,
+        type: "danger",
+      });
     }
   }
 
@@ -316,7 +399,10 @@ export default function ProfileScreen({ navigation }) {
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: screenBg }]}>
-      <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} backgroundColor={screenBg} />
+      <StatusBar
+        barStyle={isDarkMode ? "light-content" : "dark-content"}
+        backgroundColor={screenBg}
+      />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -331,7 +417,9 @@ export default function ProfileScreen({ navigation }) {
           >
             <Ionicons name="chevron-back" size={20} color={textColor} />
           </TouchableOpacity>
-          <Text style={[styles.topBarTitle, { color: textColor }]}>{t("profileScreenTitle")}</Text>
+          <Text style={[styles.topBarTitle, { color: textColor }]}>
+            {t("profileScreenTitle")}
+          </Text>
           <View style={{ width: 36 }} />
         </View>
 
@@ -346,10 +434,16 @@ export default function ProfileScreen({ navigation }) {
             </View>
           </View>
 
-          <Text style={[styles.profileName, { color: textColor }]}>{profileData.name}</Text>
-          <Text style={[styles.profileEmail, { color: mutedColor }]}>{profileData.email}</Text>
+          <Text style={[styles.profileName, { color: textColor }]}>
+            {profileData.name}
+          </Text>
+          <Text style={[styles.profileEmail, { color: mutedColor }]}>
+            {profileData.email}
+          </Text>
           {profileData.phone ? (
-            <Text style={[styles.profilePhone, { color: mutedColor }]}>{profileData.phone}</Text>
+            <Text style={[styles.profilePhone, { color: mutedColor }]}>
+              {profileData.phone}
+            </Text>
           ) : null}
 
           <TouchableOpacity
@@ -363,29 +457,52 @@ export default function ProfileScreen({ navigation }) {
         </View>
 
         {/* ── STATS card ────────────────────────────────────────────────────── */}
-        <View style={[styles.statsCard, { backgroundColor: cardBg, borderColor: dividerColor }]}>
+        <View
+          style={[
+            styles.statsCard,
+            { backgroundColor: cardBg, borderColor: dividerColor },
+          ]}
+        >
           {[
-            { icon: "receipt-long", label: t("profileStatOrders"),    value: "0" },
-            { icon: "favorite",     label: t("profileStatFavorites"), value: `${favorites?.length ?? 0}` },
-            { icon: "star",         label: t("profileStatReviews"),   value: "0" },
+            { icon: "receipt-long", label: t("profileStatOrders"), value: "0" },
+            {
+              icon: "favorite",
+              label: t("profileStatFavorites"),
+              value: `${favorites?.length ?? 0}`,
+            },
+            { icon: "star", label: t("profileStatReviews"), value: "0" },
           ].map((s, i, arr) => (
             <View
               key={s.label + i}
               style={[
                 styles.statItem,
-                i < arr.length - 1 && { borderRightWidth: 1, borderRightColor: dividerColor },
+                i < arr.length - 1 && {
+                  borderRightWidth: 1,
+                  borderRightColor: dividerColor,
+                },
               ]}
             >
               <MaterialIcons name={s.icon} size={22} color={theme.navActive} />
-              <Text style={[styles.statValue, { color: textColor }]}>{s.value}</Text>
-              <Text style={[styles.statLabel, { color: mutedColor }]}>{s.label}</Text>
+              <Text style={[styles.statValue, { color: textColor }]}>
+                {s.value}
+              </Text>
+              <Text style={[styles.statLabel, { color: mutedColor }]}>
+                {s.label}
+              </Text>
             </View>
           ))}
         </View>
 
         {/* ── GRUPO: MINHA CONTA ───────────────────────────────────────────── */}
-        <Text style={[styles.sectionLabel, { color: mutedColor }]}>Minha conta</Text>
-        <View style={[styles.card, { backgroundColor: cardBg, borderColor: dividerColor }]}>
+        <Text style={[styles.sectionLabel, { color: mutedColor }]}>
+          Minha conta
+        </Text>
+        <View
+          style={[
+            styles.card,
+            { backgroundColor: cardBg, borderColor: dividerColor },
+          ]}
+        >
           <MenuItem
             {...rowTheme}
             icon="history"
@@ -417,8 +534,15 @@ export default function ProfileScreen({ navigation }) {
         </View>
 
         {/* ── GRUPO: SEGURANÇA ─────────────────────────────────────────────── */}
-        <Text style={[styles.sectionLabel, { color: mutedColor }]}>Segurança</Text>
-        <View style={[styles.card, { backgroundColor: cardBg, borderColor: dividerColor }]}>
+        <Text style={[styles.sectionLabel, { color: mutedColor }]}>
+          Segurança
+        </Text>
+        <View
+          style={[
+            styles.card,
+            { backgroundColor: cardBg, borderColor: dividerColor },
+          ]}
+        >
           <MenuItem
             {...rowTheme}
             icon="lock-outline"
@@ -459,33 +583,49 @@ export default function ProfileScreen({ navigation }) {
       />
 
       {/* ── BOTTOM NAV ───────────────────────────────────────────────────── */}
-      <View style={[styles.bottomNav, { backgroundColor: theme.surfaceAccent, borderColor: dividerColor }]}>
+      <View
+        style={[
+          styles.bottomNav,
+          { backgroundColor: theme.surfaceAccent, borderColor: dividerColor },
+        ]}
+      >
         {NAV_ITEMS.map((tab) => (
           <TouchableOpacity
             key={tab.key}
             style={[styles.navItem, tab.center && styles.navItemCenter]}
             onPress={() => {
               setActiveNav(tab.key);
-              if (tab.key === "create")    navigation.navigate("ProductCreate");
-              if (tab.key === "home")      navigation.navigate("Products");
-              if (tab.key === "cart")      navigation.navigate("Cart");
+              if (tab.key === "create") navigation.navigate("ProductCreate");
+              if (tab.key === "home") navigation.navigate("Products");
+              if (tab.key === "cart") navigation.navigate("Cart");
               if (tab.key === "favorites") navigation.navigate("Favorites");
             }}
           >
             {tab.center ? (
-              <View style={[styles.navCreateBtn, { borderColor: theme.surfaceAccent }]}>
+              <View
+                style={[
+                  styles.navCreateBtn,
+                  { borderColor: theme.surfaceAccent },
+                ]}
+              >
                 <Ionicons name="add" size={26} color={GREEN_DARK} />
               </View>
             ) : (
               <>
-                <View style={[
-                  styles.navIconWrap,
-                  activeNav === tab.key && { backgroundColor: theme.iconBg },
-                ]}>
+                <View
+                  style={[
+                    styles.navIconWrap,
+                    activeNav === tab.key && { backgroundColor: theme.iconBg },
+                  ]}
+                >
                   <Ionicons
                     name={activeNav === tab.key ? tab.icon : tab.iconOff}
                     size={20}
-                    color={activeNav === tab.key ? theme.navActive : theme.navInactive}
+                    color={
+                      activeNav === tab.key
+                        ? theme.navActive
+                        : theme.navInactive
+                    }
                   />
                   {tab.key === "cart" && totalItems > 0 && (
                     <View style={styles.cartBadge}>
@@ -493,11 +633,16 @@ export default function ProfileScreen({ navigation }) {
                     </View>
                   )}
                 </View>
-                <Text style={[
-                  styles.navLabel,
-                  { color: theme.navInactive },
-                  activeNav === tab.key && { color: theme.navActive, fontWeight: "800" },
-                ]}>
+                <Text
+                  style={[
+                    styles.navLabel,
+                    { color: theme.navInactive },
+                    activeNav === tab.key && {
+                      color: theme.navActive,
+                      fontWeight: "800",
+                    },
+                  ]}
+                >
                   {t(tab.labelKey)}
                 </Text>
               </>
@@ -667,7 +812,9 @@ const styles = StyleSheet.create({
   },
   bottomNav: {
     position: "absolute",
-    bottom: 0, left: 0, right: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
     flexDirection: "row",
     paddingTop: 12,
     paddingBottom: 26,
@@ -696,7 +843,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   navCreateBtn: {
-    width: 52, height: 52,
+    width: 52,
+    height: 52,
     borderRadius: 12,
     backgroundColor: GOLD,
     alignItems: "center",
@@ -714,10 +862,12 @@ const styles = StyleSheet.create({
   },
   cartBadge: {
     position: "absolute",
-    top: -4, right: -8,
+    top: -4,
+    right: -8,
     backgroundColor: RED,
     borderRadius: 10,
-    minWidth: 16, height: 16,
+    minWidth: 16,
+    height: 16,
     justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: 4,

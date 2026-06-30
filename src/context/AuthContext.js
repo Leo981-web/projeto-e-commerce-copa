@@ -4,7 +4,7 @@ import * as authService from "../services/authService";
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [user, setUser]       = useState(null);
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -20,7 +20,9 @@ export function AuthProvider({ children }) {
       }
     }
     loadUser();
-    return () => { isMounted = false; };
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   async function login(email, password) {
@@ -34,11 +36,16 @@ export function AuthProvider({ children }) {
     }
   }
 
-  
   async function register(name, email, password, phone, userType) {
     setLoading(true);
     try {
-      const registeredUser = await authService.signUp(name, email, password, phone, userType);
+      const registeredUser = await authService.signUp(
+        name,
+        email,
+        password,
+        phone,
+        userType,
+      );
       setUser(registeredUser);
       return registeredUser;
     } finally {
@@ -66,7 +73,7 @@ export function AuthProvider({ children }) {
 
   const typeStr = user?.type ? String(user.type).toUpperCase() : "";
 
-  const isAdmin  = user?.type === 0 || typeStr === "0" || typeStr === "ADMIN";
+  const isAdmin = user?.type === 0 || typeStr === "0" || typeStr === "ADMIN";
   const isCommon = user?.type === 1 || typeStr === "1" || typeStr === "COMMON";
 
   const value = {

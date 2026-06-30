@@ -10,12 +10,9 @@ export default function Routes() {
   const { isAuthenticated, loading } = useAuth();
 
   if (loading) {
-    return (
-      <Loading/>
-    );
+    return <Loading />;
   }
 
-  
   return (
     <ThemeProvider>
       {isAuthenticated ? <AppRoutes /> : <AuthRoutes />}

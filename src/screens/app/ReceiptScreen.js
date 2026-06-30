@@ -19,33 +19,23 @@ import { useTheme } from "../../context/ThemeContext";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
-// Margem extra nas laterais pra cobrir o "balanço" horizontal das ondas
-// sem deixar a cor de fundo escapar pelas bordas.
 const EDGE_BUFFER = 26;
 const SVG_WIDTH = SCREEN_WIDTH + EDGE_BUFFER * 2;
 const MAX_AMPLITUDE = 95;
 const WAVE_TRAVEL = SCREEN_HEIGHT + MAX_AMPLITUDE * 2;
 
-// Curva de easing mais "líquida": acelera rápido e desacelera suavemente
-// até o fim, lembrando o movimento de uma onda quebrando.
 const FLUID_EASING = Easing.bezier(0.22, 1, 0.36, 1);
 
-// Paleta da marca (verde/dourado), no lugar do antigo azul/amarelo "fora do padrão".
 const GREEN_DARK = "#0E3D1B";
 const GREEN_MID = "#15622A";
 const GOLD = "#F5C518";
 
-// Gera o "d" de um path SVG: um retângulo cobrindo a tela com uma
-// borda inferior ondulada (efeito de onda).
 function buildWavePath(flatHeight, amplitude) {
   return `M0,0 H${SVG_WIDTH} V${flatHeight} C${SVG_WIDTH * 0.78},${
     flatHeight + amplitude
   } ${SVG_WIDTH * 0.22},${flatHeight - amplitude} 0,${flatHeight} Z`;
 }
 
-// Interpola progresso (0→1) em translateY (desce e sai da tela) +
-// translateX (balanço lateral suave, tipo "fluido") usando o MESMO
-// valor animado — assim continua tudo rodando no native driver.
 function buildWaveTransform(progress) {
   return [
     {
@@ -95,9 +85,6 @@ export default function ReceiptScreen({ route, navigation }) {
 
   const paymentLabel = PAYMENT_LABELS[paymentMethod] || "Pagamento";
 
-  // 3 camadas em cascata (verde escuro ao fundo → verde → dourado na frente),
-  // cada uma um pouco mais rápida que a anterior, criando sensação de
-  // profundidade — como ondas se sobrepondo.
   const waveBack = useRef(new Animated.Value(0)).current;
   const waveMid = useRef(new Animated.Value(0)).current;
   const waveFront = useRef(new Animated.Value(0)).current;
@@ -148,7 +135,11 @@ export default function ReceiptScreen({ route, navigation }) {
 
         {note ? (
           <View style={styles.noteBox}>
-            <Ionicons name="information-circle-outline" size={18} color={theme.navActive} />
+            <Ionicons
+              name="information-circle-outline"
+              size={18}
+              color={theme.navActive}
+            />
             <AppText style={styles.noteText}>{note}</AppText>
           </View>
         ) : null}
@@ -211,9 +202,6 @@ export default function ReceiptScreen({ route, navigation }) {
         </View>
       </ScrollView>
 
-      {/* CAMADAS DE ONDA: cobrem a tela e deslizam de cima para baixo
-          balançando levemente de um lado pro outro (efeito fluido),
-          revelando o comprovante por baixo (sem desmontar nada). */}
       <Animated.View
         pointerEvents="none"
         style={[styles.waveLayer, { transform: buildWaveTransform(waveBack) }]}
@@ -237,137 +225,141 @@ export default function ReceiptScreen({ route, navigation }) {
         style={[styles.waveLayer, { transform: buildWaveTransform(waveFront) }]}
       >
         <Svg width={SVG_WIDTH} height={SCREEN_HEIGHT + MAX_AMPLITUDE}>
-          <Path d={buildWavePath(SCREEN_HEIGHT - 80, MAX_AMPLITUDE)} fill={GOLD} />
+          <Path
+            d={buildWavePath(SCREEN_HEIGHT - 80, MAX_AMPLITUDE)}
+            fill={GOLD}
+          />
         </Svg>
       </Animated.View>
     </SafeAreaView>
   );
 }
 
-const makeStyles = (theme, isDarkMode) => StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: theme.bg,
-  },
-  waveLayer: {
-    position: "absolute",
-    top: 0,
-    left: -EDGE_BUFFER,
-  },
-  scrollContainer: {
-    padding: 16,
-    paddingTop: 32,
-  },
-  heroIcon: {
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  heroTitle: {
-    textAlign: "center",
-    color: theme.titlePrimary,
-    fontSize: 22,
-    marginBottom: 4,
-  },
-  heroSubtitle: {
-    textAlign: "center",
-    marginBottom: 24,
-    color: theme.textMuted,
-  },
-  noteBox: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 8,
-    backgroundColor: theme.iconBg,
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 20,
-  },
-  noteText: {
-    flex: 1,
-    color: theme.titlePrimary,
-    fontSize: 13,
-    lineHeight: 18,
-  },
-  card: {
-    backgroundColor: theme.card,
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: isDarkMode ? 0.25 : 0.06,
-    shadowRadius: 6,
-    elevation: 2,
-  },
-  row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingVertical: 6,
-  },
-  value: {
-    fontWeight: "700",
-    color: theme.titlePrimary,
-  },
-  sectionTitle: {
-    marginBottom: 10,
-    color: theme.titlePrimary,
-  },
-  itemRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.divider,
-  },
-  itemRowLast: {
-    borderBottomWidth: 0,
-    paddingBottom: 0,
-  },
-  itemInfo: {
-    flex: 1,
-    marginRight: 12,
-  },
-  itemName: {
-    fontWeight: "600",
-    color: theme.titlePrimary,
-  },
-  itemQty: {
-    marginTop: 2,
-    fontSize: 13,
-    color: theme.textMuted,
-  },
-  itemSubtotal: {
-    fontWeight: "700",
-    color: theme.titlePrimary,
-  },
-  totalCard: {
-    backgroundColor: theme.card,
-    borderRadius: 16,
-    padding: 20,
-    alignItems: "center",
-    marginBottom: 24,
-    borderLeftWidth: 5,
-    borderLeftColor: theme.navActive,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: isDarkMode ? 0.3 : 0.08,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  totalLabel: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: theme.textMuted,
-    textTransform: "uppercase",
-  },
-  totalValue: {
-    fontSize: 32,
-    fontWeight: "900",
-    color: theme.titlePrimary,
-    marginTop: 4,
-  },
-  buttonWrapper: {
-    width: "100%",
-  },
-});
+const makeStyles = (theme, isDarkMode) =>
+  StyleSheet.create({
+    safe: {
+      flex: 1,
+      backgroundColor: theme.bg,
+    },
+    waveLayer: {
+      position: "absolute",
+      top: 0,
+      left: -EDGE_BUFFER,
+    },
+    scrollContainer: {
+      padding: 16,
+      paddingTop: 32,
+    },
+    heroIcon: {
+      alignItems: "center",
+      marginBottom: 8,
+    },
+    heroTitle: {
+      textAlign: "center",
+      color: theme.titlePrimary,
+      fontSize: 22,
+      marginBottom: 4,
+    },
+    heroSubtitle: {
+      textAlign: "center",
+      marginBottom: 24,
+      color: theme.textMuted,
+    },
+    noteBox: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      gap: 8,
+      backgroundColor: theme.iconBg,
+      borderRadius: 12,
+      padding: 12,
+      marginBottom: 20,
+    },
+    noteText: {
+      flex: 1,
+      color: theme.titlePrimary,
+      fontSize: 13,
+      lineHeight: 18,
+    },
+    card: {
+      backgroundColor: theme.card,
+      borderRadius: 16,
+      padding: 16,
+      marginBottom: 20,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: isDarkMode ? 0.25 : 0.06,
+      shadowRadius: 6,
+      elevation: 2,
+    },
+    row: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      paddingVertical: 6,
+    },
+    value: {
+      fontWeight: "700",
+      color: theme.titlePrimary,
+    },
+    sectionTitle: {
+      marginBottom: 10,
+      color: theme.titlePrimary,
+    },
+    itemRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      paddingVertical: 10,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.divider,
+    },
+    itemRowLast: {
+      borderBottomWidth: 0,
+      paddingBottom: 0,
+    },
+    itemInfo: {
+      flex: 1,
+      marginRight: 12,
+    },
+    itemName: {
+      fontWeight: "600",
+      color: theme.titlePrimary,
+    },
+    itemQty: {
+      marginTop: 2,
+      fontSize: 13,
+      color: theme.textMuted,
+    },
+    itemSubtotal: {
+      fontWeight: "700",
+      color: theme.titlePrimary,
+    },
+    totalCard: {
+      backgroundColor: theme.card,
+      borderRadius: 16,
+      padding: 20,
+      alignItems: "center",
+      marginBottom: 24,
+      borderLeftWidth: 5,
+      borderLeftColor: theme.navActive,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: isDarkMode ? 0.3 : 0.08,
+      shadowRadius: 8,
+      elevation: 3,
+    },
+    totalLabel: {
+      fontSize: 14,
+      fontWeight: "600",
+      color: theme.textMuted,
+      textTransform: "uppercase",
+    },
+    totalValue: {
+      fontSize: 32,
+      fontWeight: "900",
+      color: theme.titlePrimary,
+      marginTop: 4,
+    },
+    buttonWrapper: {
+      width: "100%",
+    },
+  });
